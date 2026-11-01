@@ -1,0 +1,2436 @@
+{
+  "version": "0.4-review",
+  "categories": {
+    "grass": {
+      "name": "草",
+      "isAnimal": false,
+      "placeholder": "grass",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "tree": {
+      "name": "树",
+      "isAnimal": false,
+      "placeholder": "tree",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "rock": {
+      "name": "岩石",
+      "isAnimal": false,
+      "placeholder": "rock",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "island": {
+      "name": "岛屿",
+      "isAnimal": false,
+      "placeholder": "island",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "human": {
+      "name": "人",
+      "isAnimal": true,
+      "placeholder": "human",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "dog": {
+      "name": "狗",
+      "isAnimal": true,
+      "placeholder": "dog",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "bird": {
+      "name": "鸟",
+      "isAnimal": true,
+      "placeholder": "bird",
+      "soundCue": "chirp",
+      "release": "0.3"
+    },
+    "fish": {
+      "name": "鱼",
+      "isAnimal": true,
+      "placeholder": "fish",
+      "soundCue": null,
+      "release": "0.3"
+    }
+  },
+  "species": {
+    "grass": {
+      "id": "plant_grass_01",
+      "name": "细叶草",
+      "category": "grass",
+      "isAnimal": false,
+      "soundCue": null,
+      "stage": 0,
+      "mode": "ground",
+      "radius": 0.45,
+      "height": 0.7,
+      "wadeDepth": 0.6,
+      "surface": null,
+      "speed": 2.8,
+      "boost": 2.7,
+      "camera": 3.5,
+      "fov": 48,
+      "reach": 17.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "风起的地方",
+      "response": "天地与我并生，而万物与我为一。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 950,
+        "underwaterLowpassHz": 360,
+        "range": 20,
+        "waterCueGain": 0.6,
+        "windGain": 0.14,
+        "distantCueGain": 1,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.22,
+            0,
+            -0.22,
+            0.22,
+            0.7,
+            0.22
+          ]
+        ],
+        "solid": false,
+        "passPolicy": "yield_with_bend"
+      },
+      "verticalControl": "none"
+    },
+    "broadleaf": {
+      "id": "tree_broadleaf_01",
+      "name": "阔叶树",
+      "category": "tree",
+      "isAnimal": false,
+      "soundCue": null,
+      "stage": 1,
+      "mode": "ground",
+      "radius": 3.4,
+      "height": 12.0,
+      "wadeDepth": 0.6,
+      "surface": null,
+      "speed": 14.0,
+      "boost": 2.7,
+      "camera": 29.0,
+      "fov": 48,
+      "reach": 150.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "林间的呼吸",
+      "response": "人皆知有用之用，而莫知无用之用也。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 900,
+        "underwaterLowpassHz": 360,
+        "range": 60,
+        "waterCueGain": 0.5,
+        "windGain": 0.17,
+        "distantCueGain": 1,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.7,
+            0,
+            -0.7,
+            0.7,
+            7,
+            0.7
+          ],
+          [
+            -4,
+            5,
+            -4,
+            4,
+            11.5,
+            4
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "none"
+    },
+    "pine": {
+      "id": "tree_pine_01",
+      "name": "松树",
+      "category": "tree",
+      "isAnimal": false,
+      "soundCue": null,
+      "stage": 1,
+      "mode": "ground",
+      "radius": 3.5,
+      "height": 15.0,
+      "wadeDepth": 0.6,
+      "surface": null,
+      "speed": 16.0,
+      "boost": 2.7,
+      "camera": 34.0,
+      "fov": 48,
+      "reach": 150.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "山风经过",
+      "response": "岁寒，然后知松柏之后凋也。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 900,
+        "underwaterLowpassHz": 360,
+        "range": 60,
+        "waterCueGain": 0.5,
+        "windGain": 0.17,
+        "distantCueGain": 1,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.6,
+            0,
+            -0.6,
+            0.6,
+            13,
+            0.6
+          ],
+          [
+            -3.8,
+            3,
+            -3.8,
+            3.8,
+            14,
+            3.8
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "none"
+    },
+    "rock": {
+      "id": "rock_coast_01",
+      "name": "海岸岩石",
+      "category": "rock",
+      "isAnimal": false,
+      "soundCue": null,
+      "stage": 1,
+      "mode": "ground",
+      "radius": 1.4,
+      "height": 2.0,
+      "wadeDepth": 3,
+      "surface": null,
+      "speed": 9.0,
+      "boost": 2.7,
+      "camera": 8.0,
+      "fov": 48,
+      "reach": 100.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "潮汐的边缘",
+      "response": "天下莫柔弱于水，而攻坚强者莫之能胜。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 700,
+        "underwaterLowpassHz": 360,
+        "range": 45,
+        "waterCueGain": 1.3,
+        "windGain": 0.07,
+        "distantCueGain": 1,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -1.7,
+            -0.35,
+            -1.35,
+            1.7,
+            1.9,
+            1.35
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "none"
+    },
+    "boulder": {
+      "id": "rock_large_01",
+      "name": "海岸巨岩",
+      "category": "rock",
+      "isAnimal": false,
+      "soundCue": null,
+      "stage": 2,
+      "mode": "ground",
+      "radius": 76,
+      "height": 70.0,
+      "wadeDepth": 10,
+      "surface": {
+        "type": "dome",
+        "radii": [
+          67,
+          72,
+          58
+        ]
+      },
+      "speed": 75.0,
+      "boost": 2.7,
+      "camera": 230.0,
+      "fov": 48,
+      "reach": 1000.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "云影之下",
+      "response": "天下莫大于秋豪之末，而大山为小。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 600,
+        "underwaterLowpassHz": 360,
+        "range": 200,
+        "waterCueGain": 0.5,
+        "windGain": 0.12,
+        "distantCueGain": 1,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -74,
+            -80,
+            -65,
+            74,
+            80,
+            65
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "none"
+    },
+    "island": {
+      "id": "island_01",
+      "name": "岛屿",
+      "category": "island",
+      "isAnimal": false,
+      "soundCue": null,
+      "stage": 3,
+      "mode": "island",
+      "radius": 480.0,
+      "height": 85.0,
+      "wadeDepth": 0,
+      "surface": {
+        "type": "dome",
+        "radii": [
+          330,
+          65,
+          260
+        ]
+      },
+      "speed": 230.0,
+      "boost": 2.7,
+      "camera": 1450.0,
+      "fov": 48,
+      "reach": 16000.0,
+      "targets": [
+        "boulder",
+        "island"
+      ],
+      "place": "潮汐之间",
+      "response": "这些无限空间的永恒沉默使我恐惧。",
+      "moments": {
+        "first_possess_from_stage_1": "人将被抹去，如同大海边沙地上的一张脸。"
+      },
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 450,
+        "underwaterLowpassHz": 360,
+        "range": 3000,
+        "waterCueGain": 1.5,
+        "windGain": 0.08,
+        "distantCueGain": 1,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -480,
+            -45,
+            -410,
+            480,
+            90,
+            410
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "none"
+    },
+    "gull": {
+      "id": "bird_gull_01",
+      "name": "海鸥",
+      "category": "bird",
+      "isAnimal": true,
+      "soundCue": "chirp",
+      "stage": 1,
+      "mode": "fly",
+      "radius": 0.65,
+      "height": 0.65,
+      "wadeDepth": 0,
+      "surface": null,
+      "speed": 18.0,
+      "boost": 2.7,
+      "camera": 5.0,
+      "fov": 52,
+      "reach": 130.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "风的路径",
+      "response": "抟扶摇而上者九万里，去以六月息者也。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1.15,
+        "contrast": 1.1,
+        "brightness": 1.02,
+        "fogMultiplier": 0.6,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 1400,
+        "underwaterLowpassHz": 360,
+        "range": 65,
+        "waterCueGain": 0.6,
+        "windGain": 0.16,
+        "distantCueGain": 1.1,
+        "heightAttenuation": true
+      },
+      "collision": {
+        "boxes": [
+          [
+            -1.4,
+            0,
+            -0.7,
+            1.4,
+            0.65,
+            0.8
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "view_direction"
+    },
+    "tern": {
+      "id": "bird_tern_01",
+      "name": "燕鸥",
+      "category": "bird",
+      "isAnimal": true,
+      "soundCue": "chirp",
+      "stage": 1,
+      "mode": "fly",
+      "radius": 0.5,
+      "height": 0.5,
+      "wadeDepth": 0,
+      "surface": null,
+      "speed": 22.0,
+      "boost": 2.7,
+      "camera": 4.0,
+      "fov": 52,
+      "reach": 130.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "海与天之间",
+      "response": "飘风不终朝，骤雨不终日。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1.15,
+        "contrast": 1.1,
+        "brightness": 1.02,
+        "fogMultiplier": 0.6,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 1400,
+        "underwaterLowpassHz": 360,
+        "range": 65,
+        "waterCueGain": 0.6,
+        "windGain": 0.16,
+        "distantCueGain": 1.1,
+        "heightAttenuation": true
+      },
+      "collision": {
+        "boxes": [
+          [
+            -1.3,
+            0,
+            -0.65,
+            1.3,
+            0.6,
+            0.9
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "view_direction"
+    },
+    "silverfish": {
+      "id": "fish_silver_01",
+      "name": "银色小鱼",
+      "category": "fish",
+      "isAnimal": true,
+      "soundCue": null,
+      "stage": 1,
+      "mode": "swim",
+      "radius": 0.35,
+      "height": 0.32,
+      "wadeDepth": 0,
+      "surface": null,
+      "speed": 9.0,
+      "boost": 2.7,
+      "camera": 3.5,
+      "fov": 58,
+      "reach": 100.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "水下的光",
+      "response": "子非鱼，安知鱼之乐？",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 0.82,
+        "contrast": 0.96,
+        "brightness": 0.96,
+        "fogMultiplier": 1.6,
+        "tint": "#3e7c73"
+      },
+      "hearing": {
+        "airLowpassHz": 900,
+        "underwaterLowpassHz": 360,
+        "range": 35,
+        "waterCueGain": 1.4,
+        "windGain": 0.03,
+        "distantCueGain": 0.8,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.25,
+            0,
+            -0.45,
+            0.25,
+            0.4,
+            0.65
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "view_direction"
+    },
+    "butterflyfish": {
+      "id": "fish_butterfly_01",
+      "name": "蝴蝶鱼",
+      "category": "fish",
+      "isAnimal": true,
+      "soundCue": null,
+      "stage": 1,
+      "mode": "swim",
+      "radius": 0.4,
+      "height": 0.45,
+      "wadeDepth": 0,
+      "surface": null,
+      "speed": 7.0,
+      "boost": 2.7,
+      "camera": 3.5,
+      "fov": 58,
+      "reach": 100.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "岩礁之间",
+      "response": "相濡以沫，不如相忘于江湖。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 0.82,
+        "contrast": 0.96,
+        "brightness": 0.96,
+        "fogMultiplier": 1.6,
+        "tint": "#3e7c73"
+      },
+      "hearing": {
+        "airLowpassHz": 900,
+        "underwaterLowpassHz": 360,
+        "range": 35,
+        "waterCueGain": 1.4,
+        "windGain": 0.03,
+        "distantCueGain": 0.8,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.25,
+            -0.03,
+            -0.45,
+            0.25,
+            0.5,
+            0.65
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "view_direction"
+    },
+    "perch": {
+      "id": "fish_river_01",
+      "name": "河鲈",
+      "category": "fish",
+      "isAnimal": true,
+      "soundCue": null,
+      "stage": 1,
+      "mode": "swim",
+      "radius": 0.4,
+      "height": 0.38,
+      "wadeDepth": 0,
+      "surface": null,
+      "speed": 8.0,
+      "boost": 2.7,
+      "camera": 3.5,
+      "fov": 58,
+      "reach": 100.0,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "湖水深处",
+      "response": "人不能两次踏进同一条河流。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 0.82,
+        "contrast": 0.96,
+        "brightness": 0.96,
+        "fogMultiplier": 1.6,
+        "tint": "#3e7c73"
+      },
+      "hearing": {
+        "airLowpassHz": 900,
+        "underwaterLowpassHz": 360,
+        "range": 35,
+        "waterCueGain": 1.4,
+        "windGain": 0.03,
+        "distantCueGain": 0.8,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.25,
+            0,
+            -0.45,
+            0.25,
+            0.4,
+            0.65
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "view_direction"
+    },
+    "human": {
+      "id": "human_01",
+      "name": "人",
+      "category": "human",
+      "isAnimal": true,
+      "soundCue": null,
+      "stage": 1,
+      "mode": "ground",
+      "radius": 0.35,
+      "height": 1.75,
+      "wadeDepth": 0.6,
+      "surface": null,
+      "speed": 6,
+      "boost": 2.7,
+      "camera": 5,
+      "fov": 48,
+      "reach": 65,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "此刻的行路人",
+      "response": "号物之数谓之万，人处一焉。",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 1200,
+        "underwaterLowpassHz": 360,
+        "range": 45,
+        "waterCueGain": 0.8,
+        "windGain": 0.11,
+        "distantCueGain": 1,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.3,
+            0,
+            -0.3,
+            0.3,
+            1.8,
+            0.3
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "none"
+    },
+    "dog": {
+      "id": "dog_01",
+      "name": "狗",
+      "category": "dog",
+      "isAnimal": true,
+      "soundCue": null,
+      "stage": 1,
+      "mode": "ground",
+      "radius": 0.45,
+      "height": 0.8,
+      "wadeDepth": 0.6,
+      "surface": null,
+      "speed": 7.5,
+      "boost": 2.7,
+      "camera": 4,
+      "fov": 48,
+      "reach": 60,
+      "targets": [
+        "grass",
+        "broadleaf",
+        "pine",
+        "rock",
+        "boulder",
+        "island",
+        "gull",
+        "tern",
+        "silverfish",
+        "butterflyfish",
+        "perch",
+        "human",
+        "dog"
+      ],
+      "place": "循着声音",
+      "response": "如果狮子会说话，我们也无法理解它。",
+      "moments": {},
+      "vision": {
+        "grayscale": 1,
+        "saturation": 1,
+        "contrast": 1.08,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 2600,
+        "underwaterLowpassHz": 360,
+        "range": 110,
+        "waterCueGain": 1.8,
+        "windGain": 0.11,
+        "distantCueGain": 1.8,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.32,
+            0,
+            -0.6,
+            0.32,
+            0.85,
+            0.6
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "none"
+    }
+  },
+  "layout": {
+    "mainIsland": "island-main",
+    "initialInstance": "grass-start",
+    "regions": {
+      "main_land": {
+        "id": "main_land",
+        "definition": "主岛陆地：草地、林地、岩丘、岸线"
+      },
+      "lake": {
+        "id": "lake",
+        "shape": "ellipse",
+        "center": [
+          -83,
+          -65
+        ],
+        "radii": [
+          65,
+          39
+        ],
+        "surfaceY": 5.8,
+        "definition": "山湖，银色小鱼和河鲈的水体"
+      },
+      "lake_shore": {
+        "id": "lake_shore",
+        "shape": "ellipse",
+        "center": [
+          -83,
+          -65
+        ],
+        "radii": [
+          72,
+          46
+        ],
+        "definition": "湖岸缓冲带，成片树木避开"
+      },
+      "near_sea": {
+        "id": "near_sea",
+        "definition": "主岛周边浅海，蝴蝶鱼所在"
+      },
+      "island_airspace": {
+        "id": "island_airspace",
+        "minY": 0,
+        "maxY": 180,
+        "horizontalBoundary": "main island plus 300 m"
+      },
+      "ocean": {
+        "id": "ocean",
+        "definition": "群岛之间的海面，岛屿层身体的活动区"
+      }
+    },
+    "instances": [
+      {
+        "id": "island-main",
+        "carrier": "ocean",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "placement": "main",
+        "anchorId": "A10",
+        "kind": "island"
+      },
+      {
+        "id": "grass-start",
+        "carrier": "island-main",
+        "position": [
+          0,
+          0,
+          22
+        ],
+        "placement": "surface",
+        "anchorId": "A01",
+        "kind": "grass"
+      },
+      {
+        "id": "grass-friend-0",
+        "carrier": "island-main",
+        "position": [
+          0.0,
+          0,
+          21.0
+        ],
+        "placement": "surface",
+        "anchorId": "A01",
+        "kind": "grass"
+      },
+      {
+        "id": "grass-friend-1",
+        "carrier": "island-main",
+        "position": [
+          1.82,
+          0,
+          18.17
+        ],
+        "placement": "surface",
+        "anchorId": "A01",
+        "kind": "grass"
+      },
+      {
+        "id": "grass-friend-2",
+        "carrier": "island-main",
+        "position": [
+          -1.51,
+          0,
+          17.69
+        ],
+        "placement": "surface",
+        "anchorId": "A01",
+        "kind": "grass"
+      },
+      {
+        "id": "grass-friend-3",
+        "carrier": "island-main",
+        "position": [
+          -0.56,
+          0,
+          20.92
+        ],
+        "placement": "surface",
+        "anchorId": "A01",
+        "kind": "grass"
+      },
+      {
+        "id": "grass-friend-4",
+        "carrier": "island-main",
+        "position": [
+          1.98,
+          0,
+          18.71
+        ],
+        "placement": "surface",
+        "anchorId": "A01",
+        "kind": "grass"
+      },
+      {
+        "id": "human-first",
+        "carrier": "island-main",
+        "position": [
+          3,
+          0,
+          14
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "human"
+      },
+      {
+        "id": "dog-first",
+        "carrier": "island-main",
+        "position": [
+          5,
+          0,
+          19
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "dog"
+      },
+      {
+        "id": "rock-first",
+        "carrier": "island-main",
+        "position": [
+          6,
+          0,
+          11
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "rock"
+      },
+      {
+        "id": "tree-first",
+        "carrier": "island-main",
+        "position": [
+          -7,
+          0,
+          9
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "broadleaf"
+      },
+      {
+        "id": "tree-forest",
+        "carrier": "island-main",
+        "position": [
+          15,
+          0,
+          -3
+        ],
+        "placement": "surface",
+        "anchorId": "A03",
+        "kind": "broadleaf"
+      },
+      {
+        "id": "boulder-main",
+        "carrier": "island-main",
+        "position": [
+          104,
+          -5,
+          -142
+        ],
+        "placement": "fixed",
+        "anchorId": "A05",
+        "kind": "boulder"
+      },
+      {
+        "id": "pine-boulder-0",
+        "carrier": "boulder-main",
+        "position": [
+          -13.5,
+          0,
+          -5
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-boulder-0",
+        "carrier": "boulder-main",
+        "position": [
+          -11.5,
+          0,
+          -4
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-boulder-1",
+        "carrier": "boulder-main",
+        "position": [
+          -4.5,
+          0,
+          -3
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-boulder-1",
+        "carrier": "boulder-main",
+        "position": [
+          -2.5,
+          0,
+          -2
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-boulder-2",
+        "carrier": "boulder-main",
+        "position": [
+          4.5,
+          0,
+          -1
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-boulder-2",
+        "carrier": "boulder-main",
+        "position": [
+          6.5,
+          0,
+          0
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-boulder-3",
+        "carrier": "boulder-main",
+        "position": [
+          13.5,
+          0,
+          1
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-boulder-3",
+        "carrier": "boulder-main",
+        "position": [
+          15.5,
+          0,
+          2
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "grass"
+      },
+      {
+        "id": "gull-0",
+        "carrier": "island-main",
+        "position": [
+          12,
+          16.0,
+          0
+        ],
+        "placement": "surface",
+        "anchorId": "A07",
+        "kind": "gull"
+      },
+      {
+        "id": "tern-0",
+        "carrier": "island-main",
+        "position": [
+          -45,
+          15.0,
+          -45
+        ],
+        "placement": "fixed",
+        "anchorId": "A08",
+        "kind": "tern"
+      },
+      {
+        "id": "silverfish-0",
+        "carrier": "island-main",
+        "position": [
+          -76.0,
+          4.4,
+          -55
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "perch-0",
+        "carrier": "island-main",
+        "position": [
+          -93.0,
+          3.4,
+          -66
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "perch"
+      },
+      {
+        "id": "butterflyfish-0",
+        "carrier": "island-main",
+        "position": [
+          210,
+          -4,
+          220
+        ],
+        "placement": "fixed",
+        "anchorId": "A06",
+        "kind": "butterflyfish"
+      },
+      {
+        "id": "gull-1",
+        "carrier": "island-main",
+        "position": [
+          14,
+          16.4,
+          -3
+        ],
+        "placement": "surface",
+        "anchorId": "A07",
+        "kind": "gull"
+      },
+      {
+        "id": "tern-1",
+        "carrier": "island-main",
+        "position": [
+          -43,
+          15.3,
+          -42
+        ],
+        "placement": "fixed",
+        "anchorId": "A08",
+        "kind": "tern"
+      },
+      {
+        "id": "silverfish-1",
+        "carrier": "island-main",
+        "position": [
+          -74.7,
+          4.4,
+          -56
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "perch-1",
+        "carrier": "island-main",
+        "position": [
+          -91.7,
+          3.4,
+          -67
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "perch"
+      },
+      {
+        "id": "butterflyfish-1",
+        "carrier": "island-main",
+        "position": [
+          212,
+          -4,
+          218
+        ],
+        "placement": "fixed",
+        "anchorId": "A06",
+        "kind": "butterflyfish"
+      },
+      {
+        "id": "gull-2",
+        "carrier": "island-main",
+        "position": [
+          16,
+          16.8,
+          -6
+        ],
+        "placement": "surface",
+        "anchorId": "A07",
+        "kind": "gull"
+      },
+      {
+        "id": "tern-2",
+        "carrier": "island-main",
+        "position": [
+          -41,
+          15.6,
+          -39
+        ],
+        "placement": "fixed",
+        "anchorId": "A08",
+        "kind": "tern"
+      },
+      {
+        "id": "silverfish-2",
+        "carrier": "island-main",
+        "position": [
+          -73.4,
+          4.4,
+          -57
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "perch-2",
+        "carrier": "island-main",
+        "position": [
+          -90.4,
+          3.4,
+          -68
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "perch"
+      },
+      {
+        "id": "butterflyfish-2",
+        "carrier": "island-main",
+        "position": [
+          214,
+          -4,
+          216
+        ],
+        "placement": "fixed",
+        "anchorId": "A06",
+        "kind": "butterflyfish"
+      },
+      {
+        "id": "gull-3",
+        "carrier": "island-main",
+        "position": [
+          18,
+          17.2,
+          -9
+        ],
+        "placement": "surface",
+        "anchorId": "A07",
+        "kind": "gull"
+      },
+      {
+        "id": "tern-3",
+        "carrier": "island-main",
+        "position": [
+          -39,
+          15.9,
+          -36
+        ],
+        "placement": "fixed",
+        "anchorId": "A08",
+        "kind": "tern"
+      },
+      {
+        "id": "silverfish-3",
+        "carrier": "island-main",
+        "position": [
+          -72.1,
+          4.4,
+          -58
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "perch-3",
+        "carrier": "island-main",
+        "position": [
+          -89.1,
+          3.4,
+          -69
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "perch"
+      },
+      {
+        "id": "butterflyfish-3",
+        "carrier": "island-main",
+        "position": [
+          216,
+          -4,
+          214
+        ],
+        "placement": "fixed",
+        "anchorId": "A06",
+        "kind": "butterflyfish"
+      },
+      {
+        "id": "island-0",
+        "carrier": "ocean",
+        "position": [
+          1500,
+          0,
+          -1700
+        ],
+        "placement": "sea",
+        "anchorId": "A11",
+        "kind": "island"
+      },
+      {
+        "id": "boulder-island-0",
+        "carrier": "island-0",
+        "position": [
+          0,
+          45,
+          0
+        ],
+        "placement": "fixed",
+        "kind": "boulder"
+      },
+      {
+        "id": "pine-island-0-0",
+        "carrier": "island-0",
+        "position": [
+          147.37,
+          0,
+          54.52
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-0-0",
+        "carrier": "island-0",
+        "position": [
+          141.08,
+          0,
+          51.01
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-0-1",
+        "carrier": "island-0",
+        "position": [
+          -62.31,
+          0,
+          128.95
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-0-1",
+        "carrier": "island-0",
+        "position": [
+          -56.8,
+          0,
+          120.66
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-0-2",
+        "carrier": "island-0",
+        "position": [
+          -147.37,
+          0,
+          -54.52
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-0-2",
+        "carrier": "island-0",
+        "position": [
+          -137.08,
+          0,
+          -51.01
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-0-3",
+        "carrier": "island-0",
+        "position": [
+          62.31,
+          0,
+          -128.95
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-0-3",
+        "carrier": "island-0",
+        "position": [
+          60.8,
+          0,
+          -120.66
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "island-1",
+        "carrier": "ocean",
+        "position": [
+          2900,
+          0,
+          -900
+        ],
+        "placement": "sea",
+        "anchorId": "A12",
+        "kind": "island"
+      },
+      {
+        "id": "boulder-island-1",
+        "carrier": "island-1",
+        "position": [
+          0,
+          45,
+          0
+        ],
+        "placement": "fixed",
+        "kind": "boulder"
+      },
+      {
+        "id": "pine-island-1-0",
+        "carrier": "island-1",
+        "position": [
+          147.37,
+          0,
+          54.52
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-1-0",
+        "carrier": "island-1",
+        "position": [
+          141.08,
+          0,
+          51.01
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-1-1",
+        "carrier": "island-1",
+        "position": [
+          -62.31,
+          0,
+          128.95
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-1-1",
+        "carrier": "island-1",
+        "position": [
+          -56.8,
+          0,
+          120.66
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-1-2",
+        "carrier": "island-1",
+        "position": [
+          -147.37,
+          0,
+          -54.52
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-1-2",
+        "carrier": "island-1",
+        "position": [
+          -137.08,
+          0,
+          -51.01
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-1-3",
+        "carrier": "island-1",
+        "position": [
+          62.31,
+          0,
+          -128.95
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-1-3",
+        "carrier": "island-1",
+        "position": [
+          60.8,
+          0,
+          -120.66
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "island-2",
+        "carrier": "ocean",
+        "position": [
+          4300,
+          0,
+          -100
+        ],
+        "placement": "sea",
+        "anchorId": "A13",
+        "kind": "island"
+      },
+      {
+        "id": "boulder-island-2",
+        "carrier": "island-2",
+        "position": [
+          0,
+          45,
+          0
+        ],
+        "placement": "fixed",
+        "kind": "boulder"
+      },
+      {
+        "id": "pine-island-2-0",
+        "carrier": "island-2",
+        "position": [
+          147.37,
+          0,
+          54.52
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-2-0",
+        "carrier": "island-2",
+        "position": [
+          141.08,
+          0,
+          51.01
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-2-1",
+        "carrier": "island-2",
+        "position": [
+          -62.31,
+          0,
+          128.95
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-2-1",
+        "carrier": "island-2",
+        "position": [
+          -56.8,
+          0,
+          120.66
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-2-2",
+        "carrier": "island-2",
+        "position": [
+          -147.37,
+          0,
+          -54.52
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-2-2",
+        "carrier": "island-2",
+        "position": [
+          -137.08,
+          0,
+          -51.01
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "pine-island-2-3",
+        "carrier": "island-2",
+        "position": [
+          62.31,
+          0,
+          -128.95
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "grass-island-2-3",
+        "carrier": "island-2",
+        "position": [
+          60.8,
+          0,
+          -120.66
+        ],
+        "placement": "surface",
+        "kind": "grass"
+      }
+    ],
+    "scatter": [
+      {
+        "id": "meadow-grass",
+        "carrier": "island-main",
+        "seed": 1926,
+        "count": 32,
+        "area": {
+          "center": [
+            0,
+            15
+          ],
+          "size": [
+            80,
+            70
+          ]
+        },
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "start-grass",
+        "carrier": "island-main",
+        "seed": 1927,
+        "count": 4,
+        "area": {
+          "center": [
+            8,
+            13
+          ],
+          "size": [
+            6,
+            7
+          ]
+        },
+        "placement": "surface",
+        "kind": "grass"
+      },
+      {
+        "id": "grove",
+        "carrier": "island-main",
+        "seed": 1928,
+        "points": [
+          [
+            -25,
+            -14
+          ],
+          [
+            -36,
+            24
+          ],
+          [
+            -65,
+            -17
+          ]
+        ],
+        "placement": "surface",
+        "kind": "broadleaf"
+      },
+      {
+        "id": "grove-pine",
+        "carrier": "island-main",
+        "seed": 1929,
+        "points": [
+          [
+            40,
+            -50
+          ],
+          [
+            63,
+            -74
+          ],
+          [
+            -32,
+            -42
+          ]
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "forest-broadleaf",
+        "carrier": "island-main",
+        "seed": 1930,
+        "count": 23,
+        "area": {
+          "center": [
+            0,
+            -25
+          ],
+          "size": [
+            450,
+            420
+          ]
+        },
+        "surfaceMin": 8,
+        "avoidRegions": [
+          "lake_shore"
+        ],
+        "placement": "surface",
+        "kind": "broadleaf"
+      },
+      {
+        "id": "forest-pine",
+        "carrier": "island-main",
+        "seed": 1931,
+        "count": 12,
+        "area": {
+          "center": [
+            0,
+            -25
+          ],
+          "size": [
+            450,
+            420
+          ]
+        },
+        "surfaceMin": 8,
+        "avoidRegions": [
+          "lake_shore"
+        ],
+        "placement": "surface",
+        "kind": "pine"
+      },
+      {
+        "id": "scattered-rocks",
+        "carrier": "island-main",
+        "seed": 1932,
+        "count": 16,
+        "area": {
+          "center": [
+            0,
+            20
+          ],
+          "size": [
+            330,
+            260
+          ]
+        },
+        "placement": "surface",
+        "kind": "rock"
+      }
+    ]
+  },
+  "interactions": [
+    {
+      "id": "IX-GRASS-YIELD",
+      "trigger": {
+        "type": "proximity",
+        "radius": 1.35,
+        "continuous": true
+      },
+      "subject": {
+        "solid": true
+      },
+      "target": {
+        "categories": [
+          "grass"
+        ]
+      },
+      "effect": {
+        "type": "bend",
+        "maxAngle": 0.75
+      },
+      "cooldownSec": 0
+    },
+    {
+      "id": "IX-BIRDS-RISE",
+      "trigger": {
+        "type": "proximity",
+        "radius": 6
+      },
+      "subject": {
+        "categories": [
+          "human",
+          "dog"
+        ]
+      },
+      "target": {
+        "categories": [
+          "bird"
+        ]
+      },
+      "effect": {
+        "type": "flee",
+        "speed": 7,
+        "rise": 0.7,
+        "duration": 2.2,
+        "returnAfter": 10
+      },
+      "cooldownSec": 20
+    },
+    {
+      "id": "IX-FISH-SCATTER",
+      "trigger": {
+        "type": "proximity",
+        "radius": 2.5
+      },
+      "subject": {},
+      "target": {
+        "categories": [
+          "fish"
+        ]
+      },
+      "effect": {
+        "type": "flee",
+        "speed": 3.5,
+        "rise": 0,
+        "duration": 1.2,
+        "returnAfter": 6
+      },
+      "cooldownSec": 8
+    },
+    {
+      "id": "IX-BIRD-CALL",
+      "trigger": {
+        "type": "focus",
+        "minFocusSec": 0.8
+      },
+      "subject": {},
+      "target": {
+        "categories": [
+          "bird"
+        ]
+      },
+      "effect": {
+        "type": "call",
+        "cue": "chirp",
+        "volume": 0.03
+      },
+      "cooldownSec": 15
+    }
+  ],
+  "input": {
+    "_meta": {
+      "schemaVersion": 3,
+      "specVersion": "0.4-review",
+      "reviewState": "creator_directed",
+      "runtimeBinding": "integrated",
+      "integrationEvidence": "main.js 经 actionForCode() 读取键位；check_browser.py 验证 Space/Ctrl/E 无效果",
+      "note": "键位唯一源。暂停菜单与提示须与此一致。"
+    },
+    "ruleClass": "MUST",
+    "bindings": [
+      {
+        "action": "move_forward",
+        "codes": [
+          "KeyW"
+        ],
+        "label": "移动",
+        "enabledWhen": "exploring"
+      },
+      {
+        "action": "move_left",
+        "codes": [
+          "KeyA"
+        ],
+        "label": "移动",
+        "enabledWhen": "exploring"
+      },
+      {
+        "action": "move_back",
+        "codes": [
+          "KeyS"
+        ],
+        "label": "移动",
+        "enabledWhen": "exploring"
+      },
+      {
+        "action": "move_right",
+        "codes": [
+          "KeyD"
+        ],
+        "label": "移动",
+        "enabledWhen": "exploring"
+      },
+      {
+        "action": "look",
+        "codes": [
+          "MouseMove",
+          "PointerDrag"
+        ],
+        "label": "环视",
+        "enabledWhen": "exploring"
+      },
+      {
+        "action": "boost",
+        "codes": [
+          "ShiftLeft",
+          "ShiftRight"
+        ],
+        "label": "加速",
+        "enabledWhen": "exploring"
+      },
+      {
+        "action": "possess",
+        "codes": [
+          "KeyR"
+        ],
+        "label": "魂穿",
+        "enabledWhen": "legal_target"
+      },
+      {
+        "action": "pause",
+        "codes": [
+          "Escape"
+        ],
+        "label": "暂停／继续",
+        "enabledWhen": "all"
+      }
+    ],
+    "reserved": [
+      {
+        "codes": [
+          "KeyE"
+        ],
+        "action": null,
+        "showInTutorial": false,
+        "reason": "同行为 DEFERRED（DF-04）；本次无 E 功能，不显示提示"
+      }
+    ],
+    "transitionInput": {
+      "movement": "ignored",
+      "possess": "ignored",
+      "pointerLook": "bounded_camera_adjustment_only",
+      "pause": "pause_transition_clock",
+      "clearBufferedMovementOnFinish": true
+    },
+    "pointerLockFallback": "drag_to_look",
+    "removed": [
+      {
+        "codes": [
+          "Space",
+          "ControlLeft",
+          "ControlRight"
+        ],
+        "reason": "创作者 2026-11-01 删除跳跃／上升／下降按键（原 I-02）；飞行与游泳身体按镜头俯仰方向上下移动",
+        "decision": "D-007"
+      }
+    ],
+    "verticalMovement": {
+      "ground": "none",
+      "fly": "follow_view_pitch",
+      "swim": "follow_view_pitch",
+      "island": "none"
+    }
+  },
+  "tuning": {
+    "possessionDurationSec": {
+      "value": 2.4,
+      "unit": "s",
+      "min": 1.5,
+      "max": 3,
+      "rule": "P-10",
+      "reviewState": "proposed"
+    },
+    "angleTieToleranceDeg": {
+      "value": 1.5,
+      "unit": "deg",
+      "min": 0.5,
+      "max": 3,
+      "rule": "P-11",
+      "reviewState": "proposed"
+    },
+    "distanceTieToleranceM": {
+      "value": 0.15,
+      "unit": "m",
+      "min": 0.05,
+      "max": 0.4,
+      "rule": "P-11",
+      "reviewState": "proposed"
+    },
+    "targetStableSec": {
+      "value": 0.12,
+      "unit": "s",
+      "min": 0.05,
+      "max": 0.25,
+      "rule": "P-11",
+      "reviewState": "proposed"
+    },
+    "loadTimeoutSec": {
+      "value": 10,
+      "unit": "s",
+      "min": 5,
+      "max": 15,
+      "rule": "F-02",
+      "reviewState": "proposed"
+    },
+    "rollbackDurationSec": {
+      "value": 0.8,
+      "unit": "s",
+      "min": 0.3,
+      "max": 1,
+      "rule": "P-08",
+      "reviewState": "proposed"
+    },
+    "stuckAttemptSec": {
+      "value": 2,
+      "unit": "s",
+      "min": 1.5,
+      "max": 3,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "stuckDisplacementM": {
+      "value": 0.05,
+      "unit": "m",
+      "min": 0.02,
+      "max": 0.1,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "safeRecoveryGraceSec": {
+      "value": 1,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "birdMaxHeightM": {
+      "value": 180,
+      "unit": "m",
+      "min": 120,
+      "max": 250,
+      "rule": "M-04",
+      "reviewState": "proposed"
+    },
+    "cameraCollisionPaddingM": {
+      "value": 0.1,
+      "unit": "m",
+      "min": 0.05,
+      "max": 0.3,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "mouseSensitivityRadPerPixel": {
+      "value": 0.0025,
+      "unit": "rad/px",
+      "min": 0.001,
+      "max": 0.005,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "firstPossessionHintSec": {
+      "value": 4,
+      "unit": "s",
+      "min": 2,
+      "max": 6,
+      "rule": "U-05",
+      "reviewState": "proposed"
+    },
+    "dialogueDisplaySec": {
+      "value": 6,
+      "unit": "s",
+      "min": 4,
+      "max": 8,
+      "rule": "U-05",
+      "reviewState": "proposed"
+    },
+    "dialogueFadeInSec": {
+      "value": 1,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2,
+      "rule": "U-05",
+      "reviewState": "proposed"
+    },
+    "dialogueFadeOutSec": {
+      "value": 1.5,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2,
+      "rule": "U-05",
+      "reviewState": "proposed"
+    },
+    "audioCrossfadeSec": {
+      "value": 1.2,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2.5,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterLowpassHz": {
+      "value": 600,
+      "unit": "Hz",
+      "min": 300,
+      "max": 1200,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "airGroundSoundFadeStartM": {
+      "value": 5,
+      "unit": "m",
+      "min": 1,
+      "max": 20,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "airGroundSoundFadeEndM": {
+      "value": 60,
+      "unit": "m",
+      "min": 30,
+      "max": 120,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "warmStartTargetSec": {
+      "value": 5,
+      "unit": "s",
+      "min": 2,
+      "max": 10,
+      "rule": "F-02",
+      "reviewState": "proposed"
+    },
+    "featureFreezeDaysBeforeDeadline": {
+      "value": 3,
+      "unit": "days",
+      "min": 2,
+      "max": 4,
+      "rule": "T-02",
+      "reviewState": "proposed"
+    },
+    "perceptionCrossfadeSec": {
+      "value": 1.2,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2.5,
+      "rule": "B-05",
+      "reviewState": "proposed"
+    },
+    "scaleHideBelowStageOffset": {
+      "value": 1,
+      "unit": "stage",
+      "min": 1,
+      "max": 2,
+      "rule": "W-07",
+      "reviewState": "proposed",
+      "note": "当前身体层级减去此值以下的实体不渲染，状态保留"
+    },
+    "softBoundaryBandM": {
+      "value": 3,
+      "unit": "m",
+      "min": 1,
+      "max": 5,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "collisionSkinM": {
+      "value": 0.012,
+      "unit": "m",
+      "min": 0.005,
+      "max": 0.05,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "targetMinAngularSizeRad": {
+      "value": 0.008,
+      "unit": "rad",
+      "min": 0.004,
+      "max": 0.02,
+      "rule": "P-11",
+      "reviewState": "proposed",
+      "note": "目标在屏幕上的最小角尺寸；更小则视为无法辨认"
+    },
+    "carrierEdgeSightM": {
+      "value": 90,
+      "unit": "m",
+      "min": 40,
+      "max": 160,
+      "rule": "P-11",
+      "reviewState": "proposed",
+      "note": "身体离岸线多近时能把脚下的大地辨认为岛"
+    },
+    "carrierAltitudeM": {
+      "value": 35,
+      "unit": "m",
+      "min": 20,
+      "max": 80,
+      "rule": "P-11",
+      "reviewState": "proposed",
+      "note": "离地多高时能从高处辨认整座岛"
+    },
+    "ownBodyAngleBiasRad": {
+      "value": 0.15,
+      "unit": "rad",
+      "min": 0.05,
+      "max": 0.3,
+      "rule": "P-11",
+      "reviewState": "proposed",
+      "note": "自己承载的存在（如岛上的巨岩）需要比外部目标更对准才会被选中"
+    }
+  }
+}

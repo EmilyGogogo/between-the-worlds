@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="900" viewBox="0 0 1500 900"><rect width="1500" height="900" fill="#f3f1e8"/>
+<g style="font-family:'PingFang SC','Microsoft YaHei',sans-serif">
+<text x="50" y="62" font-size="30" fill="#203b35">0.3-review · 群岛布局（原型坐标审计）</text>
+<text x="50" y="96" font-size="16" fill="#64726b">示意图，非运行截图。来源：data/anchors.json（由 frontend/src/world.js 审计而来）。图上方为 −Z，右方为 +X，单位米。</text>
+<rect x="50" y="130" width="800" height="700" rx="18" fill="#c8dedb"/>
+<ellipse cx="450.0" cy="480.0" rx="248.5" ry="205.6" fill="#b9c69f" stroke="#829579" stroke-width="2"/>
+<ellipse cx="384.3" cy="427.7" rx="51.5" ry="31.4" fill="#6caaa8"/>
+<ellipse cx="532.3" cy="365.7" rx="53.0" ry="46.7" fill="#9a9d8a" stroke="#6f7563"/>
+<text x="70" y="162" font-size="18" fill="#203b35">主岛（约 960 × 820 m）</text>
+<path d="M532.3,365.7 L556,215" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="532.3" cy="365.7" r="5" fill="#315c51"/>
+<text x="560" y="220" font-size="15" fill="#315c51" text-anchor="start">A05 岩丘 (104, -142)</text>
+<path d="M384.3,427.7 L334,295" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="384.3" cy="427.7" r="5" fill="#315c51"/>
+<text x="330" y="300" font-size="15" fill="#315c51" text-anchor="end">A04 山湖 (-83, -65)</text>
+<path d="M414.4,443.8 L334,355" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="414.4" cy="443.8" r="5" fill="#315c51"/>
+<text x="330" y="360" font-size="15" fill="#315c51" text-anchor="end">A08 燕鸥湖空 (-45, -45)</text>
+<path d="M461.9,477.6 L556,405" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="461.9" cy="477.6" r="5" fill="#315c51"/>
+<text x="560" y="410" font-size="15" fill="#315c51" text-anchor="start">A03 林地 (15, -3)</text>
+<path d="M459.5,480.0 L556,435" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="459.5" cy="480.0" r="5" fill="#315c51"/>
+<text x="560" y="440" font-size="15" fill="#315c51" text-anchor="start">A07 海鸥空域 (12, 0)</text>
+<path d="M453.2,492.1 L556,555" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="453.2" cy="492.1" r="5" fill="#315c51"/>
+<text x="560" y="560" font-size="15" fill="#315c51" text-anchor="start">A02 初遇圈 (4, 15)</text>
+<path d="M450.0,497.7 L334,595" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="450.0" cy="497.7" r="5" fill="#315c51"/>
+<text x="330" y="600" font-size="15" fill="#315c51" text-anchor="end">A01 草起点·晨雾草地 (0, 22)</text>
+<path d="M687.5,576.6 L646,635" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="687.5" cy="576.6" r="5" fill="#315c51"/>
+<text x="650" y="640" font-size="15" fill="#315c51" text-anchor="start">A09 岸线观察点 (300, 120)</text>
+<path d="M616.2,657.1 L466,755" stroke="#315c51" stroke-width="1" fill="none"/>
+<circle cx="616.2" cy="657.1" r="5" fill="#315c51"/>
+<text x="470" y="760" font-size="15" fill="#315c51" text-anchor="start">A06 近海岩礁 (210, 220)</text>
+<rect x="880" y="130" width="570" height="560" rx="18" fill="#c8dedb"/>
+<text x="900" y="162" font-size="18" fill="#203b35">群岛（岛屿层，海面坐标）</text>
+<ellipse cx="984.3" cy="517.0" rx="28.4" ry="22.7" fill="#b9c69f" stroke="#829579"/>
+<text x="984.3" y="559.7" font-size="15" fill="#315c51" text-anchor="middle">A10 主岛</text>
+<text x="984.3" y="577.7" font-size="13" fill="#64726b" text-anchor="middle">(0, 0)</text>
+<ellipse cx="1120.2" cy="273.0" rx="29.9" ry="23.9" fill="#b9c69f" stroke="#829579"/>
+<text x="1120.2" y="317.0" font-size="15" fill="#315c51" text-anchor="middle">A11 邻岛一</text>
+<text x="1120.2" y="335.0" font-size="13" fill="#64726b" text-anchor="middle">(1500, -1700)</text>
+<ellipse cx="1247.0" cy="387.8" rx="29.9" ry="23.9" fill="#b9c69f" stroke="#829579"/>
+<text x="1247.0" y="431.7" font-size="15" fill="#315c51" text-anchor="middle">A12 邻岛二</text>
+<text x="1247.0" y="449.7" font-size="13" fill="#64726b" text-anchor="middle">(2900, -900)</text>
+<ellipse cx="1373.8" cy="502.6" rx="29.9" ry="23.9" fill="#b9c69f" stroke="#829579"/>
+<text x="1373.8" y="546.5" font-size="15" fill="#315c51" text-anchor="middle">A13 邻岛三</text>
+<text x="1373.8" y="564.5" font-size="13" fill="#64726b" text-anchor="middle">(4300, -100)</text>
+<text x="900" y="640" font-size="14" fill="#64726b">每座邻岛有巨岩、4 棵松树、4 株草，保证能逐级回到小尺度（W-05）。</text>
+<text x="900" y="664" font-size="14" fill="#64726b">岛屿层的魂穿目标：其他岛与巨岩（P-12）。</text>
+<rect x="880" y="710" width="570" height="120" rx="18" fill="#e6e3d6"/>
+<text x="900" y="742" font-size="17" fill="#203b35">示例尺度往返（不在游戏中显示）</text>
+<text x="900" y="770" font-size="14" fill="#315c51">A01 草 → A02 人 → A09 岸边看见大地是岛 → A10 成为主岛</text>
+<text x="900" y="792" font-size="14" fill="#315c51">→ A11 邻岛 → 邻岛巨岩 → 松树 → 草</text>
+<text x="900" y="814" font-size="14" fill="#64726b">图例：灰色椭圆＝岩丘（地貌层），蓝色＝山湖</text>
+<text x="60" y="866" font-size="14" fill="#64726b">坐标为原型现状，尺寸与距离是 TUNABLE（W-07）；创作者已确认（R-11），试玩后可按 W-07 调整。</text>
+</g></svg>

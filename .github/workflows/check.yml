@@ -1,0 +1,30 @@
+name: Game checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  game-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate data and run browser checks
+        run: python3 project/check_all.py
+      - name: Save check logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-check-logs
+          path: .work/collaboration-checks/
+          include-hidden-files: true
+          if-no-files-found: ignore

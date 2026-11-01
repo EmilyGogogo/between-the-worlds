@@ -147,3 +147,23 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# 万物之间 project
+.DS_Store
+__pycache__/
+*.py[cod]
+.work/
+输出/
+.venv/
+venv/
+node_modules/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.blend1
+*.blend2
+Thumbs.db
+Desktop.ini
+!project/qa/**/*.log

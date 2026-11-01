@@ -1,0 +1,1836 @@
+{
+  "_meta": {
+    "schemaVersion": 4,
+    "specVersion": "0.4-review",
+    "reviewState": "creator_directed",
+    "runtimeBinding": "integrated",
+    "integrationEvidence": "sync_runtime.py → game.json／manifest.json → species.js、main.js、world.js、assets.js、interactions.js、audio.js；frontend/tests/check_browser.py（2026-11-01）",
+    "note": "唯一身体配置源：categories（类别）、entities（种类与资产槽）、environmentSlots（世界与装饰槽）。全部模型仍为程序化占位。"
+  },
+  "units": {
+    "distance": "m",
+    "time": "s",
+    "angles": "deg"
+  },
+  "scaleLayers": [
+    {
+      "stage": 0,
+      "name": "近地层",
+      "examples": "草"
+    },
+    {
+      "stage": 1,
+      "name": "身体层",
+      "examples": "树、海岸岩石、人、狗、鸟、鱼"
+    },
+    {
+      "stage": 2,
+      "name": "地貌层",
+      "examples": "海岸巨岩／岩丘"
+    },
+    {
+      "stage": 3,
+      "name": "岛屿层",
+      "examples": "岛屿"
+    }
+  ],
+  "entities": [
+    {
+      "id": "plant_grass_01",
+      "name": "细叶草",
+      "category": "grass",
+      "runtimeKind": "grass",
+      "stage": 0,
+      "habitat": "land",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "ground",
+      "verticalControl": "none",
+      "moveSpeed": 2.8,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 25.5,
+      "possessionRange": 17.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "slip_through_gaps",
+        "text": "贴地视角与柔性身体：能从草丛、树根、石缝等大型身体过不去的窄处穿过，看见露珠和叶脉尺度的细节",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "scale_soundscape",
+        "reviewState": "creator_confirmed",
+        "summary": "非动物不做色觉滤镜；以尺度对应的声音层次区分",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1,
+          "contrast": 1,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 950,
+          "underwaterLowpassHz": 360,
+          "range": 20,
+          "waterCueGain": 0.6,
+          "windGain": 0.14,
+          "distantCueGain": 1,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 3.5,
+        "height": 0.308,
+        "fovDeg": 48
+      },
+      "body": {
+        "height": 0.7,
+        "collisionRadius": 0.45,
+        "wadeDepthM": 0.6
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.22,
+            0,
+            -0.22,
+            0.22,
+            0.7,
+            0.22
+          ]
+        ],
+        "solid": false,
+        "passPolicy": "yield_with_bend"
+      },
+      "asset": {
+        "slotId": "slot.grass",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 0.7,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:grass",
+        "placeholderStyle": "blade",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/grass-v1.glb",
+        "ledgerId": "PLAN-plant_grass_01",
+        "fallbackLedgerId": "PH-plant_grass_01"
+      },
+      "place": "风起的地方",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-13",
+        "QA-17",
+        "QA-22",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "tree_broadleaf_01",
+      "name": "阔叶树",
+      "category": "tree",
+      "runtimeKind": "broadleaf",
+      "stage": 1,
+      "habitat": "land",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "ground",
+      "verticalControl": "none",
+      "moveSpeed": 14.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 225.0,
+      "possessionRange": 150.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "canopy_sight",
+        "text": "树冠高度视角：越过草地与灌木看见林间远处；体积大、移动时枝叶摇曳，必须绕开岩石与其他树",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "not_started"
+      },
+      "perception": {
+        "basis": "scale_soundscape",
+        "reviewState": "creator_confirmed",
+        "summary": "非动物不做色觉滤镜；以尺度对应的声音层次区分",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1,
+          "contrast": 1,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 900,
+          "underwaterLowpassHz": 360,
+          "range": 60,
+          "waterCueGain": 0.5,
+          "windGain": 0.17,
+          "distantCueGain": 1,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 29.0,
+        "height": 5.28,
+        "fovDeg": 48
+      },
+      "body": {
+        "height": 12.0,
+        "collisionRadius": 3.4,
+        "wadeDepthM": 0.6
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.7,
+            0,
+            -0.7,
+            0.7,
+            7,
+            0.7
+          ],
+          [
+            -4,
+            5,
+            -4,
+            4,
+            11.5,
+            4
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.broadleaf",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 12.0,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:tree",
+        "placeholderStyle": "broadleaf",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/broadleaf-v1.glb",
+        "ledgerId": "PLAN-tree_broadleaf_01",
+        "fallbackLedgerId": "PH-tree_broadleaf_01"
+      },
+      "place": "林间的呼吸",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-20",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "tree_pine_01",
+      "name": "松树",
+      "category": "tree",
+      "runtimeKind": "pine",
+      "stage": 1,
+      "habitat": "land",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "ground",
+      "verticalControl": "none",
+      "moveSpeed": 16.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 225.0,
+      "possessionRange": 150.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "canopy_sight",
+        "text": "树冠高度视角：越过草地与灌木看见林间远处；体积大、移动时枝叶摇曳，必须绕开岩石与其他树",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "not_started"
+      },
+      "perception": {
+        "basis": "scale_soundscape",
+        "reviewState": "creator_confirmed",
+        "summary": "非动物不做色觉滤镜；以尺度对应的声音层次区分",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1,
+          "contrast": 1,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 900,
+          "underwaterLowpassHz": 360,
+          "range": 60,
+          "waterCueGain": 0.5,
+          "windGain": 0.17,
+          "distantCueGain": 1,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 34.0,
+        "height": 6.6,
+        "fovDeg": 48
+      },
+      "body": {
+        "height": 15.0,
+        "collisionRadius": 3.5,
+        "wadeDepthM": 0.6
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.6,
+            0,
+            -0.6,
+            0.6,
+            13,
+            0.6
+          ],
+          [
+            -3.8,
+            3,
+            -3.8,
+            3.8,
+            14,
+            3.8
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.pine",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 15.0,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:tree",
+        "placeholderStyle": "pine",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/pine-v1.glb",
+        "ledgerId": "PLAN-tree_pine_01",
+        "fallbackLedgerId": "PH-tree_pine_01"
+      },
+      "place": "山风经过",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-20",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "rock_coast_01",
+      "name": "海岸岩石",
+      "category": "rock",
+      "runtimeKind": "rock",
+      "stage": 1,
+      "habitat": "shore",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "ground",
+      "verticalControl": "none",
+      "moveSpeed": 9.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 150.0,
+      "possessionRange": 100.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "tidal_edge",
+        "text": "坚实低重心：可以没入浅水潮间带停留，同时听见水下与岸上的声音",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "not_started"
+      },
+      "perception": {
+        "basis": "scale_soundscape",
+        "reviewState": "creator_confirmed",
+        "summary": "非动物不做色觉滤镜；以尺度对应的声音层次区分",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1,
+          "contrast": 1,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 700,
+          "underwaterLowpassHz": 360,
+          "range": 45,
+          "waterCueGain": 1.3,
+          "windGain": 0.07,
+          "distantCueGain": 1,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 8.0,
+        "height": 0.88,
+        "fovDeg": 48
+      },
+      "body": {
+        "height": 2.0,
+        "collisionRadius": 1.4,
+        "wadeDepthM": 3
+      },
+      "collision": {
+        "boxes": [
+          [
+            -1.7,
+            -0.35,
+            -1.35,
+            1.7,
+            1.9,
+            1.35
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.rock",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 2.0,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:rock",
+        "placeholderStyle": "stone",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/rock-v1.glb",
+        "ledgerId": "PLAN-rock_coast_01",
+        "fallbackLedgerId": "PH-rock_coast_01"
+      },
+      "place": "潮汐的边缘",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-20",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "rock_large_01",
+      "name": "海岸巨岩",
+      "category": "rock",
+      "runtimeKind": "boulder",
+      "stage": 2,
+      "habitat": "land",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "ground",
+      "verticalControl": "none",
+      "moveSpeed": 75.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 1500.0,
+      "possessionRange": 1000.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "carry_dependents",
+        "text": "承载其上的树与草一起移动；从高处俯看岛的一侧",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "not_started"
+      },
+      "perception": {
+        "basis": "scale_soundscape",
+        "reviewState": "creator_confirmed",
+        "summary": "非动物不做色觉滤镜；以尺度对应的声音层次区分",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1,
+          "contrast": 1,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 600,
+          "underwaterLowpassHz": 360,
+          "range": 200,
+          "waterCueGain": 0.5,
+          "windGain": 0.12,
+          "distantCueGain": 1,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 230.0,
+        "height": 30.8,
+        "fovDeg": 48
+      },
+      "body": {
+        "height": 70.0,
+        "collisionRadius": 76,
+        "wadeDepthM": 10,
+        "surface": {
+          "type": "dome",
+          "radii": [
+            67,
+            72,
+            58
+          ]
+        }
+      },
+      "collision": {
+        "boxes": [
+          [
+            -74,
+            -80,
+            -65,
+            74,
+            80,
+            65
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.boulder",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 70.0,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:rock",
+        "placeholderStyle": "hill",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/boulder-v1.glb",
+        "ledgerId": "PLAN-rock_large_01",
+        "fallbackLedgerId": "PH-rock_large_01"
+      },
+      "place": "云影之下",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-20",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "island_01",
+      "name": "岛屿",
+      "category": "island",
+      "runtimeKind": "island",
+      "stage": 3,
+      "habitat": "sea",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "island",
+      "verticalControl": "none",
+      "moveSpeed": 230.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 24000.0,
+      "possessionRange": 16000.0,
+      "allowedTargets": [
+        "rock_large_01",
+        "island_01"
+      ],
+      "uniqueAbility": {
+        "id": "drift_and_carry",
+        "text": "在海上漂移并携带岛上的全部存在；看见群岛与海；小尺度细节隐藏但状态保留",
+        "reviewState": "creator_directed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "scale_soundscape",
+        "reviewState": "creator_confirmed",
+        "summary": "非动物不做色觉滤镜；以尺度对应的声音层次区分",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1,
+          "contrast": 1,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 450,
+          "underwaterLowpassHz": 360,
+          "range": 3000,
+          "waterCueGain": 1.5,
+          "windGain": 0.08,
+          "distantCueGain": 1,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 1450.0,
+        "height": 37.4,
+        "fovDeg": 48
+      },
+      "body": {
+        "height": 85.0,
+        "collisionRadius": 480.0,
+        "wadeDepthM": 0,
+        "surface": {
+          "type": "dome",
+          "radii": [
+            330,
+            65,
+            260
+          ]
+        }
+      },
+      "collision": {
+        "boxes": [
+          [
+            -480,
+            -45,
+            -410,
+            480,
+            90,
+            410
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.island",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 85.0,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "sea_level_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:island",
+        "placeholderStyle": "dome",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/island-v1.glb",
+        "ledgerId": "PLAN-island_01",
+        "fallbackLedgerId": "PH-island_01"
+      },
+      "place": "潮汐之间",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-14",
+        "QA-16",
+        "QA-21",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "bird_gull_01",
+      "name": "海鸥",
+      "category": "bird",
+      "runtimeKind": "gull",
+      "stage": 1,
+      "habitat": "air_coast",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "fly",
+      "verticalControl": "view_direction",
+      "moveSpeed": 18.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 195.0,
+      "possessionRange": 130.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "flight_overview",
+        "text": "随视线飞行：高处看见岛的整体轮廓与岸线，可直接辨认岛屿与岩丘",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "art_direction",
+        "reviewState": "creator_confirmed",
+        "summary": "色彩更饱满、远景更清楚；升高后地面声音减弱、风声清晰",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1.15,
+          "contrast": 1.1,
+          "brightness": 1.02,
+          "fogMultiplier": 0.6,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 1400,
+          "underwaterLowpassHz": 360,
+          "range": 65,
+          "waterCueGain": 0.6,
+          "windGain": 0.16,
+          "distantCueGain": 1.1,
+          "heightAttenuation": true
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 5.0,
+        "height": 0.28600000000000003,
+        "fovDeg": 52
+      },
+      "body": {
+        "height": 0.65,
+        "collisionRadius": 0.65,
+        "wadeDepthM": 0
+      },
+      "collision": {
+        "boxes": [
+          [
+            -1.4,
+            0,
+            -0.7,
+            1.4,
+            0.65,
+            0.8
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.gull",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 0.65,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:bird",
+        "placeholderStyle": "gull",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/gull-v1.glb",
+        "ledgerId": "PLAN-bird_gull_01",
+        "fallbackLedgerId": "PH-bird_gull_01"
+      },
+      "place": "风的路径",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-18",
+        "QA-23",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "bird_tern_01",
+      "name": "燕鸥",
+      "category": "bird",
+      "runtimeKind": "tern",
+      "stage": 1,
+      "habitat": "air_lake",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "fly",
+      "verticalControl": "view_direction",
+      "moveSpeed": 22.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 195.0,
+      "possessionRange": 130.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "flight_overview",
+        "text": "随视线飞行：高处看见岛的整体轮廓与岸线，可直接辨认岛屿与岩丘",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "art_direction",
+        "reviewState": "creator_confirmed",
+        "summary": "色彩更饱满、远景更清楚；升高后地面声音减弱、风声清晰",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1.15,
+          "contrast": 1.1,
+          "brightness": 1.02,
+          "fogMultiplier": 0.6,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 1400,
+          "underwaterLowpassHz": 360,
+          "range": 65,
+          "waterCueGain": 0.6,
+          "windGain": 0.16,
+          "distantCueGain": 1.1,
+          "heightAttenuation": true
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 4.0,
+        "height": 0.22,
+        "fovDeg": 52
+      },
+      "body": {
+        "height": 0.5,
+        "collisionRadius": 0.5,
+        "wadeDepthM": 0
+      },
+      "collision": {
+        "boxes": [
+          [
+            -1.3,
+            0,
+            -0.65,
+            1.3,
+            0.6,
+            0.9
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.tern",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 0.5,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:bird",
+        "placeholderStyle": "tern",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/tern-v1.glb",
+        "ledgerId": "PLAN-bird_tern_01",
+        "fallbackLedgerId": "PH-bird_tern_01"
+      },
+      "place": "海与天之间",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-18",
+        "QA-23",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "fish_silver_01",
+      "name": "银色小鱼",
+      "category": "fish",
+      "runtimeKind": "silverfish",
+      "stage": 1,
+      "habitat": "lake",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "swim",
+      "verticalControl": "view_direction",
+      "moveSpeed": 9.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 150.0,
+      "possessionRange": 100.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "underwater_world",
+        "text": "随视线游动：只有鱼能进入湖底和近海水下；宽视野与低通听觉",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "art_direction",
+        "reviewState": "creator_confirmed",
+        "summary": "水下青绿、视野更宽但看得更近；声音沉闷，低频清楚",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 0.82,
+          "contrast": 0.96,
+          "brightness": 0.96,
+          "fogMultiplier": 1.6,
+          "tint": "#3e7c73"
+        },
+        "hearing": {
+          "airLowpassHz": 900,
+          "underwaterLowpassHz": 360,
+          "range": 35,
+          "waterCueGain": 1.4,
+          "windGain": 0.03,
+          "distantCueGain": 0.8,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 3.5,
+        "height": 0.1408,
+        "fovDeg": 58
+      },
+      "body": {
+        "height": 0.32,
+        "collisionRadius": 0.35,
+        "wadeDepthM": 0
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.25,
+            0,
+            -0.45,
+            0.25,
+            0.4,
+            0.65
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.silverfish",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 0.32,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:fish",
+        "placeholderStyle": "silver",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/silverfish-v1.glb",
+        "ledgerId": "PLAN-fish_silver_01",
+        "fallbackLedgerId": "PH-fish_silver_01"
+      },
+      "place": "水下的光",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-18",
+        "QA-23",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "fish_butterfly_01",
+      "name": "蝴蝶鱼",
+      "category": "fish",
+      "runtimeKind": "butterflyfish",
+      "stage": 1,
+      "habitat": "sea",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "swim",
+      "verticalControl": "view_direction",
+      "moveSpeed": 7.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 150.0,
+      "possessionRange": 100.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "underwater_world",
+        "text": "随视线游动：只有鱼能进入湖底和近海水下；宽视野与低通听觉",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "art_direction",
+        "reviewState": "creator_confirmed",
+        "summary": "水下青绿、视野更宽但看得更近；声音沉闷，低频清楚",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 0.82,
+          "contrast": 0.96,
+          "brightness": 0.96,
+          "fogMultiplier": 1.6,
+          "tint": "#3e7c73"
+        },
+        "hearing": {
+          "airLowpassHz": 900,
+          "underwaterLowpassHz": 360,
+          "range": 35,
+          "waterCueGain": 1.4,
+          "windGain": 0.03,
+          "distantCueGain": 0.8,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 3.5,
+        "height": 0.198,
+        "fovDeg": 58
+      },
+      "body": {
+        "height": 0.45,
+        "collisionRadius": 0.4,
+        "wadeDepthM": 0
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.25,
+            -0.03,
+            -0.45,
+            0.25,
+            0.5,
+            0.65
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.butterflyfish",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 0.45,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:fish",
+        "placeholderStyle": "butterfly",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/butterflyfish-v1.glb",
+        "ledgerId": "PLAN-fish_butterfly_01",
+        "fallbackLedgerId": "PH-fish_butterfly_01"
+      },
+      "place": "岩礁之间",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-18",
+        "QA-23",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "fish_river_01",
+      "name": "河鲈",
+      "category": "fish",
+      "runtimeKind": "perch",
+      "stage": 1,
+      "habitat": "lake",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "swim",
+      "verticalControl": "view_direction",
+      "moveSpeed": 8.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 150.0,
+      "possessionRange": 100.0,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "underwater_world",
+        "text": "随视线游动：只有鱼能进入湖底和近海水下；宽视野与低通听觉",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "art_direction",
+        "reviewState": "creator_confirmed",
+        "summary": "水下青绿、视野更宽但看得更近；声音沉闷，低频清楚",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 0.82,
+          "contrast": 0.96,
+          "brightness": 0.96,
+          "fogMultiplier": 1.6,
+          "tint": "#3e7c73"
+        },
+        "hearing": {
+          "airLowpassHz": 900,
+          "underwaterLowpassHz": 360,
+          "range": 35,
+          "waterCueGain": 1.4,
+          "windGain": 0.03,
+          "distantCueGain": 0.8,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 3.5,
+        "height": 0.16720000000000002,
+        "fovDeg": 58
+      },
+      "body": {
+        "height": 0.38,
+        "collisionRadius": 0.4,
+        "wadeDepthM": 0
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.25,
+            0,
+            -0.45,
+            0.25,
+            0.4,
+            0.65
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.perch",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 0.38,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:fish",
+        "placeholderStyle": "perch",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/perch-v1.glb",
+        "ledgerId": "PLAN-fish_river_01",
+        "fallbackLedgerId": "PH-fish_river_01"
+      },
+      "place": "湖水深处",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-18",
+        "QA-23",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "human_01",
+      "name": "人",
+      "category": "human",
+      "runtimeKind": "human",
+      "stage": 1,
+      "habitat": "land",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "ground",
+      "verticalControl": "none",
+      "moveSpeed": 6,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 97.5,
+      "possessionRange": 65,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "read_ground_as_island",
+        "text": "人的常态视野只是众多视角之一；在岸边与高处能把脚下的大地辨认为整座岛，进而成为岛",
+        "reviewState": "creator_directed",
+        "implementationStatus": "not_started"
+      },
+      "perception": {
+        "basis": "reference",
+        "reviewState": "creator_directed",
+        "summary": "人的常态视听；作为参照，而非世界的真实样子",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1,
+          "contrast": 1,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 1200,
+          "underwaterLowpassHz": 360,
+          "range": 45,
+          "waterCueGain": 0.8,
+          "windGain": 0.11,
+          "distantCueGain": 1,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 5,
+        "height": 0.77,
+        "fovDeg": 48
+      },
+      "body": {
+        "height": 1.75,
+        "collisionRadius": 0.35,
+        "wadeDepthM": 0.6
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.3,
+            0,
+            -0.3,
+            0.3,
+            1.8,
+            0.3
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.human",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 1.75,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:human",
+        "placeholderStyle": "human",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/human-v1.glb",
+        "ledgerId": "PLAN-human_01",
+        "fallbackLedgerId": "PH-human_01"
+      },
+      "place": "此刻的行路人",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-14",
+        "QA-17",
+        "QA-18",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "dog_01",
+      "name": "狗",
+      "category": "dog",
+      "runtimeKind": "dog",
+      "stage": 1,
+      "habitat": "land",
+      "implementationStatus": "playtest_placeholder_runtime_0.3",
+      "ruleClass": "MUST",
+      "locomotion": "ground",
+      "verticalControl": "none",
+      "moveSpeed": 7.5,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 90.0,
+      "possessionRange": 60,
+      "allowedTargets": [
+        "plant_grass_01",
+        "tree_broadleaf_01",
+        "tree_pine_01",
+        "rock_coast_01",
+        "rock_large_01",
+        "island_01",
+        "bird_gull_01",
+        "bird_tern_01",
+        "fish_silver_01",
+        "fish_butterfly_01",
+        "fish_river_01",
+        "human_01",
+        "dog_01"
+      ],
+      "uniqueAbility": {
+        "id": "monochrome_far_hearing",
+        "text": "黑白视野与更远、更有方向感的听觉：远处其他存在的声音变得可辨",
+        "reviewState": "creator_directed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "art_direction",
+        "reviewState": "creator_directed",
+        "summary": "黑白世界；更远、方向更清楚的声音（创作者指定的艺术表达，不是科学色觉还原）",
+        "vision": {
+          "grayscale": 1,
+          "saturation": 1,
+          "contrast": 1.08,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 2600,
+          "underwaterLowpassHz": 360,
+          "range": 110,
+          "waterCueGain": 1.8,
+          "windGain": 0.11,
+          "distantCueGain": 1.8,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 4,
+        "height": 0.35200000000000004,
+        "fovDeg": 48
+      },
+      "body": {
+        "height": 0.8,
+        "collisionRadius": 0.45,
+        "wadeDepthM": 0.6
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.32,
+            0,
+            -0.6,
+            0.32,
+            0.85,
+            0.6
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.dog",
+        "status": "placeholder",
+        "url": null,
+        "variants": [],
+        "height": 0.8,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": null,
+        "colliderMode": "auto_bounds",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:dog",
+        "placeholderStyle": "dog",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/dog-v1.glb",
+        "ledgerId": "PLAN-dog_01",
+        "fallbackLedgerId": "PH-dog_01"
+      },
+      "place": "循着声音",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-18",
+        "QA-19",
+        "QA-31"
+      ]
+    }
+  ],
+  "environmentSlots": [
+    {
+      "slotId": "env.world",
+      "name": "整片世界（可选）",
+      "status": "placeholder",
+      "url": null,
+      "scale": 1,
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "useAsTerrain": true,
+      "runtimeRead": true,
+      "placeholder": "procedural:createTerrain",
+      "note": "整片 GLB 替换主岛地表；水域、出生点、实例锚点仍须人工配置"
+    },
+    {
+      "slotId": "env.meadow",
+      "name": "草地铺装（装饰，不可魂穿）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": true,
+      "placeholder": "procedural:meadow",
+      "note": "成片草地装饰，不可魂穿。占位时每个实例是一根草叶；换成 GLB 草丛后，count 表示放多少丛，应相应调小",
+      "variants": [],
+      "height": 0.45,
+      "scaleRange": [
+        0.7,
+        1.3
+      ],
+      "wind": true,
+      "visibleUpToStage": 1,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 7,
+        "surfaceMin": 5,
+        "surfaceMax": 43,
+        "avoidRegions": [
+          "lake"
+        ],
+        "areas": [
+          {
+            "center": [
+              0,
+              20
+            ],
+            "size": [
+              100,
+              100
+            ],
+            "count": 45000
+          },
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              410,
+              340
+            ],
+            "count": 20000
+          }
+        ]
+      }
+    },
+    {
+      "slotId": "env.pebbles",
+      "name": "湖底卵石（装饰）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": true,
+      "placeholder": "procedural:pebble",
+      "note": "湖底卵石装饰，不可魂穿",
+      "variants": [],
+      "height": 0.5,
+      "scaleRange": [
+        0.3,
+        1.2
+      ],
+      "wind": false,
+      "visibleUpToStage": 1,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 500,
+        "insideRegion": "lake",
+        "areas": [
+          {
+            "center": [
+              -83,
+              -65
+            ],
+            "size": [
+              105,
+              55
+            ],
+            "count": 45
+          }
+        ]
+      }
+    },
+    {
+      "slotId": "env.sky_water",
+      "name": "天空与水面",
+      "status": "shader",
+      "url": null,
+      "runtimeRead": false,
+      "placeholder": "shader:world.js",
+      "note": "着色器表现，非模型槽；如改用 HDRI 或贴图另行登记"
+    }
+  ],
+  "categories": {
+    "grass": {
+      "name": "草",
+      "isAnimal": false,
+      "placeholder": "grass",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "tree": {
+      "name": "树",
+      "isAnimal": false,
+      "placeholder": "tree",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "rock": {
+      "name": "岩石",
+      "isAnimal": false,
+      "placeholder": "rock",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "island": {
+      "name": "岛屿",
+      "isAnimal": false,
+      "placeholder": "island",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "human": {
+      "name": "人",
+      "isAnimal": true,
+      "placeholder": "human",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "dog": {
+      "name": "狗",
+      "isAnimal": true,
+      "placeholder": "dog",
+      "soundCue": null,
+      "release": "0.3"
+    },
+    "bird": {
+      "name": "鸟",
+      "isAnimal": true,
+      "placeholder": "bird",
+      "soundCue": "chirp",
+      "release": "0.3"
+    },
+    "fish": {
+      "name": "鱼",
+      "isAnimal": true,
+      "placeholder": "fish",
+      "soundCue": null,
+      "release": "0.3"
+    }
+  }
+}

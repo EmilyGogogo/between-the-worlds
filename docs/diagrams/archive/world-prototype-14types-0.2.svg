@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="960" viewBox="0 0 1400 960"><rect width="1400" height="960" fill="#f3f1e8" /><g style="font-family:'PingFang SC','Microsoft YaHei',sans-serif"><text x="50" y="66" font-size="30" fill="#203b35">当前原型 · 主岛地标</text><text x="50" y="103" font-size="16" fill="#64726b">代码坐标审计示意，非运行截图；这里只显示主岛，邻岛与星球位于图外。</text>
+<rect x="50" y="140" width="880" height="720" rx="18" fill="#c8dedb" /><ellipse cx="490" cy="500" rx="350" ry="285" fill="#b9c69f" stroke="#829579" stroke-width="2" />
+<ellipse cx="422.77" cy="447.35" rx="53" ry="32" fill="#6caaa8" />
+<circle cx="490.0" cy="517.82" r="6" fill="#315c51" /><path d="M490.0,517.82 L560.0,552.82" stroke="#315c51" fill="none" />
+<text x="565.0" y="547.82" font-size="16" fill="#315c51">草起点 (0, 22)</text>
+<circle cx="484.33" cy="507.29" r="6" fill="#315c51" /><path d="M484.33,507.29 L449.72999999999996,482.29" stroke="#315c51" fill="none" />
+<text x="309.33" y="487.29" font-size="16" fill="#315c51">第一棵树 (-7, 9)</text>
+<circle cx="422.77" cy="447.35" r="6" fill="#315c51" /><path d="M422.77,447.35 L408.56999999999994,392.35" stroke="#315c51" fill="none" />
+<text x="257.77" y="397.35" font-size="16" fill="#315c51">湖中心 (-83, -65)</text>
+<circle cx="574.24" cy="384.98" r="6" fill="#315c51" /><path d="M574.24,384.98 L654.24,359.98" stroke="#315c51" fill="none" />
+<text x="659.24" y="354.98" font-size="16" fill="#315c51">岩丘 (104, -142)</text>
+<circle cx="660.1" cy="678.2" r="6" fill="#315c51" /><path d="M660.1,678.2 L781.9000000000001,718.2" stroke="#315c51" fill="none" />
+<text x="615.1" y="723.2" font-size="16" fill="#315c51">近海鱼群 (210, 220)</text>
+<text x="980" y="180" font-size="22" fill="#29463f">当前实现事实</text>
+<text x="980" y="225" font-size="16" fill="#29463f">主岛网格约 960 × 820 原型单位</text>
+<text x="980" y="265" font-size="16" fill="#29463f">14 种可操控类型</text>
+<text x="980" y="305" font-size="16" fill="#29463f">E 邀请同行，最多三名</text>
+<text x="980" y="345" font-size="16" fill="#29463f">邻岛、星球与长尺度链仍存在</text>
+<text x="980" y="385" font-size="16" fill="#29463f">当前所有模型为程序化占位</text>
+<text x="980" y="425" font-size="16" fill="#29463f">并非本次单岛三身体切片</text>
+<text x="980" y="530" font-size="21" fill="#29463f">坐标约定</text>
+<text x="980" y="570" font-size="16" fill="#29463f">图上方为 -Z，右方为 +X</text>
+<text x="980" y="610" font-size="15" fill="#29463f">来源：frontend/src/world.js</text>
+<text x="980" y="642" font-size="15" fill="#29463f">createTerrain / populate</text>
+<text x="60" y="905" font-size="16" fill="#29463f">用途：对照现有代码、识别需要移除或重建的范围。不是新切片的推荐尺寸。</text>
+<path d="M875,222 V180 M870,187 L875,180 L880,187" stroke="#55746a" fill="none" stroke-width="1.5" /><text x="865" y="167" font-size="13" fill="#55746a">−Z</text></g></svg>
