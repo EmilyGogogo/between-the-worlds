@@ -1,1 +1,10 @@
 * @EmilyGogogo
+
+# Governance files stay owned by Emily. The last matching rule wins, so keep
+# this block at the end of the file when narrower ownership is added later.
+/.github/ @EmilyGogogo
+/AGENTS.md @EmilyGogogo
+/CONTRIBUTING.md @EmilyGogogo
+/project/check*.py @EmilyGogogo
+/project/validate_docs.py @EmilyGogogo
+/project/tests/ @EmilyGogogo

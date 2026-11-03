@@ -1,0 +1,152 @@
+{
+  "_meta": {
+    "schemaVersion": 1,
+    "specVersion": "0.4-review",
+    "reviewState": "proposed",
+    "runtimeBinding": "integrated",
+    "integrationEvidence": "sync_runtime.py → game.json.interactions → frontend/src/interactions.js；check_browser.py 验证",
+    "note": "世界对身体的回应。新增互动只改本文件，使用 effects 中已有的效果；新的效果类型需要在 frontend/src/interactions.js 的 EFFECTS 中登记一个函数，并加到下方 effects。"
+  },
+  "triggers": {
+    "proximity": "当前身体进入 radius 米内；continuous=true 时每帧按远近给出强度",
+    "focus": "目标成为主目标（涟漪）并稳定 minFocusSec 秒",
+    "possess": "玩家刚魂穿成为目标"
+  },
+  "filters": "subject 是玩家当前身体，target 是被影响的存在。可按 categories、types（种类 ID）、modes（ground/fly/swim/island）、solid 过滤；省略表示不限",
+  "effects": {
+    "bend": {
+      "description": "柔性存在向外弯折让开，离开后恢复",
+      "params": {
+        "maxAngle": "最大弯折弧度"
+      }
+    },
+    "flee": {
+      "description": "目标短暂避开，之后回到原处；遵守碰撞与活动区",
+      "params": {
+        "speed": "米/秒",
+        "rise": "向上分量（鸟）",
+        "duration": "避开秒数",
+        "returnAfter": "多少秒后开始回到原处"
+      }
+    },
+    "call": {
+      "description": "目标发出声音，从它所在的方向传来；音量受玩家身体听觉档案影响",
+      "params": {
+        "cue": "声音类型（chirp）",
+        "volume": "基础音量"
+      }
+    }
+  },
+  "interactions": [
+    {
+      "id": "IX-GRASS-YIELD",
+      "description": "实心身体经过草地时，草弯下让开（M-03）",
+      "trigger": {
+        "type": "proximity",
+        "radius": 1.35,
+        "continuous": true
+      },
+      "subject": {
+        "solid": true
+      },
+      "target": {
+        "categories": [
+          "grass"
+        ]
+      },
+      "effect": {
+        "type": "bend",
+        "maxAngle": 0.75
+      },
+      "cooldownSec": 0,
+      "reviewState": "creator_confirmed",
+      "rules": [
+        "M-03"
+      ]
+    },
+    {
+      "id": "IX-BIRDS-RISE",
+      "description": "人或狗走近时，鸟飞起，过一会儿回到原处",
+      "trigger": {
+        "type": "proximity",
+        "radius": 6
+      },
+      "subject": {
+        "categories": [
+          "human",
+          "dog"
+        ]
+      },
+      "target": {
+        "categories": [
+          "bird"
+        ]
+      },
+      "effect": {
+        "type": "flee",
+        "speed": 7,
+        "rise": 0.7,
+        "duration": 2.2,
+        "returnAfter": 10
+      },
+      "cooldownSec": 20,
+      "reviewState": "proposed",
+      "rules": [
+        "X-01",
+        "X-02"
+      ]
+    },
+    {
+      "id": "IX-FISH-SCATTER",
+      "description": "靠近鱼群时，鱼四散，随后游回",
+      "trigger": {
+        "type": "proximity",
+        "radius": 2.5
+      },
+      "subject": {},
+      "target": {
+        "categories": [
+          "fish"
+        ]
+      },
+      "effect": {
+        "type": "flee",
+        "speed": 3.5,
+        "rise": 0,
+        "duration": 1.2,
+        "returnAfter": 6
+      },
+      "cooldownSec": 8,
+      "reviewState": "proposed",
+      "rules": [
+        "X-01",
+        "X-02"
+      ]
+    },
+    {
+      "id": "IX-BIRD-CALL",
+      "description": "注视一只鸟时，它叫一声，声音从它的方向传来",
+      "trigger": {
+        "type": "focus",
+        "minFocusSec": 0.8
+      },
+      "subject": {},
+      "target": {
+        "categories": [
+          "bird"
+        ]
+      },
+      "effect": {
+        "type": "call",
+        "cue": "chirp",
+        "volume": 0.03
+      },
+      "cooldownSec": 15,
+      "reviewState": "proposed",
+      "rules": [
+        "X-01",
+        "A-01"
+      ]
+    }
+  ]
+}

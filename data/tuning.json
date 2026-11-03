@@ -1,0 +1,264 @@
+{
+  "_meta": {
+    "schemaVersion": 3,
+    "specVersion": "0.4-review",
+    "reviewState": "creator_directed",
+    "runtimeBinding": "integrated",
+    "integrationEvidence": "main.js 经 tune() 读取；world.js 读取 scaleHideBelowStageOffset；collision.js 读取 collisionSkinM",
+    "note": "全局可调初值；尚未接入与仅用于规划的参数另标 runtimeBinding，不能据导出到 game.json 就声称已生效。改动记录旧值→新值与试玩证据。"
+  },
+  "ruleClass": "TUNABLE",
+  "parameters": {
+    "possessionDurationSec": {
+      "value": 2.4,
+      "unit": "s",
+      "min": 1.5,
+      "max": 3,
+      "rule": "P-10",
+      "reviewState": "proposed"
+    },
+    "angleTieToleranceDeg": {
+      "value": 1.5,
+      "unit": "deg",
+      "min": 0.5,
+      "max": 3,
+      "rule": "P-11",
+      "reviewState": "proposed"
+    },
+    "distanceTieToleranceM": {
+      "value": 0.15,
+      "unit": "m",
+      "min": 0.05,
+      "max": 0.4,
+      "rule": "P-11",
+      "reviewState": "proposed"
+    },
+    "targetStableSec": {
+      "value": 0.12,
+      "unit": "s",
+      "min": 0.05,
+      "max": 0.25,
+      "rule": "P-11",
+      "reviewState": "proposed"
+    },
+    "loadTimeoutSec": {
+      "value": 10,
+      "unit": "s",
+      "min": 5,
+      "max": 15,
+      "rule": "F-02",
+      "reviewState": "proposed"
+    },
+    "rollbackDurationSec": {
+      "value": 0.8,
+      "unit": "s",
+      "min": 0.3,
+      "max": 1,
+      "rule": "P-08",
+      "reviewState": "proposed"
+    },
+    "stuckAttemptSec": {
+      "value": 2,
+      "unit": "s",
+      "min": 1.5,
+      "max": 3,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "stuckDisplacementM": {
+      "value": 0.05,
+      "unit": "m",
+      "min": 0.02,
+      "max": 0.1,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "safeRecoveryGraceSec": {
+      "value": 1,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "flightCeilingM": {
+      "value": 180,
+      "unit": "m",
+      "min": 120,
+      "max": 250,
+      "rule": "M-04",
+      "reviewState": "proposed",
+      "note": "所有飞行身体的空域上限；与 anchors.json 的空域 maxY 一致"
+    },
+    "cameraCollisionPaddingM": {
+      "value": 0.1,
+      "unit": "m",
+      "min": 0.05,
+      "max": 0.3,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "mouseSensitivityRadPerPixel": {
+      "value": 0.0025,
+      "unit": "rad/px",
+      "min": 0.001,
+      "max": 0.005,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "firstPossessionHintSec": {
+      "value": 4,
+      "unit": "s",
+      "min": 2,
+      "max": 6,
+      "rule": "U-05",
+      "reviewState": "proposed"
+    },
+    "dialogueDisplaySec": {
+      "value": 6,
+      "unit": "s",
+      "min": 4,
+      "max": 8,
+      "rule": "U-05",
+      "reviewState": "proposed"
+    },
+    "dialogueFadeInSec": {
+      "runtimeBinding": "not_integrated",
+      "note": "尚未接入；当前回应淡入由 style.css 的 opacity 2s 控制。",
+      "value": 1,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2,
+      "rule": "U-05",
+      "reviewState": "proposed"
+    },
+    "dialogueFadeOutSec": {
+      "runtimeBinding": "not_integrated",
+      "note": "尚未接入；当前回应淡出由 style.css 的 opacity 2s 控制。",
+      "value": 1.5,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2,
+      "rule": "U-05",
+      "reviewState": "proposed"
+    },
+    "audioCrossfadeSec": {
+      "value": 1.2,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2.5,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "airGroundSoundFadeStartM": {
+      "value": 5,
+      "unit": "m",
+      "min": 1,
+      "max": 20,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "airGroundSoundFadeEndM": {
+      "value": 60,
+      "unit": "m",
+      "min": 30,
+      "max": 120,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "warmStartTargetSec": {
+      "runtimeBinding": "planning_only",
+      "note": "启动性能目标，不是运行时超时开关。",
+      "value": 5,
+      "unit": "s",
+      "min": 2,
+      "max": 10,
+      "rule": "F-02",
+      "reviewState": "proposed"
+    },
+    "featureFreezeDaysBeforeDeadline": {
+      "runtimeBinding": "planning_only",
+      "note": "排期约定，不是运行时功能开关。",
+      "value": 3,
+      "unit": "days",
+      "min": 2,
+      "max": 4,
+      "rule": "T-02",
+      "reviewState": "proposed"
+    },
+    "perceptionCrossfadeSec": {
+      "runtimeBinding": "not_integrated",
+      "note": "尚未接入；当前视觉感知混合使用整个 possessionDurationSec 过渡。",
+      "value": 1.2,
+      "unit": "s",
+      "min": 0.5,
+      "max": 2.5,
+      "rule": "B-05",
+      "reviewState": "proposed"
+    },
+    "scaleHideBelowStageOffset": {
+      "value": 1,
+      "unit": "stage",
+      "min": 1,
+      "max": 2,
+      "rule": "W-07",
+      "reviewState": "proposed",
+      "note": "当前身体层级减去此值以下的实体不渲染，状态保留"
+    },
+    "softBoundaryBandM": {
+      "runtimeBinding": "not_integrated",
+      "note": "尚未接入减速带；当前活动边界采用沿边滑行。",
+      "value": 3,
+      "unit": "m",
+      "min": 1,
+      "max": 5,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "collisionSkinM": {
+      "value": 0.012,
+      "unit": "m",
+      "min": 0.005,
+      "max": 0.05,
+      "rule": "M-07",
+      "reviewState": "proposed"
+    },
+    "targetMinAngularSizeRad": {
+      "value": 0.008,
+      "unit": "rad",
+      "min": 0.004,
+      "max": 0.02,
+      "rule": "P-11",
+      "reviewState": "proposed",
+      "note": "目标在屏幕上的最小角尺寸；更小则视为无法辨认"
+    },
+    "ownBodyAngleBiasRad": {
+      "value": 0.15,
+      "unit": "rad",
+      "min": 0.05,
+      "max": 0.3,
+      "rule": "P-11",
+      "reviewState": "proposed",
+      "note": "自己承载的存在（如岛上的巨岩）需要比外部目标更对准才会被选中"
+    },
+    "viewLiftHysteresis": {
+      "value": 0.1,
+      "unit": "ratio",
+      "min": 0.05,
+      "max": 0.25,
+      "rule": "P-16",
+      "reviewState": "proposed",
+      "note": "视点抬升的缓冲：已获得的抬升在视点低于阈值 ×(1 − 此值) 时才撤销，避免涟漪闪烁"
+    }
+  },
+  "hardConstraints": {
+    "firstPossessionUnderstandingMaxSec": 30,
+    "sameDialogueGroupMinGapSec": 90,
+    "minimumAcceptableFps": 30,
+    "targetFps": 60,
+    "noDeathOrFailure": true,
+    "noClipping": true,
+    "noJumpOrVerticalKeys": true
+  },
+  "note": "本文件只放可调数值；类别清单在 entities.json 的 categories，能力开关、尺度关系与碰撞策略属于规则，改动走 09 决策记录。"
+}
