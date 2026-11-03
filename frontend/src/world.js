@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SPECIES, TUNING, LAYOUT, inRegion, mulberry32 } from './species.js';
+import { SPECIES, TUNING, LAYOUT, WATERS, inRegion, mulberry32, layerOf } from './species.js';
 import { makeRock } from './assets.js';
 
 export const PLANET_RADIUS=7500;
@@ -12,7 +12,8 @@ export function terrainHeight(x,z){
   let h=8+Math.sin(x*.024)*2.5+Math.cos(z*.031)*2+noise(x*.025,z*.025)*3;
   // The large rocky hill is its own movable body, not a baked terrain duplicate.
   h+=37*Math.exp(-((x+180)**2/12000+(z+185)**2/7000));
-  h-=19*Math.exp(-((x+83)**2/2800+(z+65)**2/850));
+  // Placeholder terrain carves each enclosed water body's basin; a GLB terrain brings its own.
+  for(const r of WATERS){const b=r.water.basin;if(b)h-=b.depthM*Math.exp(-((x-r.center[0])**2/(2*b.falloffM[0]**2)+(z-r.center[1])**2/(2*b.falloffM[1]**2)));}
   h=THREE.MathUtils.lerp(h,-12,smooth(.73,1.03,radius));
   return h-(x*x+z*z)/(2*PLANET_RADIUS);
 }
@@ -72,33 +73,6 @@ float breeze=sin(position.x*.15+position.z*.21+windTime*.85)*.11;transformed.x+=
   const mesh=new THREE.Mesh(geo,mat);mesh.receiveShadow=true;mesh.userData.wind=wind;return mesh;
 }
 
-function planetMaterial(rock=false){
-  const c=document.createElement('canvas');c.width=1024;c.height=512;const ctx=c.getContext('2d'),img=ctx.createImageData(c.width,c.height);
-  for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){
-    const u=x/c.width*Math.PI*2,v=y/c.height*Math.PI;
-    const n=Math.sin(u*3+Math.sin(v*5)*1.3)+Math.sin(v*7+u*2)*.7+Math.cos(u*7-v*4)*.4;
-    const i=(y*c.width+x)*4;let color;
-    if(rock){const k=.6+(n+2)*.07;color=[123*k,110*k,88*k];}
-    else if(n>.42){let k=(n-.4)*.15;color=[70+22*k,91+20*k,63+7*k];if(n>1.65)color=[142,148,126];}
-    else color=[27+n*4,68+n*8,78+n*9];
-    const ice=Math.pow(Math.abs(Math.cos(v)),24);
-    for(let a=0;a<3;a++)img.data[i+a]=color[a]*(1-ice)+200*ice;
-    img.data[i+3]=255;
-  }
-  ctx.putImageData(img,0,0);const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;
-  return new THREE.MeshStandardMaterial({map:texture,roughness:rock?.94:.58,metalness:rock?0:.1});
-}
-function makePlanet(radius,rock=false){
-  const root=new THREE.Group(),geo=new THREE.SphereGeometry(radius,128,80);
-  const body=new THREE.Mesh(geo,planetMaterial(rock));root.add(body);
-  if(!rock){
-    const atmos=new THREE.Mesh(new THREE.SphereGeometry(radius*1.017,64,40),new THREE.ShaderMaterial({vertexShader:`varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}`,fragmentShader:`varying vec3 n;varying vec3 v;void main(){float i=pow(1.-abs(dot(n,v)),3.);gl_FragColor=vec4(.36,.61,.72,i*.35);}`,transparent:true,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false}));root.add(atmos);
-    const cloudMat=new THREE.ShaderMaterial({vertexShader:`varying vec3 p;void main(){p=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`varying vec3 p;void main(){float a=sin(p.x*17.+sin(p.z*14.)*3.)+sin(p.y*23.+p.z*12.)*.7+sin(p.z*39.+p.x*18.)*.4;a=smoothstep(.85,1.9,a);gl_FragColor=vec4(.86,.88,.83,a*.55);}`,transparent:true,depthWrite:false});
-    const cloud=new THREE.Mesh(new THREE.SphereGeometry(radius*1.006,96,64),cloudMat);root.add(cloud);root.userData.cloud=cloud;
-  }
-  return root;
-}
-
 export class World {
   constructor(scene,assets){
     this.scene=scene;this.assets=assets;this.entities=[];this.byId=new Map();this.byRoot=new Map();this.decor=[];this.time=0;this.externalTerrain=null;this.surfaceRay=new THREE.Raycaster();
@@ -111,11 +85,13 @@ export class World {
     this.islandRoot.updateWorldMatrix(true,true);
     this.waterMat=waterMaterial();
     const waterGeo=new THREE.PlaneGeometry(12000,12000,150,150);waterGeo.rotateX(-Math.PI/2);
-    const p=waterGeo.attributes.position;for(let i=0;i<p.count;i++){const r2=p.getX(i)**2+p.getZ(i)**2;p.setY(i,Math.sqrt(Math.max(0,PLANET_RADIUS**2-r2))-PLANET_RADIUS-.1);}waterGeo.computeVertexNormals();
+    const sea=WATERS.find(r=>r.water.type==='sea');this.seaLevel=sea.water.levelM;
+    const p=waterGeo.attributes.position;for(let i=0;i<p.count;i++){const r2=p.getX(i)**2+p.getZ(i)**2;p.setY(i,Math.sqrt(Math.max(0,PLANET_RADIUS**2-r2))-PLANET_RADIUS+this.seaLevel);}waterGeo.computeVertexNormals();
     this.sea=new THREE.Mesh(waterGeo,this.waterMat);this.sea.position.y=PLANET_RADIUS;this.planetRoot.add(this.sea);
-    const lake=LAYOUT.regions.lake;this.lakeMaterial=waterMaterial(.88);
-    this.lake=new THREE.Mesh(new THREE.CircleGeometry(1,80),this.lakeMaterial);this.lake.rotation.x=-Math.PI/2;this.islandRoot.add(this.lake);
-    if(lake){this.lake.scale.set(lake.radii[0],lake.radii[1],1);this.lake.position.set(lake.center[0],lake.surfaceY,lake.center[1]);}else this.lake.visible=false;
+    this.waterBodies=WATERS.filter(r=>r.water.type==='enclosed').map(r=>{
+      const mesh=new THREE.Mesh(new THREE.CircleGeometry(1,80),waterMaterial(r.water.opacity??1));mesh.rotation.x=-Math.PI/2;
+      mesh.scale.set(r.radii[0],r.radii[1],1);mesh.position.set(r.center[0],r.water.surfaceY,r.center[1]);this.islandRoot.add(mesh);return mesh;
+    });
     this.populate();this.createDecor();this.createSky();this.createRipples();
     this.ready=this.loadEnvironment();scene.updateMatrixWorld(true);
   }
@@ -205,12 +181,17 @@ export class World {
     }
   }
   carrierOf(entity){return this.byRoot.get(entity.root.parent)||null;}
-  // Water body under a point of the main island, in island-local metres.
+  // Water body under a point of the main island, in island-local metres: an enclosed body
+  // whose shape contains the point, else the sea where it is deep enough.
   water(x,z){
-    const floor=this.height(x,z),lake=LAYOUT.regions.lake;
-    if(lake&&inRegion('lake',x,z))return {surface:lake.surfaceY,floor};
-    const sea=-(x*x+z*z)/(2*PLANET_RADIUS)-.1;
-    return floor<sea-.4?{surface:sea,floor}:null;
+    const floor=this.height(x,z);let sea=null;
+    for(const r of WATERS){
+      if(r.water.type==='sea')sea=r;
+      else if(inRegion(r.id,x,z))return {id:r.id,type:r.water.type,surface:r.water.surfaceY,floor};
+    }
+    if(!sea)return null;
+    const surface=-(x*x+z*z)/(2*PLANET_RADIUS)+sea.water.levelM;
+    return floor<surface-sea.water.minDepthM?{id:sea.id,type:'sea',surface,floor}:null;
   }
   height(x,z){
     let result=terrainHeight(x,z);
@@ -240,14 +221,13 @@ export class World {
   }
 
   createSky(){
-    this.skyUniforms={cosmic:{value:0},underwater:{value:0},sun:{value:new THREE.Vector3(-.6,.5,-.7).normalize()}};
-    const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:this.skyUniforms,vertexShader:`varying vec3 dir;void main(){dir=position;gl_Position=projectionMatrix*viewMatrix*vec4(position+cameraPosition,1.);}`,fragmentShader:`varying vec3 dir;uniform float cosmic;uniform float underwater;uniform vec3 sun;void main(){vec3 d=normalize(dir);float h=pow(max(d.y,0.),.45);vec3 sky=mix(vec3(.77,.8,.68),vec3(.51,.63,.66),h);float glow=pow(max(dot(d,sun),0.),18.);sky+=vec3(.18,.13,.055)*glow;sky=mix(sky,vec3(.012,.023,.035),cosmic);sky=mix(sky,vec3(.12,.30,.27),underwater);gl_FragColor=vec4(sky,1.);
+    this.skyUniforms={underwater:{value:0},sun:{value:new THREE.Vector3(-.6,.5,-.7).normalize()}};
+    const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:this.skyUniforms,vertexShader:`varying vec3 dir;void main(){dir=position;gl_Position=projectionMatrix*viewMatrix*vec4(position+cameraPosition,1.);}`,fragmentShader:`varying vec3 dir;uniform float underwater;uniform vec3 sun;void main(){vec3 d=normalize(dir);float h=pow(max(d.y,0.),.45);vec3 sky=mix(vec3(.77,.8,.68),vec3(.51,.63,.66),h);float glow=pow(max(dot(d,sun),0.),18.);sky+=vec3(.18,.13,.055)*glow;sky=mix(sky,vec3(.12,.30,.27),underwater);gl_FragColor=vec4(sky,1.);
 #include <tonemapping_fragment>
 #include <colorspace_fragment>
 }`});
     this.sky=new THREE.Mesh(new THREE.SphereGeometry(180000,32,20),skyMat);this.sky.renderOrder=-100;this.scene.add(this.sky);
-    const r=mulberry32(44),positions=[];for(let i=0;i<1500;i++){const u=r()*6.28,v=Math.acos(2*r()-1);positions.push(Math.sin(v)*Math.cos(u)*130000,Math.cos(v)*130000,Math.sin(v)*Math.sin(u)*130000);}
-    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));this.starMat=new THREE.PointsMaterial({color:'#d7e3df',size:1.3,sizeAttenuation:false,transparent:true,opacity:0,depthWrite:false});this.stars=new THREE.Points(geo,this.starMat);this.scene.add(this.stars);
+
   }
   createRipples(){
     this.ripple=new THREE.Group();this.scene.add(this.ripple);
@@ -266,47 +246,33 @@ export class World {
       if(entry.rotation)root.rotation.fromArray(entry.rotation);
       root.scale.setScalar(entry.scale||1);this.islandRoot.add(root);this.islandRoot.updateMatrixWorld(true);
       root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
-      if(entry.useAsTerrain){this.externalTerrain=root;this.terrain.visible=false;
+      if(entry.useAsTerrain){
+        // The main body's visual and collision bounds must follow the replacement too.
+        root.userData.external=true;
+        root.userData.localBounds=new THREE.Box3().setFromObject(root).applyMatrix4(this.islandRoot.matrixWorld.clone().invert());
+        this.terrain.removeFromParent();this.terrain=this.externalTerrain=root;
+        this.byId.get(LAYOUT.mainIsland).visual=root;
         for(const e of this.entities)if(e.root.parent===this.islandRoot&&e.surfaceOffset!=null){e.root.position.y=this.height(e.root.position.x,e.root.position.z)+e.surfaceOffset;e.baseY=e.root.position.y;}
       }
     }catch(e){this.assets.errors.push('environment: '+e.message);console.warn('Prototype environment retained.',e);}
   }
   // Random scenery must not start inside another solid body (M-01); named bodies stay.
-  prune(collision){
-    for(let pass=0;pass<4;pass++){
-      collision.refresh();
-      const e=this.entities.find(e=>e.random&&SPECIES[e.kind].collision.solid&&collision.collides(e,this.position(e)));
-      if(!e)return;
-      e.root.removeFromParent();this.entities.splice(this.entities.indexOf(e),1);this.byId.delete(e.id);this.byRoot.delete(e.root);pass=-1;
-    }
-  }
-  carrierOf(entity){return this.byRoot.get(entity.root.parent)||null;}
-  // Water body under a point of the main island, in island-local metres.
-  water(x,z){
-    const floor=this.height(x,z);
-    if(((x+83)/65)**2+((z+65)/39)**2<1)return {surface:5.8,floor};
-    const sea=-(x*x+z*z)/(2*PLANET_RADIUS)-.1;
-    return floor<sea-.4?{surface:sea,floor}:null;
-  }
   position(entity,target=new THREE.Vector3()){return entity.root.getWorldPosition(target);}
   focus(entity,target=new THREE.Vector3()){
     this.position(entity,target);const s=SPECIES[entity.kind];
-    if(s.mode!=='planet')target.y+=s.height*(s.stage===2?.35:.44);
+    target.y+=s.height*layerOf(entity.kind).focusHeightRatio;
     return target;
   }
   update(dt,player,target,targetPoint=null,targetSize=1){
     this.time+=dt;const t=this.time,stage=SPECIES[player.kind].stage;
-    this.waterMat.uniforms.time.value=t;this.lakeMaterial.uniforms.time.value=t;
+    this.waterMat.uniforms.time.value=t;for(const w of this.waterBodies)w.material.uniforms.time.value=t;
     for(const d of this.decor){
       d.object.visible=stage<=(d.slot.visibleUpToStage??1)&&!(d.procedural&&this.externalTerrain);
       if(d.object.userData.wind)d.object.userData.wind.value=t;
     }
     this.sea.visible=!this.scene.userData.underwater;
-    this.lake.visible=!this.scene.userData.underwater;
-    this.skyUniforms.cosmic.value=0;
+    for(const w of this.waterBodies)w.visible=!this.scene.userData.underwater;
     this.skyUniforms.underwater.value=THREE.MathUtils.damp(this.skyUniforms.underwater.value,this.scene.userData.underwater?1:0,2,dt);
-    this.starMat.opacity=0;
-    this.stars.position.copy(this.scene.userData.cameraPosition||new THREE.Vector3());
     // Small bodies are not drawn at large scales; their state is kept (W-06).
     const hideBelow=stage-(TUNING.scaleHideBelowStageOffset?.value??1);
     for(const e of this.entities){
@@ -316,7 +282,7 @@ export class World {
       const v=e.visual;
       if(v.userData.sway)v.rotation.z=Math.sin(t*.9+e.seed)*v.userData.sway;
       if(v.userData.bird){const a=Math.sin(t*(e.moving?7:3.4)+e.seed)*.38;v.userData.leftWing.rotation.z=a;v.userData.rightWing.rotation.z=-a;v.position.y=Math.sin(t*2+e.seed)*.08;}
-      if(v.userData.limbs)for(let i=0;i<v.userData.limbs.length;i++)v.userData.limbs[i].rotation.x=e.moving?Math.sin(t*(s.category==='dog'?10:7)+i*Math.PI)*.38:0;
+      if(v.userData.limbs)for(let i=0;i<v.userData.limbs.length;i++)v.userData.limbs[i].rotation.x=e.moving?Math.sin(t*s.limbSwingRate+i*Math.PI)*.38:0;
       if(v.userData.dogTail)v.userData.dogTail.rotation.z=Math.sin(t*4)*.2;
       if(v.userData.fish)v.userData.tail.rotation.y=Math.sin(t*(e.moving?10:4)+e.seed)*.35;
       v.userData.moving=e.moving;
@@ -335,7 +301,7 @@ export class World {
       const e=this.byId.get(record.id);if(!e||!Array.isArray(record.position)||record.position.length!==3||!record.position.every(Number.isFinite))continue;
       e.root.position.fromArray(record.position);e.heading=Number.isFinite(record.heading)?record.heading:0;
       if(Array.isArray(record.rotation)&&record.rotation.length===3&&record.rotation.every(Number.isFinite))e.root.rotation.set(...record.rotation);
-      else if(!['planet','island'].includes(SPECIES[e.kind].mode))e.root.rotation.y=e.heading;
+      else if(SPECIES[e.kind].mode!=='island')e.root.rotation.y=e.heading;
       e.baseY=Number.isFinite(record.baseY)?record.baseY:e.root.position.y;
     }
     this.scene.updateMatrixWorld(true);

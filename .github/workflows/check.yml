@@ -9,22 +9,43 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name == 'push' && github.sha || 'latest' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  PYTHONUTF8: '1'
+
 jobs:
   game-checks:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.12'
-      - name: Validate data and run browser checks
-        run: python3 project/check_all.py
+      - name: Check source syntax and conflict markers
+        run: |
+          set -euo pipefail
+          mkdir -p .work/game-checks
+          python project/check_repository.py --javascript 2>&1 | tee .work/game-checks/source.log
+      - name: Run checker unit tests
+        run: python -m unittest discover -s project/tests -v
+      - name: Validate documentation, data and generated configuration
+        run: python project/check_all.py --only docs --output .work/game-checks
+      - name: Run browser checks
+        run: python project/check_all.py --only browser --output .work/game-checks
       - name: Save check logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: game-check-logs
-          path: .work/collaboration-checks/
           include-hidden-files: true
-          if-no-files-found: ignore
+          path: |
+            .work/game-checks/*.log
+            .work/game-checks/result.json
+          retention-days: 14
+          if-no-files-found: warn

@@ -6,13 +6,13 @@ Example (a heron that behaves like a gull until it gets its own model):
 
 What it writes, all in data/:
   entities.json   new species with an empty asset slot (placeholder until a GLB is set);
-                  it may possess what the source may, and whatever could possess the
-                  source may possess it (P-12 stays intact)
+                  it keeps the source's scaleTier unless --tier is given, and its
+                  possession relations follow from that tier (P-12, D-021)
   anchors.json    a scatter group placing --count individuals beside the source's first one
   asset-ledger.csv  placeholder and planned rows for the new slot
 Afterwards: tune its numbers, optionally add a quote in dialogue.json, then run
 project/sync_runtime.py and project/validate_docs.py. No game code changes.
-A new category (e.g. house) is a scope change: see docs/13-extension-guide.md.
+A new category (e.g. house) is a scope change: see data/README.md.
 """
 import argparse
 import copy
@@ -39,6 +39,7 @@ def main():
     parser.add_argument('--name', required=True, help='display name, e.g. 苍鹭')
     parser.add_argument('--kind', required=True, help='short runtime kind, e.g. heron')
     parser.add_argument('--style', help='placeholder look; defaults to the source look')
+    parser.add_argument('--tier', help='scale tier id, e.g. S1; defaults to the source tier')
     parser.add_argument('--count', type=int, default=3, help='individuals to place')
     parser.add_argument('--dry-run', action='store_true')
     args = parser.parse_args()
@@ -53,11 +54,11 @@ def main():
 
     new = copy.deepcopy(source)
     new.update(id=args.id, name=args.name, runtimeKind=args.kind, implementationStatus='scaffolded_placeholder')
-    if args.source in new['allowedTargets']:
-        new['allowedTargets'].append(args.id)
-    for other in entities['entities']:
-        if args.source in other['allowedTargets']:
-            other['allowedTargets'].append(args.id)
+    if args.tier:
+        if args.tier not in {t['id'] for t in entities['scaleTiers']}:
+            raise SystemExit(f'Unknown scale tier: {args.tier}')
+        new['scaleTier'] = args.tier
+        new.pop('scaleTierReason', None)
     asset = new['asset']
     asset.update(slotId=f'slot.{args.kind}', status='placeholder', url=None, variants=[], lod=[], animations={},
                  rigSource=None, collisionBoxes=None, lux3dUsed=False, placeholderStyle=args.style or asset.get('placeholderStyle'),

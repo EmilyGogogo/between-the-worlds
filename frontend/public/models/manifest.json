@@ -224,26 +224,6 @@
       "lux3dUsed": false,
       "pivot": "bottom_center"
     },
-    "tern": {
-      "url": null,
-      "variants": [],
-      "lod": [],
-      "height": 0.5,
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "animations": {},
-      "colliderMode": "auto_bounds",
-      "collisionBoxes": null,
-      "slotId": "slot.tern",
-      "status": "placeholder",
-      "placeholder": "procedural:bird",
-      "placeholderStyle": "tern",
-      "lux3dUsed": false,
-      "pivot": "bottom_center"
-    },
     "silverfish": {
       "url": null,
       "variants": [],
@@ -281,26 +261,6 @@
       "status": "placeholder",
       "placeholder": "procedural:fish",
       "placeholderStyle": "butterfly",
-      "lux3dUsed": false,
-      "pivot": "bottom_center"
-    },
-    "perch": {
-      "url": null,
-      "variants": [],
-      "lod": [],
-      "height": 0.38,
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "animations": {},
-      "colliderMode": "auto_bounds",
-      "collisionBoxes": null,
-      "slotId": "slot.perch",
-      "status": "placeholder",
-      "placeholder": "procedural:fish",
-      "placeholderStyle": "perch",
       "lux3dUsed": false,
       "pivot": "bottom_center"
     },

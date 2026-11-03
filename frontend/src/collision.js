@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { SPECIES } from './species.js';
+import { SPECIES, TUNING } from './species.js';
 
 export class WorldCollision {
   constructor(world){this.world=world;this.records=[];this.ray=new THREE.Ray();this.externalRay=new THREE.Raycaster();}
@@ -27,11 +27,11 @@ export class WorldCollision {
   }
   actorBox(entity,position){
     const box=this.localBoxes(entity).reduce((all,b)=>all.union(b),new THREE.Box3()).applyMatrix4(entity.root.matrixWorld);
-    return box.translate(position.clone().sub(this.world.position(entity))).expandByScalar(-.012);
+    return box.translate(position.clone().sub(this.world.position(entity))).expandByScalar(-TUNING.collisionSkinM.value);
   }
   frameBox(entity,position){
     const local=entity.root.parent.worldToLocal(position.clone()).sub(entity.root.position);
-    return this.localBoxes(entity).reduce((all,b)=>all.union(b),new THREE.Box3()).applyMatrix4(entity.root.matrix).translate(local).expandByScalar(-.012);
+    return this.localBoxes(entity).reduce((all,b)=>all.union(b),new THREE.Box3()).applyMatrix4(entity.root.matrix).translate(local).expandByScalar(-TUNING.collisionSkinM.value);
   }
   blockers(entity){return this.records.filter(r=>!this.related(entity,r.entity));}
   collides(entity,position,records=this.blockers(entity)){
@@ -81,10 +81,10 @@ export class WorldCollision {
     }
     if(entity.lastSafe)this.setWorldPosition(entity,entity.lastSafe);return false;
   }
-  obscures(eye,point,source,target){
+  obscures(eye,point,source,target,includeTargetContents=false){
     const distance=eye.distanceTo(point),hit=new THREE.Vector3();this.ray.set(eye,point.clone().sub(eye).normalize());
     for(const r of this.records){
-      if(r.entity===source||r.entity===target||this.related(source,r.entity)||this.related(target,r.entity))continue;
+      if(r.entity===source||r.entity===target||this.related(source,r.entity)||(!includeTargetContents&&this.related(target,r.entity)))continue;
       if(this.ray.intersectBox(r.box,hit)&&hit.distanceTo(eye)<distance-.08)return true;
     }
     return false;

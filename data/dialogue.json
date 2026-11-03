@@ -4,7 +4,7 @@
     "specVersion": "0.4-review",
     "reviewState": "proposed",
     "runtimeBinding": "integrated",
-    "integrationEvidence": "target_focus 与 first_possess_from_stage_1 两种触发均已实现",
+    "integrationEvidence": "target_focus 与 first_possess 两种触发均已实现",
     "note": "世界回应采用哲学家原句（创作者 2026-11-01 要求）；文字不承担路线或操作说明。"
   },
   "policy": {
@@ -23,7 +23,7 @@
   },
   "triggers": {
     "target_focus": "该类型成为主目标并稳定一段时间时，可能出现",
-    "first_possess_from_stage_1": "首次从身体层（如人、鸟）成为该岛时"
+    "first_possess": "首次从任意身体成为岛时；不以原身体种类或尺度层限制"
   },
   "entries": [
     {
@@ -36,7 +36,7 @@
       "sourceReference": "庄子，《庄子·齐物论》",
       "textStatus": "classical",
       "sourceNote": "先秦典籍原文，据通行本；定稿时按团队选定的版本逐字核对",
-      "fit": "万物齐一，从一株草开始",
+      "fit": "万物齐一，成为一株草时的回应",
       "entityType": "plant_grass_01",
       "trigger": "target_focus",
       "triggerAnchor": null,
@@ -153,24 +153,6 @@
       "reviewState": "creator_requested_quote"
     },
     {
-      "id": "TXT-BIRD-TERN",
-      "text": "飘风不终朝，骤雨不终日。",
-      "sourceType": "quoted",
-      "author": "老子",
-      "work": "《道德经》第二十三章（王弼本）",
-      "originalText": null,
-      "sourceReference": "老子，《道德经》第二十三章（王弼本）",
-      "textStatus": "classical",
-      "sourceNote": "先秦典籍原文，据通行本；定稿时按团队选定的版本逐字核对",
-      "fit": "借风而飞，风不常驻",
-      "entityType": "bird_tern_01",
-      "trigger": "target_focus",
-      "triggerAnchor": null,
-      "cooldownGroup": "world_response",
-      "maxPlaysPerSession": 1,
-      "reviewState": "creator_requested_quote"
-    },
-    {
       "id": "TXT-FISH-SILVER",
       "text": "子非鱼，安知鱼之乐？",
       "sourceType": "quoted",
@@ -200,24 +182,6 @@
       "sourceNote": "先秦典籍原文，据通行本；定稿时按团队选定的版本逐字核对",
       "fit": "万物在更大的水里相连",
       "entityType": "fish_butterfly_01",
-      "trigger": "target_focus",
-      "triggerAnchor": null,
-      "cooldownGroup": "world_response",
-      "maxPlaysPerSession": 1,
-      "reviewState": "creator_requested_quote"
-    },
-    {
-      "id": "TXT-FISH-RIVER",
-      "text": "人不能两次踏进同一条河流。",
-      "sourceType": "quoted",
-      "author": "赫拉克利特",
-      "work": "残篇 DK B91（经普鲁塔克转述）",
-      "originalText": "ποταμῷ γὰρ οὐκ ἔστιν ἐμβῆναι δὶς τῷ αὐτῷ",
-      "sourceReference": "赫拉克利特，残篇 DK B91（经普鲁塔克转述）",
-      "textStatus": "translation_to_verify",
-      "sourceNote": "外文原句确定；中文为常见译法，定稿时换成选定译本的原文并注明译者",
-      "fit": "流动中的短暂存在",
-      "entityType": "fish_river_01",
       "trigger": "target_focus",
       "triggerAnchor": null,
       "cooldownGroup": "world_response",
@@ -270,9 +234,9 @@
       "sourceReference": "福柯，《词与物》末章结尾",
       "textStatus": "translation_to_verify",
       "sourceNote": "截取原句后半的完整分句（前文为“可以打赌”）；中文为常见译法，定稿时按选定中译本逐字核对并注明译者",
-      "fit": "人第一次成为岛：以人为中心的视角退潮；呼应创作者提出的“人是近期的发明”",
+      "fit": "第一次成为岛：以人为中心的视角退潮；呼应创作者提出的“人是近期的发明”",
       "entityType": "island_01",
-      "trigger": "first_possess_from_stage_1",
+      "trigger": "first_possess",
       "triggerAnchor": "A10",
       "cooldownGroup": "world_response",
       "maxPlaysPerSession": 1,

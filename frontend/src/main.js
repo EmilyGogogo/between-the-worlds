@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
 import { World, terrainHeight, PLANET_RADIUS } from './world.js';
-import { SPECIES,TUNING,LAYOUT,loadRuntimeConfig,actionForCode,canEmbody,inRegion } from './species.js';
+import { SPECIES,SCALE_TIERS,TUNING,LAYOUT,loadRuntimeConfig,actionForCode,canEmbody,layerOf } from './species.js';
 import { InteractionSystem } from './interactions.js';
 import { WorldCollision } from './collision.js';
 import { Ambience } from './audio.js';
@@ -37,13 +37,13 @@ class Game {
     this.scene.add(new THREE.HemisphereLight('#dfe8d9','#75804e',1.8));
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
     this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
-    this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;this.lookPoint=null;
+    this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
     this.actions=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
     this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;
     this.hints={r:false};this.hintTimer=0;this.lastResponse=-90;this.responseTimer=0;this.shown=new Set();this.pendingMoment=null;
     this.stuck={time:0,anchor:null};this.audio=new Ambience();this.filter='';
     this.hasSave=this.restore();this.view=viewOf(this.player.kind);
-    this.cameraGoal=this.camera.position.clone();this.focusGoal=new THREE.Vector3();this.introFocus=new THREE.Vector3(-5,6,-15);
+    this.focusGoal=new THREE.Vector3();this.introFocus=new THREE.Vector3(-5,6,-15);
     if(this.hasSave)this.updatePresence();
     this.bind();this.resize();this.loop();
   }
@@ -117,9 +117,9 @@ class Game {
   // --- Possession: re-validate on R, commit only when the camera arrives (P-06～P-08).
   possess(){
     if(this.transition||!this.target)return false;
-    const target=this.target;this.collision.refresh();
+    const target=this.target;this.collision.refresh();this.updateLift();
     if(!this.evaluate(target,this.camera.position,this.camera.getWorldDirection(v2))){this.target=null;this.candidate=null;return false;}
-    if(SPECIES[target.kind].stage>=3)this.pitch=Math.max(this.pitch,.52);
+    const minPitch=layerOf(target.kind).possessMinPitch;if(minPitch!=null)this.pitch=Math.max(this.pitch,minPitch);
     this.transition={from:this.player,to:target,start:this.camera.position.clone(),startFocus:this.focusGoal.clone(),elapsed:0,duration:tune('possessionDurationSec',2.4)};
     this.player.moving=false;this.target=null;this.candidate=null;this.zoom=1;this.actions.clear();
     document.body.classList.add('transitioning');this.audio.chime();return true;
@@ -131,39 +131,41 @@ class Game {
       // The target vanished: glide back to the body we never left.
       this.transition={opening:true,from:tr.from,to:tr.from,start:this.camera.position.clone(),startFocus:this.focusGoal.clone(),elapsed:0,duration:tune('rollbackDurationSec',.8)};return;
     }
-    const fromStage=SPECIES[tr.from.kind].stage;
     this.player=tr.to;this.collision.refresh();this.collision.repair(this.player);
     this.pitch=clamp(this.pitch,this.pitchMin(),1.16);this.stuck={time:0,anchor:null};
-    const moment=SPECIES[this.player.kind].moments?.first_possess_from_stage_1,key=this.player.kind+':first_possess';
-    this.pendingMoment=moment&&fromStage===1&&!this.shown.has(key)?{key,text:moment,kind:this.player.kind}:null;
+    const moment=SPECIES[this.player.kind].moments?.first_possess,key=this.player.kind+':first_possess';
+    this.pendingMoment=moment&&!this.shown.has(key)?{key,text:moment,kind:this.player.kind}:null;
     this.interactions.onPossess(this.player);this.updatePresence();this.save();
   }
-  isCarrier(e){const parent=this.player.root.parent;return e.root===parent||parent?.parent===e.root;}
-  // The main island is recognised as an island only near its edge or from above (G-07, P-13).
-  islandVisible(){
-    const root=this.world.islandRoot,p=root.worldToLocal(this.world.position(this.player,v3));
-    if(p.y-this.world.height(p.x,p.z)>tune('carrierAltitudeM',35))return true;
-    const r=tune('carrierEdgeSightM',90);
-    for(let i=0;i<16;i++){const a=i/16*Math.PI*2;if(this.world.height(p.x+Math.cos(a)*r,p.z+Math.sin(a)*r)<0)return true;}
-    return false;
+  isCarrier(e){for(let parent=this.player.root.parent;parent;parent=parent.parent)if(parent===e.root)return true;return false;}
+  // Recompute from the current view, including when R is pressed (D-017).
+  islandPoint(eye,direction){
+    const island=this.world.byId.get(LAYOUT.mainIsland);
+    if(!canEmbody(this.player,island,this.liftRank())||!this.isCarrier(island))return null;
+    const point=this.groundUnderView(eye,direction);
+    if(!point||this.collision.obscures(eye,point,this.player,island,true))return null;
+    return point;
   }
   // Land under the view ray of the main island, or null when looking at sky or sea.
   groundUnderView(eye,dir){
     const root=this.world.islandRoot,origin=root.worldToLocal(eye.clone()),d=dir.clone().applyQuaternion(root.getWorldQuaternion(new THREE.Quaternion()).invert());
+    const sea=this.world.seaLevel;
     for(let t=.5;t<700;t+=Math.max(.5,t*.04)){
       const x=origin.x+d.x*t,y=origin.y+d.y*t,z=origin.z+d.z*t,h=this.world.height(x,z);
-      if(y<h)return h>-.3?root.localToWorld(new THREE.Vector3(x,h,z)):null;
-      if(y<-.1)return null;
+      if(y<h)return h>sea-.2?root.localToWorld(new THREE.Vector3(x,h,z)):null;
+      if(y<sea)return null;
     }
     return null;
   }
   evaluate(e,eye,direction){
-    const p=this.player;if(!canEmbody(p,e))return null;
+    const p=this.player;if(!canEmbody(p,e,this.liftRank()))return null;
     const s=SPECIES[p.kind],o=SPECIES[e.kind],carrier=this.isCarrier(e);
     if(carrier){
       // A carrying whole is chosen by where one looks on it, not by its centre.
-      if(e.root===this.world.islandRoot){if(!this.islandFrame||!this.lookPoint)return null;return {entity:e,angle:0,distance:0,carrier,point:this.lookPoint.clone()};}
-      return {entity:e,angle:0,distance:0,carrier,point:this.focusGoal.clone()};
+      if(e.root===this.world.islandRoot){const point=this.islandPoint(eye,direction);return point?{entity:e,angle:0,distance:0,carrier,point}:null;}
+      const hit=e.visual&&new THREE.Raycaster(eye,direction).intersectObject(e.visual,true)[0];
+      if(!hit||this.collision.obscures(eye,hit.point,p,e,true))return null;
+      return {entity:e,angle:0,distance:0,carrier,point:hit.point.clone()};
     }
     // Things one carries (the boulder on the island one is) count as recognisable parts.
     let own=false;for(let q=e.root.parent;q;q=q.parent)if(q===p.root){own=true;break;}
@@ -180,27 +182,42 @@ class Game {
     const angle=Math.acos(clamp(to.normalize().dot(direction),-1,1)),angular=Math.atan2(o.radius,len);
     if(angle>Math.min(.9,(o.stage<s.stage?.29:.16)+angular))return null;
     if(2*angular<tune('targetMinAngularSizeRad',.008))return null;   // too small to recognise
-    if(s.stage<3&&(this.world.occludes(eye,point,Math.max(o.radius,o.height*.35))||this.collision.obscures(eye,point,p,e)))return null;
+    if(this.world.occludes(eye,point,Math.max(o.radius,o.height*.35))||this.collision.obscures(eye,point,p,e))return null;
     return {entity:e,angle,distance:surface,carrier:false,own,point:null};
   }
-  // Lexicographic: smaller targets before a carrying whole, then aim, distance, scale, id (P-04).
-  compare(a,b){
-    if(a.carrier!==b.carrier)return a.carrier?1:-1;
+  // Narrow, never add up (P-04): the angle group around the best aim, minus any carrying
+  // whole that has a carried candidate in that group, then distance, scale, id.
+  rankCandidates(list){
+    if(!list.length)return list;
     const angleTol=THREE.MathUtils.degToRad(tune('angleTieToleranceDeg',1.5)),distanceTol=tune('distanceTieToleranceM',.15);
     // Carried bodies need a clearly closer aim than outside ones (P-04, P-13).
-    const bias=tune('ownBodyAngleBiasRad',.15),aa=a.angle+(a.own?bias:0),ba=b.angle+(b.own?bias:0);
-    if(Math.abs(aa-ba)>angleTol)return aa-ba;
-    if(Math.abs(a.distance-b.distance)>distanceTol)return a.distance-b.distance;
-    const stage=SPECIES[a.entity.kind].stage-SPECIES[b.entity.kind].stage;if(stage)return stage;
-    return a.entity.id<b.entity.id?-1:1;
+    const bias=tune('ownBodyAngleBiasRad',.15),aim=c=>c.angle+(c.own?bias:0),best=Math.min(...list.map(aim));
+    let group=list.filter(c=>aim(c)<=best+angleTol);
+    const carries=(whole,part)=>{for(let q=part.root.parent;q;q=q.parent)if(q===whole.root)return true;return false;};
+    group=group.filter(c=>!c.carrier||!group.some(o=>o!==c&&carries(c.entity,o.entity)));
+    const near=Math.min(...group.map(c=>c.distance));
+    return group.filter(c=>c.distance<=near+distanceTol).sort((a,b)=>
+      SPECIES[a.entity.kind].stage-SPECIES[b.entity.kind].stage||(a.entity.id<b.entity.id?-1:1));
   }
+  // Height of the eye above the ground or water straight below (P-15).
+  eyeHeight(e){
+    const s=SPECIES[e.kind];if(e.root.parent!==this.world.islandRoot)return s.height;
+    const p=e.root.position,w=this.world.water(p.x,p.z);
+    return p.y+s.height-Math.max(this.world.height(p.x,p.z),w?w.surface:-Infinity);
+  }
+  // A high viewpoint lifts the reach to the tier whose eye height it attains; a lift
+  // already held is kept down to threshold × (1 − hysteresis) so ripples do not flicker.
+  updateLift(){
+    const e=this.player,own=SPECIES[e.kind].tier,held=this.lift?.id===e.id?this.lift.rank:own;
+    const eye=this.eyeHeight(e),keep=1-tune('viewLiftHysteresis',.1);let rank=own;
+    for(const t of SCALE_TIERS)if(t.liftEyeHeightM!=null&&t.rank>rank&&eye>=t.liftEyeHeightM*(t.rank<=held?keep:1))rank=t.rank;
+    this.lift={id:e.id,rank};return rank;
+  }
+  liftRank(){return this.lift?.id===this.player.id?this.lift.rank:SPECIES[this.player.kind].tier;}
   selectTarget(dt){
-    const eye=this.camera.position,direction=this.camera.getWorldDirection(v2);
-    this.islandFrame=this.player.root.parent===this.world.islandRoot&&canEmbody(this.player,this.world.byId.get(LAYOUT.mainIsland))&&this.islandVisible();
-    this.lookPoint=this.islandFrame?this.groundUnderView(eye,direction):null;
+    const eye=this.camera.position,direction=this.camera.getWorldDirection(v2);this.updateLift();
     const list=[];for(const e of this.world.entities){const c=this.evaluate(e,eye,direction);if(c)list.push(c);}
-    list.sort((a,b)=>this.compare(a,b));
-    let best=list[0]||null;
+    let best=this.rankCandidates(list)[0]||null;
     if(best&&this.candidate&&best.entity!==this.candidate){
       const previous=list.find(c=>c.entity===this.candidate);
       if(previous&&previous.carrier===best.carrier&&Boolean(previous.own)===Boolean(best.own)&&Math.abs(previous.angle-best.angle)<=THREE.MathUtils.degToRad(tune('angleTieToleranceDeg',1.5)))best=previous;
@@ -216,7 +233,8 @@ class Game {
   groundHeight(e){
     const p=e.root.position,s=SPECIES[e.kind];
     if(e.root.parent===this.world.islandRoot){
-      if(s.stage===2)return e.groundOffset+terrainHeight(p.x,p.z);
+      // A body placed at a fixed height (the sunken boulder) keeps its offset from the terrain.
+      if(e.surfaceOffset==null)return e.groundOffset+terrainHeight(p.x,p.z);
       // Deep waders (rocks) settle on the bed; others keep to the top of shallow edges.
       const h=this.world.height(p.x,p.z);return s.wadeDepth>1?h:Math.max(-.02,h);
     }
@@ -234,7 +252,7 @@ class Game {
       const deep=w=>w&&w.surface-w.floor>s.height*1.2;
       return deep(this.world.water(x,z))||!deep(this.world.water(p.x,p.z));
     }
-    if(s.mode==='fly'){const limit=760;return Math.hypot(x,z)<=limit||Math.hypot(x,z)<Math.hypot(p.x,p.z);}
+    if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion],d=r=>Math.hypot(r[0]-air.center[0],r[1]-air.center[1]);return d([x,z])<=air.radius||d([x,z])<d([p.x,p.z]);}
     const limit=-s.wadeDepth;
     return this.world.height(x,z)>=limit||this.world.height(p.x,p.z)<limit;
   }
@@ -271,7 +289,7 @@ class Game {
     const p=e.root.position;
     if(e.root.parent!==this.world.islandRoot){p.y=Math.max(p.y,this.groundHeight(e)+.2);return;}
     if(s.mode==='swim'){const w=this.world.water(p.x,p.z);if(w)p.y=clamp(p.y,w.floor+s.height*.3,Math.max(w.floor+s.height*.3,w.surface-s.height*.7));}
-    if(s.mode==='fly')p.y=clamp(p.y,this.world.height(p.x,p.z)+.3,tune('birdMaxHeightM',180));
+    if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion];p.y=clamp(p.y,this.world.height(p.x,p.z)+air.minClearanceM,tune('flightCeilingM',air.maxY));}
   }
   moveIsland(e,local){
     const p=e.root.position;p.add(local);
@@ -301,18 +319,18 @@ class Game {
 
   // --- Camera, scale and perception (C-01～C-06, B-04, P-14).
   updateCamera(dt){
-    const tr=this.transition,subject=tr?tr.to:this.player,s=SPECIES[subject.kind],focus=this.world.focus(subject);
+    const tr=this.transition,subject=tr?tr.to:this.player,s=SPECIES[subject.kind],layer=layerOf(subject.kind),focus=this.world.focus(subject);
     const dist=s.camera*this.zoom,orbit=new THREE.Vector3(Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),Math.cos(this.yaw)*Math.cos(this.pitch)).multiplyScalar(dist);
     const desired=focus.clone().add(orbit);
     // Look ahead of the body, keeping it in the lower third, so the view can find targets.
-    const ahead=dist*(s.stage===0?.65:s.stage===1?.45:.22);
+    const ahead=dist*layer.cameraLookAhead;
     const aim=focus.clone().add(new THREE.Vector3(-Math.sin(this.yaw)*ahead,0,-Math.cos(this.yaw)*ahead));
     aim.y+=dist*(.35-this.pitch)*.6;
-    if(s.stage<2&&subject.root.parent===this.world.islandRoot){
+    if(layer.cameraTerrainFloor&&subject.root.parent===this.world.islandRoot){
       const local=this.world.islandRoot.worldToLocal(desired.clone()),floor=this.world.height(local.x,local.z)+.25;
       if(local.y<floor){local.y=floor;desired.copy(this.world.islandRoot.localToWorld(local));}
     }
-    if(s.stage<=2)desired.copy(this.collision.cameraPosition(focus,desired,subject,tune('cameraCollisionPaddingM',.1)));
+    if(layer.cameraCollision)desired.copy(this.collision.cameraPosition(focus,desired,subject,tune('cameraCollisionPaddingM',.1)));
     const bound=Math.hypot(s.radius,s.height*.5);
     const viewDistance=desired.distanceTo(focus),maxAimAngle=Math.max(.025,THREE.MathUtils.degToRad(this.camera.fov)*.5-Math.asin(Math.min(.95,bound/viewDistance))-.035);
     const offset=aim.clone().sub(focus),angle=focus.clone().sub(desired).angleTo(aim.clone().sub(desired));
@@ -327,16 +345,16 @@ class Game {
     this.camera.fov=this.view.fov;
     this.camera.near=Math.max(.025,this.camera.position.distanceTo(this.focusGoal)/6000);this.camera.updateProjectionMatrix();this.camera.lookAt(this.focusGoal);
     const localEye=this.world.islandRoot.worldToLocal(this.camera.position.clone());
-    const lake=LAYOUT.regions.lake,inLake=Boolean(lake)&&inRegion('lake',localEye.x,localEye.z);
-    const underwater=(inLake&&localEye.y<lake.surfaceY)||this.world.planetRoot.worldToLocal(this.camera.position.clone()).length()<PLANET_RADIUS-.2;
+    const pool=this.world.water(localEye.x,localEye.z);
+    const underwater=(pool?.type==='enclosed'&&localEye.y<pool.surface)||this.world.planetRoot.worldToLocal(this.camera.position.clone()).length()<PLANET_RADIUS+this.world.seaLevel-.1;
     this.scene.userData.underwater=underwater;
-    const stage=f>.5?s.stage:SPECIES[(tr?.from||subject).kind].stage;
-    const density=underwater?.045:(stage===3?.00015:stage===2?.00085:.004)*this.view.fogMultiplier;
+    const shown=f>.5?layer:layerOf((tr?.from||subject).kind);
+    const density=underwater?.045:shown.fogDensity*this.view.fogMultiplier;
     this.scene.fog.density=THREE.MathUtils.damp(this.scene.fog.density,density,1.5,dt);
     this.scene.fog.color.lerp(new THREE.Color(underwater?'#3e7c73':'#b5c4aa'),1-Math.exp(-dt*2));
     this.scene.userData.cameraPosition=this.camera.position;
     const center=this.world.position(subject);
-    if(stage<=2){this.sun.position.copy(center).add(new THREE.Vector3(-60,110,35));this.sun.target.position.copy(center);this.sun.castShadow=true;}
+    if(shown.localSun){this.sun.position.copy(center).add(new THREE.Vector3(-60,110,35));this.sun.target.position.copy(center);this.sun.castShadow=true;}
     else{this.sun.castShadow=false;this.sun.position.copy(center).add(new THREE.Vector3(-15000,25000,8000));this.sun.target.position.copy(center);}
     this.applyPerception();
     if(tr&&tr.elapsed>=tr.duration)this.finishTransition();

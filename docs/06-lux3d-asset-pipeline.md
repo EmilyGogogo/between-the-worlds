@@ -1,6 +1,6 @@
 # 资产槽与 Lux3D 替换
 
-版本：0.4-review · 2026-11-01。规则：L-01～L-07。扩展方法汇总见 [13 扩展指南](13-extension-guide.md)。资产台账：[asset-ledger.csv](../data/asset-ledger.csv)。
+版本：0.4-review · 2026-11-01。规则：L-01～L-07。扩展方法汇总见 [数据与扩展指南](../data/README.md)。资产台账：[asset-ledger.csv](../data/asset-ledger.csv)。
 
 **当前事实：所有资产槽都装着程序化占位，没有任何真实的 Lux3D 产物导入游戏。** 下文是替换合同，不代表替换已经发生。
 
@@ -14,13 +14,13 @@ Lux3D 生成（文字／图片）→ 下载原始文件 → Blender 修整：比
 → python3 project/sync_runtime.py → 进游戏验收（QA-31～QA-34）
 ```
 
-玩法代码不需要改动（L-04）。修改 `frontend/public/models/manifest.json` 无效，它由同步脚本生成，会被覆盖。
+在已支持的槽合同内替换不需要改玩法代码（L-04）。不要手改 `frontend/public/models/manifest.json`；它由同步脚本生成，手改会造成数据不一致并被后续同步覆盖。
 
 ## 槽的种类
 
 | 槽 | 数量 | 内容 | 运行时是否读取 |
 | --- | --- | --- | --- |
-| 身体槽 `slot.<种类>` | 每个可魂穿种类一个，现有 13 个 | 该种类所有个体共用的模型和动作 | 是（`url` 字段） |
+| 身体槽 `slot.<种类>` | 每个可魂穿种类一个，数量随 `entities.json` | 该种类所有个体共用的模型和动作 | 是（`url` 字段） |
 | 世界槽 `env.world` | 1 | 可选：整片主岛的 GLB，替代程序地表 | 是 |
 | 装饰槽 `env.meadow`、`env.pebbles` | 2，可增加 | 成片草地、湖底卵石等不可魂穿的装饰；按 `scatter` 散布，GLB 以实例方式绘制 | 是 |
 | `env.sky_water` | 1 | 天空和水面目前是着色器，不是模型槽 | 不适用 |
@@ -46,9 +46,9 @@ Lux3D 生成（文字／图片）→ 下载原始文件 → Blender 修整：比
 | `colliderMode` | `auto_bounds`（按包围盒）或 `custom_boxes` | `auto_bounds` |
 | `collisionBoxes` | 自定义碰撞盒，局部米制 `[minX,minY,minZ,maxX,maxY,maxZ]` 列表 | `null` |
 | `lod` | 远景简化模型列表，超过 `distance` 米时换上 | `[{"url": "./public/models/gull-far.glb", "distance": 60}]` |
-| `placeholderStyle` | 占位外形的样式（同一类别的生成器内区分，如 `pine`、`tern`） | `gull` |
+| `placeholderStyle` | 占位外形的样式（同一类别的生成器内区分，如 `pine`、`butterfly`） | `gull` |
 | `placeholder` | 当前占位的来源 | `procedural:gull` |
-| `lux3dUsed` | 只有真实产物进入槽后才改为 `true` | `false` |
+| `lux3dUsed` | 真实 Lux3D 产物已进入槽且台账有来源与导入证据时设为 `true`，不代表验收通过 | `false` |
 | `ledgerId`／`fallbackLedgerId` | 对应台账中的计划行与占位行 | `PLAN-bird_gull_01` |
 
 ## 装饰槽字段
@@ -67,11 +67,11 @@ Lux3D 生成（文字／图片）→ 下载原始文件 → Blender 修整：比
 ## 统一约定（L-05）
 
 - **单位与方向**：1 单位 = 1 米；+Y 向上；模型正面朝 -Z。
-- **原点**：底部中心，鱼和鸟也一样，悬浮高度由游戏控制。岛屿以海平面中心为原点，水下部分在原点以下；现有导入器一律按底部落地，尚不支持这条约定，见 [11 原型审计](11-prototype-audit.md)。
+- **原点**：底部中心，鱼和鸟也一样，悬浮高度由游戏控制。岛屿以海平面中心为原点，水下部分在原点以下；导入器已读取 `pivot: "sea_level_center"`，保留文件的海平面 Y 原点并按包围盒居中 X/Z。模型须以几何水平中心制作，实际岛屿 GLB 仍需验证。
 - **文件**：GLB，贴图内嵌。当前前端没有 Draco、Meshopt、KTX2 解码器，导出时不要用这些压缩；如需使用，先加解码器并测试。
-- **动作**：动物至少有 `idle` 与 `move`，可以另加 `turn`、`boost`。没有动作的模型只能静止显示，不会被自动赋予骨骼。植物的风动和摇曳可以由程序完成。
+- **动作**：动物至少有 `idle` 与 `move`。运行时目前只切换这两个角色，不会自动使用额外的 `turn`、`boost`。没有动作的模型只能静止显示，不会被自动赋予骨骼。程序占位植物已有摇曳；外部身体 GLB 只有提供动作才会播放，装饰 GLB 暂无动画／程序风动，不能据占位效果推定替换后的效果。
 - **绑骨**：Aholo 绑骨或 Blender 均可。“数字人绑骨可用”不能直接当作鸟、鱼、狗的绑骨已验证，每种动物都要实际导入检查。
-- **碰撞**：默认按模型包围盒；树（树干与树冠分开）、岛屿、巨岩这类形状不规则的实体，应该提供自定义碰撞盒或碰撞网格，否则 M-01 无法通过。
+- **碰撞**：默认按模型包围盒；树（树干与树冠分开）、岛屿、巨岩这类不规则实体优先配置 `collisionBoxes` 并实测。现有槽支持包围盒和自定义盒，不直接读取专用碰撞网格；地形向下射线也不等于完整网格碰撞。需要网格碰撞时须另行实现与验收，不能只交一个网格就声称满足 M-01。
 - **比例**：按 `entities.json` 的 `body.height`；资产不能悄悄改变实体的真实比例（C-03）。
 
 ## 预算初值（L-06，TUNABLE）
@@ -88,16 +88,16 @@ Lux3D 生成（文字／图片）→ 下载原始文件 → Blender 修整：比
 
 ## 替换步骤
 
-1. 在台账的计划行记录输入：实际提示词、参考图及其来源、生成日期、任务 ID（若有）。
+1. 在台账的计划行记录输入：实际提示词、参考图及其来源、生成日期、分工或 PR 标识（若有）。
 2. Lux3D 原始文件保存在 `assets/lux3d/<asset_id>/raw/v001/`，不覆盖原件。
 3. Blender 修整：比例、轴向、原点、法线、减面、材质、绑骨与动作命名；保存 `.blend` 和修改说明到 `edit/v001/`。
 4. 导出 GLB 到 `frontend/public/models/<种类>-v<版本>.glb`。
-5. 修改 `entities.json` 中该种类的 `asset`：`url`、`height`、`rotation`、`animations`、`rigSource`、碰撞字段，`status` 改为 `integrated`。
+5. 修改 `entities.json` 中该种类的 `asset`：`url`、`height`、`rotation`、`pivot`、`animations`、`rigSource`、碰撞字段。完成真实导入后 `status` 改为 `integrated`；若来源是 Lux3D，同步 `lux3dUsed: true` 和台账 `lux3d_used=true`，记录真实生成日期、原文件、来源／许可与导入证据。测试夹具或其他来源模型不能改为 Lux3D。
 6. 运行 `python3 project/sync_runtime.py`，打开游戏检查：所有该种类个体都已替换；碰撞随新模型更新；动作切换正常；魂穿与镜头构图仍成立。
-7. 通过 QA-31～QA-34 后，`status` 改为 `accepted`，台账 `lux3d_used` 改为 `true` 并填写证据路径。
+7. 通过 QA-31～QA-34 后，槽与台账的 `status` 均改为 `accepted` 并附验收证据。`lux3dUsed`／`lux3d_used` 表示来源与实际使用事实，`accepted` 才表示通过验收；两者不要混用。
 8. 保留上一版文件作为回退。
 
-加载失败或 10 秒超时时，游戏自动退回占位模型（L-03）；这只保证游玩不中断，**不能代替 L-01 的真实 Lux3D 证据**。
+身体／装饰 GLB 请求失败或超过默认 10 秒时会降级；主模型与其 LOD 顺序加载，总启动时间不保证只有 10 秒。当前某变体或它的任一 LOD 失败会移除整个变体，剩余变体继续分配；全部失败才回退程序占位（详见 [数据与扩展指南](../data/README.md)）。`env.world` 加载、清单／配置获取尚无超时，完整魂穿故障路径也有缺口，见 [11](11-prototype-audit.md)。这些机制不能代替 L-01 的真实 Lux3D 证据。
 
 ## 目录约定（产生实际资产时再建立）
 
@@ -114,7 +114,7 @@ assets/lux3d/<asset_id>/
 
 ## 整片世界替换
 
-`env.world` 填入 GLB 后，主岛地表改用该模型，落地高度通过向下射线查询。洞穴、悬空层、垂直崖壁、水域范围、出生点和实例锚点不会从模型自动推断，仍需在 `anchors.json` 和代码中配置。3DGS 等非网格产物需要单独验证渲染与碰撞，不能只改扩展名导入。
+`env.world` 填入 GLB 并启用 `useAsTerrain` 后，主岛地表及其实体视觉、碰撞包围盒引用改用该模型，旧地表移出场景；落地高度通过向下射线查询。未启用 `useAsTerrain` 时仅作为环境附加显示。洞穴、悬空层、垂直崖壁、水域范围、出生点和实例锚点不会从模型自动推断，仍需在 `anchors.json` 和代码中配置。3DGS 等非网格产物需要单独验证渲染与碰撞，不能只改扩展名导入。
 
 ## 首个证据链的建议
 

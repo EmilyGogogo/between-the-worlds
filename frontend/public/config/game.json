@@ -58,6 +58,76 @@
       "release": "0.3"
     }
   },
+  "scaleLayers": {
+    "0": {
+      "cameraLookAhead": 0.65,
+      "cameraTerrainFloor": true,
+      "cameraCollision": true,
+      "fogDensity": 0.004,
+      "localSun": true,
+      "focusHeightRatio": 0.44,
+      "possessMinPitch": null
+    },
+    "1": {
+      "cameraLookAhead": 0.45,
+      "cameraTerrainFloor": true,
+      "cameraCollision": true,
+      "fogDensity": 0.004,
+      "localSun": true,
+      "focusHeightRatio": 0.44,
+      "possessMinPitch": null
+    },
+    "2": {
+      "cameraLookAhead": 0.22,
+      "cameraTerrainFloor": false,
+      "cameraCollision": true,
+      "fogDensity": 0.00085,
+      "localSun": true,
+      "focusHeightRatio": 0.35,
+      "possessMinPitch": null
+    },
+    "3": {
+      "cameraLookAhead": 0.22,
+      "cameraTerrainFloor": false,
+      "cameraCollision": false,
+      "fogDensity": 0.00015,
+      "localSun": false,
+      "focusHeightRatio": 0.44,
+      "possessMinPitch": 0.52
+    }
+  },
+  "scaleTiers": [
+    {
+      "id": "S1",
+      "name": "近地",
+      "rank": 0,
+      "liftEyeHeightM": null
+    },
+    {
+      "id": "S2",
+      "name": "人身",
+      "rank": 1,
+      "liftEyeHeightM": 3
+    },
+    {
+      "id": "S3",
+      "name": "林冠",
+      "rank": 2,
+      "liftEyeHeightM": 15
+    },
+    {
+      "id": "S4",
+      "name": "地貌",
+      "rank": 3,
+      "liftEyeHeightM": 60
+    },
+    {
+      "id": "S5",
+      "name": "群岛",
+      "rank": 4,
+      "liftEyeHeightM": null
+    }
+  ],
   "species": {
     "grass": {
       "id": "plant_grass_01",
@@ -66,11 +136,15 @@
       "isAnimal": false,
       "soundCue": null,
       "stage": 0,
+      "tier": 0,
+      "scaleTier": "S1",
       "mode": "ground",
       "radius": 0.45,
       "height": 0.7,
       "wadeDepth": 0.6,
       "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": null,
       "speed": 2.8,
       "boost": 2.7,
       "camera": 3.5,
@@ -78,17 +152,14 @@
       "reach": 17.0,
       "targets": [
         "grass",
-        "broadleaf",
-        "pine",
         "rock",
         "gull",
-        "tern",
         "silverfish",
         "butterflyfish",
-        "perch",
         "human",
         "dog"
       ],
+      "deny": [],
       "place": "风起的地方",
       "response": "天地与我并生，而万物与我为一。",
       "moments": {},
@@ -132,31 +203,28 @@
       "isAnimal": false,
       "soundCue": null,
       "stage": 1,
+      "tier": 2,
+      "scaleTier": "S3",
       "mode": "ground",
       "radius": 3.4,
       "height": 12.0,
       "wadeDepth": 0.6,
       "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": null,
       "speed": 14.0,
       "boost": 2.7,
       "camera": 29.0,
       "fov": 48,
       "reach": 150.0,
       "targets": [
-        "grass",
         "broadleaf",
         "pine",
         "rock",
         "boulder",
-        "island",
-        "gull",
-        "tern",
-        "silverfish",
-        "butterflyfish",
-        "perch",
-        "human",
-        "dog"
+        "human"
       ],
+      "deny": [],
       "place": "林间的呼吸",
       "response": "人皆知有用之用，而莫知无用之用也。",
       "moments": {},
@@ -208,31 +276,28 @@
       "isAnimal": false,
       "soundCue": null,
       "stage": 1,
+      "tier": 2,
+      "scaleTier": "S3",
       "mode": "ground",
       "radius": 3.5,
       "height": 15.0,
       "wadeDepth": 0.6,
       "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": null,
       "speed": 16.0,
       "boost": 2.7,
       "camera": 34.0,
       "fov": 48,
       "reach": 150.0,
       "targets": [
-        "grass",
         "broadleaf",
         "pine",
         "rock",
         "boulder",
-        "island",
-        "gull",
-        "tern",
-        "silverfish",
-        "butterflyfish",
-        "perch",
-        "human",
-        "dog"
+        "human"
       ],
+      "deny": [],
       "place": "山风经过",
       "response": "岁寒，然后知松柏之后凋也。",
       "moments": {},
@@ -284,11 +349,15 @@
       "isAnimal": false,
       "soundCue": null,
       "stage": 1,
+      "tier": 1,
+      "scaleTier": "S2",
       "mode": "ground",
       "radius": 1.4,
       "height": 2.0,
       "wadeDepth": 3,
       "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": null,
       "speed": 9.0,
       "boost": 2.7,
       "camera": 8.0,
@@ -299,16 +368,13 @@
         "broadleaf",
         "pine",
         "rock",
-        "boulder",
-        "island",
         "gull",
-        "tern",
         "silverfish",
         "butterflyfish",
-        "perch",
         "human",
         "dog"
       ],
+      "deny": [],
       "place": "潮汐的边缘",
       "response": "天下莫柔弱于水，而攻坚强者莫之能胜。",
       "moments": {},
@@ -352,6 +418,8 @@
       "isAnimal": false,
       "soundCue": null,
       "stage": 2,
+      "tier": 3,
+      "scaleTier": "S4",
       "mode": "ground",
       "radius": 76,
       "height": 70.0,
@@ -364,26 +432,20 @@
           58
         ]
       },
+      "limbSwingRate": 0,
+      "activityRegion": null,
       "speed": 75.0,
       "boost": 2.7,
       "camera": 230.0,
       "fov": 48,
       "reach": 1000.0,
       "targets": [
-        "grass",
         "broadleaf",
         "pine",
-        "rock",
         "boulder",
-        "island",
-        "gull",
-        "tern",
-        "silverfish",
-        "butterflyfish",
-        "perch",
-        "human",
-        "dog"
+        "island"
       ],
+      "deny": [],
       "place": "云影之下",
       "response": "天下莫大于秋豪之末，而大山为小。",
       "moments": {},
@@ -427,6 +489,8 @@
       "isAnimal": false,
       "soundCue": null,
       "stage": 3,
+      "tier": 4,
+      "scaleTier": "S5",
       "mode": "island",
       "radius": 480.0,
       "height": 85.0,
@@ -439,6 +503,8 @@
           260
         ]
       },
+      "limbSwingRate": 0,
+      "activityRegion": null,
       "speed": 230.0,
       "boost": 2.7,
       "camera": 1450.0,
@@ -448,10 +514,11 @@
         "boulder",
         "island"
       ],
+      "deny": [],
       "place": "潮汐之间",
       "response": "这些无限空间的永恒沉默使我恐惧。",
       "moments": {
-        "first_possess_from_stage_1": "人将被抹去，如同大海边沙地上的一张脸。"
+        "first_possess": "人将被抹去，如同大海边沙地上的一张脸。"
       },
       "vision": {
         "grayscale": 0,
@@ -493,11 +560,15 @@
       "isAnimal": true,
       "soundCue": "chirp",
       "stage": 1,
+      "tier": 0,
+      "scaleTier": "S1",
       "mode": "fly",
       "radius": 0.65,
       "height": 0.65,
       "wadeDepth": 0,
       "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": "island_airspace",
       "speed": 18.0,
       "boost": 2.7,
       "camera": 5.0,
@@ -505,19 +576,14 @@
       "reach": 130.0,
       "targets": [
         "grass",
-        "broadleaf",
-        "pine",
         "rock",
-        "boulder",
-        "island",
         "gull",
-        "tern",
         "silverfish",
         "butterflyfish",
-        "perch",
         "human",
         "dog"
       ],
+      "deny": [],
       "place": "风的路径",
       "response": "抟扶摇而上者九万里，去以六月息者也。",
       "moments": {},
@@ -554,74 +620,6 @@
       },
       "verticalControl": "view_direction"
     },
-    "tern": {
-      "id": "bird_tern_01",
-      "name": "燕鸥",
-      "category": "bird",
-      "isAnimal": true,
-      "soundCue": "chirp",
-      "stage": 1,
-      "mode": "fly",
-      "radius": 0.5,
-      "height": 0.5,
-      "wadeDepth": 0,
-      "surface": null,
-      "speed": 22.0,
-      "boost": 2.7,
-      "camera": 4.0,
-      "fov": 52,
-      "reach": 130.0,
-      "targets": [
-        "grass",
-        "broadleaf",
-        "pine",
-        "rock",
-        "boulder",
-        "island",
-        "gull",
-        "tern",
-        "silverfish",
-        "butterflyfish",
-        "perch",
-        "human",
-        "dog"
-      ],
-      "place": "海与天之间",
-      "response": "飘风不终朝，骤雨不终日。",
-      "moments": {},
-      "vision": {
-        "grayscale": 0,
-        "saturation": 1.15,
-        "contrast": 1.1,
-        "brightness": 1.02,
-        "fogMultiplier": 0.6,
-        "tint": null
-      },
-      "hearing": {
-        "airLowpassHz": 1400,
-        "underwaterLowpassHz": 360,
-        "range": 65,
-        "waterCueGain": 0.6,
-        "windGain": 0.16,
-        "distantCueGain": 1.1,
-        "heightAttenuation": true
-      },
-      "collision": {
-        "boxes": [
-          [
-            -1.3,
-            0,
-            -0.65,
-            1.3,
-            0.6,
-            0.9
-          ]
-        ],
-        "solid": true,
-        "passPolicy": "go_around"
-      },
-      "verticalControl": "view_direction"
-    },
     "silverfish": {
       "id": "fish_silver_01",
       "name": "银色小鱼",
@@ -629,11 +627,15 @@
       "isAnimal": true,
       "soundCue": null,
       "stage": 1,
+      "tier": 0,
+      "scaleTier": "S1",
       "mode": "swim",
       "radius": 0.35,
       "height": 0.32,
       "wadeDepth": 0,
       "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": null,
       "speed": 9.0,
       "boost": 2.7,
       "camera": 3.5,
@@ -641,19 +643,14 @@
       "reach": 100.0,
       "targets": [
         "grass",
-        "broadleaf",
-        "pine",
         "rock",
-        "boulder",
-        "island",
         "gull",
-        "tern",
         "silverfish",
         "butterflyfish",
-        "perch",
         "human",
         "dog"
       ],
+      "deny": [],
       "place": "水下的光",
       "response": "子非鱼，安知鱼之乐？",
       "moments": {},
@@ -697,11 +694,15 @@
       "isAnimal": true,
       "soundCue": null,
       "stage": 1,
+      "tier": 0,
+      "scaleTier": "S1",
       "mode": "swim",
       "radius": 0.4,
       "height": 0.45,
       "wadeDepth": 0,
       "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": null,
       "speed": 7.0,
       "boost": 2.7,
       "camera": 3.5,
@@ -709,19 +710,14 @@
       "reach": 100.0,
       "targets": [
         "grass",
-        "broadleaf",
-        "pine",
         "rock",
-        "boulder",
-        "island",
         "gull",
-        "tern",
         "silverfish",
         "butterflyfish",
-        "perch",
         "human",
         "dog"
       ],
+      "deny": [],
       "place": "岩礁之间",
       "response": "相濡以沫，不如相忘于江湖。",
       "moments": {},
@@ -758,74 +754,6 @@
       },
       "verticalControl": "view_direction"
     },
-    "perch": {
-      "id": "fish_river_01",
-      "name": "河鲈",
-      "category": "fish",
-      "isAnimal": true,
-      "soundCue": null,
-      "stage": 1,
-      "mode": "swim",
-      "radius": 0.4,
-      "height": 0.38,
-      "wadeDepth": 0,
-      "surface": null,
-      "speed": 8.0,
-      "boost": 2.7,
-      "camera": 3.5,
-      "fov": 58,
-      "reach": 100.0,
-      "targets": [
-        "grass",
-        "broadleaf",
-        "pine",
-        "rock",
-        "boulder",
-        "island",
-        "gull",
-        "tern",
-        "silverfish",
-        "butterflyfish",
-        "perch",
-        "human",
-        "dog"
-      ],
-      "place": "湖水深处",
-      "response": "人不能两次踏进同一条河流。",
-      "moments": {},
-      "vision": {
-        "grayscale": 0,
-        "saturation": 0.82,
-        "contrast": 0.96,
-        "brightness": 0.96,
-        "fogMultiplier": 1.6,
-        "tint": "#3e7c73"
-      },
-      "hearing": {
-        "airLowpassHz": 900,
-        "underwaterLowpassHz": 360,
-        "range": 35,
-        "waterCueGain": 1.4,
-        "windGain": 0.03,
-        "distantCueGain": 0.8,
-        "heightAttenuation": false
-      },
-      "collision": {
-        "boxes": [
-          [
-            -0.25,
-            0,
-            -0.45,
-            0.25,
-            0.4,
-            0.65
-          ]
-        ],
-        "solid": true,
-        "passPolicy": "go_around"
-      },
-      "verticalControl": "view_direction"
-    },
     "human": {
       "id": "human_01",
       "name": "人",
@@ -833,11 +761,15 @@
       "isAnimal": true,
       "soundCue": null,
       "stage": 1,
+      "tier": 1,
+      "scaleTier": "S2",
       "mode": "ground",
       "radius": 0.35,
       "height": 1.75,
       "wadeDepth": 0.6,
       "surface": null,
+      "limbSwingRate": 7,
+      "activityRegion": null,
       "speed": 6,
       "boost": 2.7,
       "camera": 5,
@@ -848,16 +780,13 @@
         "broadleaf",
         "pine",
         "rock",
-        "boulder",
-        "island",
         "gull",
-        "tern",
         "silverfish",
         "butterflyfish",
-        "perch",
         "human",
         "dog"
       ],
+      "deny": [],
       "place": "此刻的行路人",
       "response": "号物之数谓之万，人处一焉。",
       "moments": {},
@@ -901,11 +830,15 @@
       "isAnimal": true,
       "soundCue": null,
       "stage": 1,
+      "tier": 0,
+      "scaleTier": "S1",
       "mode": "ground",
       "radius": 0.45,
       "height": 0.8,
       "wadeDepth": 0.6,
       "surface": null,
+      "limbSwingRate": 10,
+      "activityRegion": null,
       "speed": 7.5,
       "boost": 2.7,
       "camera": 4,
@@ -913,19 +846,14 @@
       "reach": 60,
       "targets": [
         "grass",
-        "broadleaf",
-        "pine",
         "rock",
-        "boulder",
-        "island",
         "gull",
-        "tern",
         "silverfish",
         "butterflyfish",
-        "perch",
         "human",
         "dog"
       ],
+      "deny": [],
       "place": "循着声音",
       "response": "如果狮子会说话，我们也无法理解它。",
       "moments": {},
@@ -965,7 +893,7 @@
   },
   "layout": {
     "mainIsland": "island-main",
-    "initialInstance": "grass-start",
+    "initialInstance": "human-first",
     "regions": {
       "main_land": {
         "id": "main_land",
@@ -982,8 +910,19 @@
           65,
           39
         ],
-        "surfaceY": 5.8,
-        "definition": "山湖，银色小鱼和河鲈的水体"
+        "definition": "山湖，银色小鱼的水体",
+        "water": {
+          "type": "enclosed",
+          "surfaceY": 5.8,
+          "opacity": 0.88,
+          "basin": {
+            "depthM": 19,
+            "falloffM": [
+              37.416574,
+              20.615528
+            ]
+          }
+        }
       },
       "lake_shore": {
         "id": "lake_shore",
@@ -1004,13 +943,26 @@
       },
       "island_airspace": {
         "id": "island_airspace",
+        "shape": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": 760,
+        "minClearanceM": 0.3,
         "minY": 0,
         "maxY": 180,
-        "horizontalBoundary": "main island plus 300 m"
+        "horizontalBoundary": "main island plus 300 m",
+        "definition": "主岛空域：飞行身体的活动区（M-04）；maxY 与 tuning.json 的 flightCeilingM 一致"
       },
       "ocean": {
         "id": "ocean",
-        "definition": "群岛之间的海面，岛屿层身体的活动区"
+        "definition": "群岛之间的海面，岛屿层身体的活动区",
+        "water": {
+          "type": "sea",
+          "levelM": -0.1,
+          "minDepthM": 0.4
+        }
       }
     },
     "instances": [
@@ -1267,6 +1219,18 @@
         "kind": "grass"
       },
       {
+        "id": "rock-boulder-0",
+        "carrier": "boulder-main",
+        "position": [
+          0,
+          0,
+          6
+        ],
+        "placement": "surface",
+        "anchorId": "A05",
+        "kind": "rock"
+      },
+      {
         "id": "gull-0",
         "carrier": "island-main",
         "position": [
@@ -1279,7 +1243,7 @@
         "kind": "gull"
       },
       {
-        "id": "tern-0",
+        "id": "gull-4",
         "carrier": "island-main",
         "position": [
           -45,
@@ -1288,7 +1252,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A08",
-        "kind": "tern"
+        "kind": "gull"
       },
       {
         "id": "silverfish-0",
@@ -1303,7 +1267,7 @@
         "kind": "silverfish"
       },
       {
-        "id": "perch-0",
+        "id": "silverfish-4",
         "carrier": "island-main",
         "position": [
           -93.0,
@@ -1312,7 +1276,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A04",
-        "kind": "perch"
+        "kind": "silverfish"
       },
       {
         "id": "butterflyfish-0",
@@ -1339,7 +1303,7 @@
         "kind": "gull"
       },
       {
-        "id": "tern-1",
+        "id": "gull-5",
         "carrier": "island-main",
         "position": [
           -43,
@@ -1348,7 +1312,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A08",
-        "kind": "tern"
+        "kind": "gull"
       },
       {
         "id": "silverfish-1",
@@ -1363,7 +1327,7 @@
         "kind": "silverfish"
       },
       {
-        "id": "perch-1",
+        "id": "silverfish-5",
         "carrier": "island-main",
         "position": [
           -91.7,
@@ -1372,7 +1336,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A04",
-        "kind": "perch"
+        "kind": "silverfish"
       },
       {
         "id": "butterflyfish-1",
@@ -1399,7 +1363,7 @@
         "kind": "gull"
       },
       {
-        "id": "tern-2",
+        "id": "gull-6",
         "carrier": "island-main",
         "position": [
           -41,
@@ -1408,7 +1372,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A08",
-        "kind": "tern"
+        "kind": "gull"
       },
       {
         "id": "silverfish-2",
@@ -1423,7 +1387,7 @@
         "kind": "silverfish"
       },
       {
-        "id": "perch-2",
+        "id": "silverfish-6",
         "carrier": "island-main",
         "position": [
           -90.4,
@@ -1432,7 +1396,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A04",
-        "kind": "perch"
+        "kind": "silverfish"
       },
       {
         "id": "butterflyfish-2",
@@ -1459,7 +1423,7 @@
         "kind": "gull"
       },
       {
-        "id": "tern-3",
+        "id": "gull-7",
         "carrier": "island-main",
         "position": [
           -39,
@@ -1468,7 +1432,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A08",
-        "kind": "tern"
+        "kind": "gull"
       },
       {
         "id": "silverfish-3",
@@ -1483,7 +1447,7 @@
         "kind": "silverfish"
       },
       {
-        "id": "perch-3",
+        "id": "silverfish-7",
         "carrier": "island-main",
         "position": [
           -89.1,
@@ -1492,7 +1456,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A04",
-        "kind": "perch"
+        "kind": "silverfish"
       },
       {
         "id": "butterflyfish-3",
@@ -1980,6 +1944,81 @@
         },
         "placement": "surface",
         "kind": "rock"
+      },
+      {
+        "id": "rocks-island-0",
+        "carrier": "island-0",
+        "seed": 1940,
+        "points": [
+          [
+            136.0,
+            48.2
+          ],
+          [
+            -52.4,
+            114.0
+          ],
+          [
+            -128.8,
+            -48.2
+          ],
+          [
+            59.6,
+            -114.0
+          ]
+        ],
+        "placement": "surface",
+        "kind": "rock"
+      },
+      {
+        "id": "rocks-island-1",
+        "carrier": "island-1",
+        "seed": 1941,
+        "points": [
+          [
+            136.0,
+            48.2
+          ],
+          [
+            -52.4,
+            114.0
+          ],
+          [
+            -128.8,
+            -48.2
+          ],
+          [
+            59.6,
+            -114.0
+          ]
+        ],
+        "placement": "surface",
+        "kind": "rock"
+      },
+      {
+        "id": "rocks-island-2",
+        "carrier": "island-2",
+        "seed": 1942,
+        "points": [
+          [
+            136.0,
+            48.2
+          ],
+          [
+            -52.4,
+            114.0
+          ],
+          [
+            -128.8,
+            -48.2
+          ],
+          [
+            59.6,
+            -114.0
+          ]
+        ],
+        "placement": "surface",
+        "kind": "rock"
       }
     ]
   },
@@ -2259,13 +2298,14 @@
       "rule": "M-07",
       "reviewState": "proposed"
     },
-    "birdMaxHeightM": {
+    "flightCeilingM": {
       "value": 180,
       "unit": "m",
       "min": 120,
       "max": 250,
       "rule": "M-04",
-      "reviewState": "proposed"
+      "reviewState": "proposed",
+      "note": "所有飞行身体的空域上限；与 anchors.json 的空域 maxY 一致"
     },
     "cameraCollisionPaddingM": {
       "value": 0.1,
@@ -2300,6 +2340,8 @@
       "reviewState": "proposed"
     },
     "dialogueFadeInSec": {
+      "runtimeBinding": "not_integrated",
+      "note": "尚未接入；当前回应淡入由 style.css 的 opacity 2s 控制。",
       "value": 1,
       "unit": "s",
       "min": 0.5,
@@ -2308,6 +2350,8 @@
       "reviewState": "proposed"
     },
     "dialogueFadeOutSec": {
+      "runtimeBinding": "not_integrated",
+      "note": "尚未接入；当前回应淡出由 style.css 的 opacity 2s 控制。",
       "value": 1.5,
       "unit": "s",
       "min": 0.5,
@@ -2320,14 +2364,6 @@
       "unit": "s",
       "min": 0.5,
       "max": 2.5,
-      "rule": "A-03",
-      "reviewState": "proposed"
-    },
-    "underwaterLowpassHz": {
-      "value": 600,
-      "unit": "Hz",
-      "min": 300,
-      "max": 1200,
       "rule": "A-03",
       "reviewState": "proposed"
     },
@@ -2348,6 +2384,8 @@
       "reviewState": "proposed"
     },
     "warmStartTargetSec": {
+      "runtimeBinding": "planning_only",
+      "note": "启动性能目标，不是运行时超时开关。",
       "value": 5,
       "unit": "s",
       "min": 2,
@@ -2356,6 +2394,8 @@
       "reviewState": "proposed"
     },
     "featureFreezeDaysBeforeDeadline": {
+      "runtimeBinding": "planning_only",
+      "note": "排期约定，不是运行时功能开关。",
       "value": 3,
       "unit": "days",
       "min": 2,
@@ -2364,6 +2404,8 @@
       "reviewState": "proposed"
     },
     "perceptionCrossfadeSec": {
+      "runtimeBinding": "not_integrated",
+      "note": "尚未接入；当前视觉感知混合使用整个 possessionDurationSec 过渡。",
       "value": 1.2,
       "unit": "s",
       "min": 0.5,
@@ -2381,6 +2423,8 @@
       "note": "当前身体层级减去此值以下的实体不渲染，状态保留"
     },
     "softBoundaryBandM": {
+      "runtimeBinding": "not_integrated",
+      "note": "尚未接入减速带；当前活动边界采用沿边滑行。",
       "value": 3,
       "unit": "m",
       "min": 1,
@@ -2405,24 +2449,6 @@
       "reviewState": "proposed",
       "note": "目标在屏幕上的最小角尺寸；更小则视为无法辨认"
     },
-    "carrierEdgeSightM": {
-      "value": 90,
-      "unit": "m",
-      "min": 40,
-      "max": 160,
-      "rule": "P-11",
-      "reviewState": "proposed",
-      "note": "身体离岸线多近时能把脚下的大地辨认为岛"
-    },
-    "carrierAltitudeM": {
-      "value": 35,
-      "unit": "m",
-      "min": 20,
-      "max": 80,
-      "rule": "P-11",
-      "reviewState": "proposed",
-      "note": "离地多高时能从高处辨认整座岛"
-    },
     "ownBodyAngleBiasRad": {
       "value": 0.15,
       "unit": "rad",
@@ -2431,6 +2457,15 @@
       "rule": "P-11",
       "reviewState": "proposed",
       "note": "自己承载的存在（如岛上的巨岩）需要比外部目标更对准才会被选中"
+    },
+    "viewLiftHysteresis": {
+      "value": 0.1,
+      "unit": "ratio",
+      "min": 0.05,
+      "max": 0.25,
+      "rule": "P-16",
+      "reviewState": "proposed",
+      "note": "视点抬升的缓冲：已获得的抬升在视点低于阈值 ×(1 − 此值) 时才撤销，避免涟漪闪烁"
     }
   }
 }

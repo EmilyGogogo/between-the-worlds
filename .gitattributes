@@ -1,0 +1,6 @@
+# Store text with LF so shell launchers keep working on macOS.
+* text=auto eol=lf
+# cmd.exe labels need CRLF; Python's csv module writes CRLF.
+*.bat text eol=crlf
+*.csv text eol=crlf
+*.glb binary

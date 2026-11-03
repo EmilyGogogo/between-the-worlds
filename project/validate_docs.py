@@ -36,7 +36,8 @@ def unique(items, field, label):
 
 def main():
     required = [
-        'docs/README.md', 'docs/00-project-brief.md', 'docs/01-global-rules.md',
+        'README.md', 'CONTRIBUTING.md', 'data/README.md',
+        'docs/README.md', 'docs/01-global-rules.md',
         'docs/02-controls-and-camera.md', 'docs/03-possession-spec.md',
         'docs/04-entity-catalog.md', 'docs/05-world-layout.md',
         'docs/06-lux3d-asset-pipeline.md', 'docs/07-content-and-audio.md',
@@ -44,15 +45,16 @@ def main():
         'docs/10-submission-checklist.md', 'docs/11-prototype-audit.md',
         'data/entities.json', 'data/input-map.json', 'data/anchors.json',
         'data/dialogue.json', 'data/tuning.json', 'data/interactions.json', 'data/asset-ledger.csv',
-        'docs/13-extension-guide.md', 'project/new_species.py',
-        'project/README.md', 'project/TASKS.md', 'project/CHANGELOG.md',
-        'project/LICENSES.md', 'project/.env.example', 'DEFERRED.md', 'AGENTS.md', 'GLOSSARY.md',
+        'docs/diagrams/world-archipelago.svg', 'project/new_species.py',
+        'project/CHANGELOG.md', 'project/LICENSES.md',
+        'DEFERRED.md', 'AGENTS.md', 'GLOSSARY.md',
     ]
     for path in required:
         check((ROOT / path).is_file(), f'Missing file: {path}')
 
     documents = list((ROOT / 'docs').rglob('*.md')) + list((ROOT / 'project').glob('*.md'))
-    documents += [ROOT / 'data/README.md', ROOT / 'frontend/README.md', ROOT / 'frontend/DECISIONS.md', ROOT / 'DEFERRED.md']
+    documents += [ROOT / 'data/README.md', ROOT / 'frontend/README.md',
+                  ROOT / 'DEFERRED.md', ROOT / 'README.md', ROOT / 'CONTRIBUTING.md', ROOT / 'AGENTS.md']
     for doc in documents:
         text = doc.read_text(encoding='utf-8')
         for target in re.findall(r'\]\(([^)]+)\)', text):
@@ -63,15 +65,15 @@ def main():
             check((doc.parent / target).exists(), f'Broken link: {doc.relative_to(ROOT)} -> {target}')
 
     # Rules: every row must be classified; referenced IDs must exist.
-    rules_text = (ROOT / 'docs/01-global-rules.md').read_text()
+    rules_text = (ROOT / 'docs/01-global-rules.md').read_text(encoding='utf-8')
     rule_rows = re.findall(r'^\| ([A-Z]+-\d+) \|.*\|$', rules_text, re.M)
     rules = re.findall(r'^\| ([A-Z]+-\d+) \|.*\| (MUST|TUNABLE|DEFERRED) \|$', rules_text, re.M)
     rule_ids = {rule for rule, _ in rules}
     check(len(rule_rows) == len(rules), 'Rule row without MUST/TUNABLE/DEFERRED')
     check(len(rules) == len(rule_ids), 'Duplicate rule ID')
-    for required_rule in ['G-07', 'G-08', 'I-02', 'B-04', 'P-12', 'P-13', 'P-14', 'M-01', 'M-02', 'M-03', 'M-05', 'W-05', 'W-06', 'L-04', 'L-05']:
+    for required_rule in ['G-07', 'G-08', 'I-02', 'B-04', 'P-12', 'P-13', 'P-14', 'P-15', 'P-16', 'M-01', 'M-02', 'M-03', 'M-05', 'W-05', 'W-06', 'L-04', 'L-05']:
         check(required_rule in rule_ids, f'Missing rule {required_rule}')
-    qa_text = (ROOT / 'docs/08-qa-acceptance.md').read_text()
+    qa_text = (ROOT / 'docs/08-qa-acceptance.md').read_text(encoding='utf-8')
     qa_ids = re.findall(r'\*\*(QA-\d+)', qa_text)
     QA_COUNT = len(qa_ids)
     check(qa_ids == [f'QA-{i:02}' for i in range(1, QA_COUNT + 1)], 'QA IDs must run from QA-01 in order without gaps')
@@ -81,8 +83,6 @@ def main():
     qa_ids = set(qa_ids)
     for doc in documents:
         for ref in set(re.findall(r'\bQA-(\d+)', doc.read_text(encoding='utf-8'))):
-            if 'docs-0.2' in str(doc) or doc.name == '12-playtest-sharing.md':
-                continue
             check(int(ref) <= QA_COUNT, f'{doc.relative_to(ROOT)} references QA-{ref}, beyond QA-{QA_COUNT}')
 
     # Entities
@@ -94,18 +94,50 @@ def main():
     categories = entity_doc['categories']
     CATEGORIES = set(categories)
     check({e['category'] for e in entity_list} == CATEGORIES, 'Every category needs a species and every species a declared category')
-    decisions = (ROOT / 'docs/09-decisions.md').read_text()
+    decisions = (ROOT / 'docs/09-decisions.md').read_text(encoding='utf-8')
     for cid, category in categories.items():
         check(isinstance(category['isAnimal'], bool) and bool(category['name']) and bool(category['placeholder']), f'Category {cid}: name, isAnimal, placeholder')
         # A category beyond the creator's first five classes is a scope change (G-04, G-08).
         if category['release'] != '0.3':
             check(bool(category.get('decision')) and f"### {category['decision']}" in decisions, f'Category {cid} needs a recorded decision')
+    # Scale tiers (P-12, P-15, D-021): relations are derived, never hand-listed.
+    import sync_runtime
+    tiers = {t['id']: t for t in entity_doc['scaleTiers']}
+    unique(entity_doc['scaleTiers'], 'id', 'scale tier')
+    lifts = [t['viewLiftEyeHeightM'] for t in entity_doc['scaleTiers'] if t['viewLiftEyeHeightM'] is not None]
+    check(lifts == sorted(lifts) and all(h > 0 for h in lifts), 'View lift heights must rise with the tiers (P-16)')
+    for e in entity_list:
+        check(e.get('scaleTier') in tiers, f'{e["id"]}: unknown scaleTier')
+    tier_rank, relations = sync_runtime.scale_relations(entity_doc)
+    # Render layers (C-06): every setting the runtime reads comes from data, none from stage numbers.
+    layers = {l['stage']: l for l in entity_doc['scaleLayers']}
+    unique(entity_doc['scaleLayers'], 'stage', 'render layer')
+    for stage, layer in layers.items():
+        check('targetOcclusion' not in layer, f'Render layer {stage}: occlusion is mandatory at every scale (P-02), not a render switch')
+        for field in sync_runtime.RUNTIME_LAYER_FIELDS:
+            check(field in layer and field in entity_doc['scaleLayerFields'], f'Render layer {stage}: missing or undocumented {field}')
+        check(all(isinstance(layer.get(k), (int, float)) and layer[k] > 0 for k in ['cameraLookAhead', 'fogDensity', 'focusHeightRatio']), f'Render layer {stage}: invalid numbers')
+        check(layer.get('possessMinPitch') is None or isinstance(layer['possessMinPitch'], (int, float)), f'Render layer {stage}: possessMinPitch')
+    region_doc = {r['id']: r for r in read_json('anchors.json')['regions']}
+    rank = {eid: tier_rank[e['scaleTier']] for eid, e in entities.items()}
     abilities = {}
     for e in entity_list:
         eid = e['id']
-        check(e['stage'] in {0, 1, 2, 3}, f'{eid}: stage must be 0..3')
+        check(e['stage'] in layers, f'{eid}: stage must name a render layer in scaleLayers')
+        check(e['body'].get('limbSwingRate', 1) > 0, f'{eid}: limbSwingRate must be positive')
+        if e['locomotion'] == 'fly':  # M-04: every flyer names its airspace
+            air = region_doc.get(e.get('activityRegion'), {})
+            check(all(k in air for k in ['center', 'radius', 'maxY', 'minClearanceM']), f'{eid}: activityRegion must be an airspace with center, radius, maxY, minClearanceM')
         check('isAnimal' not in e, f'{eid}: isAnimal belongs to the category')
-        check(set(e['allowedTargets']) <= entity_ids, f'{eid}: unknown target type')
+        check('allowedTargets' not in e, f'{eid}: relations come from scaleTier, not allowedTargets (D-021)')
+        low, high = tiers[e['scaleTier']]['referenceSizeM']
+        size = max(e['body']['height'], 2 * e['body']['collisionRadius'])
+        check(low <= size and (high is None or size <= high) or bool(e.get('scaleTierReason')),
+              f'{eid}: size {size} m outside {e["scaleTier"]}; fix the tier or record scaleTierReason')
+        overrides = e.get('relationOverrides')
+        if overrides:
+            check(set(overrides.get('allow', [])) | set(overrides.get('deny', [])) <= entity_ids, f'{eid}: unknown override target')
+            check(f"### {overrides.get('decision')}" in decisions, f'{eid}: relationOverrides needs a recorded decision')
         check(set(e['acceptanceIds']) <= qa_ids, f'{eid}: unknown QA reference')
         for name in ['moveSpeed', 'acceleration', 'turnSpeedDegPerSec', 'possessionRange', 'observationRange', 'boostMultiplier']:
             check(isinstance(e[name], (int, float)) and e[name] > 0, f'Invalid {eid}.{name}')
@@ -113,12 +145,9 @@ def main():
             check(removed not in e, f'{eid}.{removed} belongs to the removed jump/ascend keys (D-007)')
         check(e['verticalControl'] == ('view_direction' if e['locomotion'] in {'fly', 'swim'} else 'none'), f'{eid}: verticalControl must follow locomotion')
         abilities.setdefault(e['category'], set()).add(e['uniqueAbility']['id'])
-        # P-12 scale relations
-        stages = {entities[t]['stage'] for t in e['allowedTargets'] if t in entities}
-        if e['stage'] == 0:
-            check(max(stages, default=0) <= 1, f'{eid}: grass may only rise to the body layer (P-12)')
-        if e['stage'] == 3:
-            check(min(stages, default=3) >= 2, f'{eid}: island may only descend to the landform layer (P-12)')
+        # P-12: only the own and adjacent populated tiers, unless a decision says otherwise
+        if not overrides:
+            check(all(abs(rank[t] - rank[eid]) <= 1 for t in relations[eid]), f'{eid}: relation skips a tier (P-12)')
         # Perception
         perception = e['perception']
         for key in ['grayscale', 'saturation', 'contrast', 'brightness', 'fogMultiplier']:
@@ -160,15 +189,16 @@ def main():
         for ability in ids:
             owners.setdefault(ability, set()).add(category)
     check(all(len(c) == 1 for c in owners.values()), 'A unique ability is shared across categories (G-01)')
-    for e in entity_list:  # every type can return to grass and reach the island layer
-        for goal in [0, 3]:
-            reached, stack = {e['id']}, [e['id']]
-            while stack:
-                for target in entities[stack.pop()]['allowedTargets']:
-                    if target not in reached:
-                        reached.add(target)
-                        stack.append(target)
-            check(any(entities[r]['stage'] == goal for r in reached), f'{e["id"]}: cannot reach stage {goal} (W-05)')
+    top = max(rank.values())
+    for e in entity_list:  # every type can return to the smallest tier and reach the largest
+        reached, stack = {e['id']}, [e['id']]
+        while stack:
+            for target in relations[stack.pop()]:
+                if target not in reached:
+                    reached.add(target)
+                    stack.append(target)
+        for goal in [0, top]:
+            check(any(rank[r] == goal for r in reached), f'{e["id"]}: cannot reach tier rank {goal} (W-05)')
     env_slots = unique(entity_doc['environmentSlots'], 'slotId', 'environment slot')
     check('env.world' in env_slots, 'Missing env.world slot')
     decor_slots = [slot for slot in entity_doc['environmentSlots'] if slot.get('scatter')]
@@ -189,6 +219,22 @@ def main():
     unique(layout['instances'], 'id', 'instance ID')
     unique(layout['scatter'], 'id', 'scatter group ID')
     regions = {r['id'] for r in layout['regions']}
+    # Water bodies (M-04): data-driven; exactly one sea, enclosed bodies need a shape and surface.
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+    waters = [r for r in layout['regions'] if r.get('water')]
+    seas = [r for r in waters if r['water'].get('type') == 'sea']
+    check(len(seas) == 1 and all(num(seas[0]['water'].get(k)) for k in ['levelM', 'minDepthM']), 'Need exactly one sea region with levelM and minDepthM')
+    for r in waters:
+        w = r['water']
+        check(w.get('type') in {'sea', 'enclosed'}, f'{r["id"]}: water.type must be sea or enclosed')
+        if w.get('type') == 'enclosed':
+            check(r.get('shape') == 'ellipse' and len(r.get('center', [])) == 2 and len(r.get('radii', [])) == 2 and all(num(v) and v > 0 for v in r.get('radii', [])),
+                  f'{r["id"]}: enclosed water needs an ellipse with center and positive radii')
+            check(num(w.get('surfaceY')), f'{r["id"]}: enclosed water needs surfaceY')
+            check(w.get('opacity') is None or (num(w['opacity']) and 0 < w['opacity'] <= 1), f'{r["id"]}: opacity must be in (0, 1]')
+            basin = w.get('basin')
+            check(basin is None or (num(basin.get('depthM')) and basin['depthM'] > 0 and len(basin.get('falloffM', [])) == 2 and all(num(v) and v > 0 for v in basin['falloffM'])),
+                  f'{r["id"]}: basin needs depthM and two positive falloffM')
     for a in anchors.values():
         check(set(a['safeFor']) <= entity_ids, f'Unknown safe type at {a["id"]}')
         check(len(a['position']) == 3 and all(isinstance(v, (int, float)) and math.isfinite(v) for v in a['position']), f'Invalid position at {a["id"]}')
@@ -202,6 +248,7 @@ def main():
         known.add(i['id'])
     check(sum(i['placement'] == 'main' for i in layout['instances']) == 1 and instances.get(layout['mainIsland'], {}).get('placement') == 'main', 'Exactly one main island')
     check(layout['initialInstance'] in instances, 'Unknown initial body')
+    check(instances.get(layout['initialInstance'], {}).get('type') == 'human_01', 'A new journey must start as a human (D-017)')
     for g in layout['scatter']:
         check(g['type'] in entities and g['carrier'] in instances, f'Broken scatter group: {g["id"]}')
         check(bool(g.get('points')) or (bool(g.get('area')) and g.get('count', 0) > 0), f'{g["id"]}: needs points or area+count')
@@ -218,7 +265,7 @@ def main():
         check(set(route['anchorIds']) <= anchor_ids, f'Broken route: {route["id"]}')
     start = instances[layout['initialInstance']]
     reach = entities[start['type']]['possessionRange']
-    check(any(i['carrier'] == start['carrier'] and i['type'] in entities[start['type']]['allowedTargets'] and i is not start and
+    check(any(i['carrier'] == start['carrier'] and i['type'] in relations[start['type']] and i is not start and
               math.dist(start['position'][::2], i['position'][::2]) <= reach for i in layout['instances']),
           'No legal first target within the start body reach (G-06)')
     def carried(root):
@@ -230,9 +277,15 @@ def main():
         return out
     islands = [i for i in layout['instances'] if entities[i['type']]['category'] == 'island']
     check(len(islands) >= 4, 'Need the main island plus at least three neighbours (W-01)')
-    for island in islands:
-        stages = {entities[i['type']]['stage'] for i in carried(island['id'])}
-        check({0, 1, 2} <= stages, f'{island["id"]}: needs boulder, tree and grass to return (W-05)')
+    # Ladder (W-05, D-021): every island carries each tier below it down to the smallest;
+    # every other carrier carries each tier between its smallest passenger and itself.
+    for carrier in layout['instances']:
+        ranks = {rank[i['type']] for i in carried(carrier['id'])}
+        if not ranks and carrier not in islands:
+            continue
+        bottom = 0 if carrier in islands else min(ranks)
+        missing = set(range(bottom, rank[carrier['type']])) - ranks
+        check(not missing, f'{carrier["id"]}: ladder broken, no carried body in tier rank {sorted(missing)} (W-05)')
 
     # Interactions (X-01..X-04)
     interactions = read_json('interactions.json')
@@ -243,7 +296,7 @@ def main():
         check(set(x['rules']) <= rule_ids, f'{x["id"]}: unknown rule')
         for side in ['subject', 'target']:
             check(set(x[side].get('categories', [])) <= CATEGORIES and set(x[side].get('types', [])) <= entity_ids, f'{x["id"]}: unknown {side} filter')
-    effect_code = (ROOT / 'frontend/src/interactions.js').read_text()
+    effect_code = (ROOT / 'frontend/src/interactions.js').read_text(encoding='utf-8')
     for name in interactions['effects']:
         check(re.search(rf'^  {name}:\{{', effect_code, re.M) is not None, f'Effect {name} is documented but not implemented')
 
@@ -272,8 +325,10 @@ def main():
         check(parameter['min'] <= parameter['value'] <= parameter['max'], f'Tuning outside range: {key}')
         check(parameter['rule'] in rule_ids, f'Unknown rule for parameter: {key}')
     check(tuning['hardConstraints']['minimumAcceptableFps'] == 30, 'Unexpected FPS floor')
-    air = next(r for r in layout['regions'] if r['id'] == 'island_airspace')
-    check(air['maxY'] == tuning['parameters']['birdMaxHeightM']['value'], 'Airspace and bird height disagree')
+    for e in entity_list:
+        if e.get('activityRegion'):
+            air = next(r for r in layout['regions'] if r['id'] == e['activityRegion'])
+            check(air['maxY'] == tuning['parameters']['flightCeilingM']['value'], f'{e["id"]}: airspace maxY and flightCeilingM disagree')
     version = entity_doc['_meta']['specVersion']
     for name in ['entities.json', 'input-map.json', 'anchors.json', 'dialogue.json', 'tuning.json', 'interactions.json']:
         meta = read_json(name)['_meta']
@@ -281,12 +336,11 @@ def main():
         check(meta['runtimeBinding'] in {'not_integrated', 'partial', 'integrated'}, f'Missing integration state: {name}')
         if meta['runtimeBinding'] != 'not_integrated':
             check(bool(meta.get('integrationEvidence')), f'Integration claim needs evidence: {name}')
-    check(f'版本：{version}' in (ROOT / 'docs/01-global-rules.md').read_text(), 'Rules document version disagrees with data')
+    check(f'版本：{version}' in (ROOT / 'docs/01-global-rules.md').read_text(encoding='utf-8'), 'Rules document version disagrees with data')
 
     # Generated runtime files must match data (do not hand-edit them).
-    import sync_runtime
     for path, value in sync_runtime.generate().items():
-        current = json.loads((ROOT / path).read_text()) if (ROOT / path).exists() else None
+        current = json.loads((ROOT / path).read_text(encoding='utf-8')) if (ROOT / path).exists() else None
         check(current == value, f'{path} is stale or hand-edited; run project/sync_runtime.py')
 
     # Asset ledger
