@@ -2,6 +2,14 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-03 · 修复 CI 浏览器消息长度解析
+
+- 负责人：@EmilyGogogo；关联：[PR #2](https://github.com/EmilyGogogo/between-the-worlds/pull/2)，失败运行 `41646307925`。
+- AI：Codex 读取 Actions 日志、复现 WebSocket 边界问题、修复并补充回归；人工复核：待负责人复核 diff。
+- 变更与原因：`frontend/tests/cdp.py` 把两种扩展长度分支改为互斥的 `if`／`elif`。原实现遇到实际长度恰为 127 字节的消息时，会将正文误读为 64 位长度，导致 `socket.recv()` 请求巨量内存并抛出 `MemoryError`。新测试覆盖 125／126／127／128／65535／65536 字节、有无掩码、分段读取与连续消息；旧实现仅在 127 字节用例失败。日志中的 `Chrome not found` 来自预期负向单元测试，不是本次 CI 缺少浏览器。
+- 验证：修复前新增测试复现两处 127 字节失败；修复后 Windows 11、Python 3.13.9 下 `python -m unittest discover -s project/tests -v` 通过 14 项测试（新增两个测试方法共 12 个边界子用例），`python project/check_repository.py --javascript` 检查 59 个文件、0 错误，`python project/check_all.py --output .work/ci-cdp-fix-20261103` 通过 1652 项文档／数据检查和 74 项隔离 Chrome 回归，`git diff --check` 通过。沙箱临时目录受限后在沙箱外完成测试，本地日志仅存于 `.work/ci-cdp-fix-20261103/`；推送后须另查 PR #2 最新 Actions 结果，不能把本地通过当作远端通过。
+- 未验证项／风险：本次仅修改检查工具，不改变玩法；不将工具检查当作真人试玩、目标机性能或真实资产验收。
+
 ## 2026-11-03 · 修复分支审查的七项一致性问题
 
 - 负责人：@EmilyGogogo；关联：D-023，PR 待关联（沿用 `codex/project-initiate` 的未提交工作区，保留原有修改）。

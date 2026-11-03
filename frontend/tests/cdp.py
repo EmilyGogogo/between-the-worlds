@@ -48,7 +48,7 @@ class CDP:
         n = b & 127
         if n == 126:
             n = struct.unpack('!H', self.read_bytes(2))[0]
-        if n == 127:
+        elif n == 127:
             n = struct.unpack('!Q', self.read_bytes(8))[0]
         mask = self.read_bytes(4) if b & 128 else None
         data = self.read_bytes(n)
