@@ -1,0 +1,50 @@
+{
+  "source": {
+    "file": "assets/lux3d/LUX3D-env.world-amazon/raw/v001/textured.glb",
+    "sha256": "ceb2ae46a31cfa514e3e09b2764e43f3b66d0cb4a845af153908e47590f9b84f"
+  },
+  "parameters": {
+    "length": 1150.0,
+    "yaw": 0,
+    "up": "auto",
+    "cell": 3.0,
+    "margin": 120.0,
+    "sea_quantile": 0.1,
+    "peak": 6.0,
+    "edge": -0.8,
+    "top_quantile": 0.99,
+    "slope": 0.12,
+    "floor": -14,
+    "level": true,
+    "smooth": 1,
+    "color_size": 2048
+  },
+  "orientedUp": "z+",
+  "footprintM": [
+    1150,
+    664.9
+  ],
+  "cellsCovered": 58105,
+  "cellsAboveSea": 52392,
+  "areaAboveSeaM2": 471528,
+  "colorMapPx": [
+    2048,
+    1336
+  ],
+  "heightfield": {
+    "url": "./public/models/island-amazon-height.bin",
+    "colorMap": "./public/models/island-amazon-color.jpg",
+    "grid": [
+      464,
+      303
+    ],
+    "size": [
+      1389,
+      906
+    ],
+    "heightRange": [
+      -14,
+      6.909
+    ]
+  }
+}

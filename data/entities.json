@@ -1378,8 +1378,8 @@
   "environmentSlots": [
     {
       "slotId": "env.world",
-      "name": "整片世界（可选）",
-      "status": "placeholder",
+      "name": "整片世界（主岛地形）",
+      "status": "integrated",
       "url": null,
       "scale": 1,
       "position": [
@@ -1395,7 +1395,25 @@
       "useAsTerrain": true,
       "runtimeRead": true,
       "placeholder": "procedural:createTerrain",
-      "note": "整片 GLB 替换主岛地表；水域、出生点、实例锚点仍须人工配置"
+      "note": "主岛为亚马逊河心岛：Lux3D G1 生成（任务 4662570），经 project/bake_terrain.py 烘焙为高度场与俯视色图；水域、出生点、实例锚点仍在 anchors.json 配置。也可改用 url 整体 GLB（useAsTerrain）",
+      "lux3dUsed": true,
+      "ledgerId": "LUX3D-env.world-amazon",
+      "heightfield": {
+        "url": "./public/models/island-amazon-height.bin",
+        "colorMap": "./public/models/island-amazon-color.jpg",
+        "grid": [
+          464,
+          303
+        ],
+        "size": [
+          1389,
+          906
+        ],
+        "heightRange": [
+          -14,
+          6.909
+        ]
+      }
     },
     {
       "slotId": "env.meadow",
@@ -1416,8 +1434,8 @@
       "scatter": {
         "carrier": "island-main",
         "seed": 7,
-        "surfaceMin": 5,
-        "surfaceMax": 43,
+        "surfaceMin": 0.5,
+        "surfaceMax": 12,
         "avoidRegions": [
           "lake"
         ],
@@ -1470,14 +1488,14 @@
         "areas": [
           {
             "center": [
-              -83,
-              -65
+              -185,
+              0
             ],
             "size": [
-              105,
-              55
+              110,
+              360
             ],
-            "count": 45
+            "count": 60
           }
         ]
       }

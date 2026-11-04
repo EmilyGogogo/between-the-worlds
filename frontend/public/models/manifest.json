@@ -1,7 +1,37 @@
 {
   "version": 4,
   "generatedFrom": "data/entities.json",
-  "environment": null,
+  "environment": {
+    "url": null,
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "useAsTerrain": true,
+    "heightfield": {
+      "url": "./public/models/island-amazon-height.bin",
+      "colorMap": "./public/models/island-amazon-color.jpg",
+      "grid": [
+        464,
+        303
+      ],
+      "size": [
+        1389,
+        906
+      ],
+      "heightRange": [
+        -14,
+        6.909
+      ]
+    }
+  },
   "decor": [
     {
       "slotId": "env.meadow",
@@ -18,8 +48,8 @@
       "scatter": {
         "carrier": "island-main",
         "seed": 7,
-        "surfaceMin": 5,
-        "surfaceMax": 43,
+        "surfaceMin": 0.5,
+        "surfaceMax": 12,
         "avoidRegions": [
           "lake"
         ],
@@ -69,14 +99,14 @@
         "areas": [
           {
             "center": [
-              -83,
-              -65
+              -185,
+              0
             ],
             "size": [
-              105,
-              55
+              110,
+              360
             ],
-            "count": 45
+            "count": 60
           }
         ]
       },

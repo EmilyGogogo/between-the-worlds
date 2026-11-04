@@ -48,6 +48,7 @@ CSV 为 UTF-8 BOM。计划行中的生成日期、原文件、输入、授权与
 | 远处用简化模型 | `asset.lod`（变体也可以各有各的 `lod`） | 不用 |
 | 换成片草地、湖底卵石的模型 | `environmentSlots` → `env.meadow`／`env.pebbles` 的 `url`／`variants` | 不用 |
 | 新增一种成片装饰（如灌木丛、落叶） | `environmentSlots` 加一个带 `scatter` 的槽 | 不用 |
+| 换整座主岛的地形 | 用 `project/bake_terrain.py` 把地形模型烘焙成高度场，填 `env.world.heightfield`，再按新地形检查 `anchors.json`（见 [06](../docs/06-lux3d-asset-pipeline.md#高度场主岛)） | 不用 |
 | 在世界里多放几个个体、多一片树林 | `anchors.json` → `instances` 或 `scatter` | 不用 |
 | 新增一个种类（苍鹭、柴犬、珊瑚鱼……） | `python3 project/new_species.py`（可用 `--tier` 指定尺度档），再调数值 | 不用 |
 | 新增一个尺度档（更小的微观档、比岛更大的档） | `entities.json` → `scaleTiers` 按大小顺序插入；09 写决策 | 不用 |
@@ -111,8 +112,8 @@ CSV 为 UTF-8 BOM。计划行中的生成日期、原文件、输入、授权与
 
 **水体**：带 `water` 字段的区域就是水体，代码不按名字认湖。两种类型：
 
-- `"type": "enclosed"`（湖、池塘）：椭圆区域（`shape`、`center`、`radii`）内的平静水面，`surfaceY` 是水面高度（岛的局部坐标），`opacity` 是水面不透明度；可选 `basin: {"depthM", "falloffM": [x, z]}` 让程序占位地形在此挖出湖盆（换成 GLB 地形后湖盆由模型提供）。
-- `"type": "sea"`：全局只能有一个，`levelM` 是海平面高度，`minDepthM` 是算作水体的最浅深度；海面随星球曲率弯曲。
+- `"type": "enclosed"`（湖、池塘）：椭圆区域（`shape`、`center`、`radii`）内的平静水面，`surfaceY` 是水面高度（岛的局部坐标），`opacity` 是水面不透明度；可选 `basin` 挖出湖盆，两种写法：`{"depthM", "falloffM": [x, z]}` 是以湖心为中心的高斯碗；`{"depthM", "belowM", "softM"}` 只把湖区内低于 `belowM` 米的地面再挖深 `depthM` 米（`softM` 是过渡带，默认 1 米），适合高度场里已有洼地形状的湖，例如牛轭湖。可选 `colors: {"deep", "sky"}`（`#rrggbb`）设定水的本色与反光色。
+- `"type": "sea"`：全局只能有一个，`levelM` 是海平面高度，`minDepthM` 是算作水体的最浅深度；海面随星球曲率弯曲，也可用 `colors` 改外观（当前为浑浊的河水，D-025）。主岛上低于海平面的洼地和河沟会自动成为与它相连的浅水。
 
 游泳身体的活动区、水面渲染、镜头是否在水下、岛面拾取都读这些数据。新增一个湖只需在 `regions` 加一个带 `water` 的区域；之后仍要验证鱼的活动边界、出生点、布景和湖盆深度是否让鱼游得开（鱼需要水深超过身高 1.2 倍）。
 

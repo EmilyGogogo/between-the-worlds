@@ -1,0 +1,31 @@
+{
+  "service": "Lux3D 国内版 API https://api.aholo3d.cn",
+  "client": "SkillHub @user_97275c6e/lux3d-cn 4.3.0 lux3d_client.py text",
+  "request": {
+    "prompt": "见 ../../input/prompt.txt",
+    "version": "G1",
+    "style": "photorealistic",
+    "faceCount": 300000,
+    "outputFormat": "默认（ZIP + GLB）"
+  },
+  "task": {
+    "taskId": 4662570,
+    "taskType": "text-to-3d",
+    "version": "g1",
+    "status": 3,
+    "created": "2026-11-04T23:02:09+08:00",
+    "finished": "2026-11-04T23:06:22+08:00",
+    "consumedCredits": 20
+  },
+  "files": {
+    "textured.glb": "任务第二个输出（GLB，贴图内嵌），15,000,284 字节；与远端文件大小核对一致",
+    "result.zip": "任务第一个输出（含 6 张 Raw*Filter 材质贴图），未入库，本地保留"
+  },
+  "siblings": [
+    {
+      "taskId": 4662560,
+      "note": "同一提示词的另一次生成；俯视轮廓破碎、竖直倾斜，未采用",
+      "consumedCredits": 20
+    }
+  ]
+}

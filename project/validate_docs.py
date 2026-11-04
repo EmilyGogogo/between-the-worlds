@@ -233,8 +233,14 @@ def main():
             check(num(w.get('surfaceY')), f'{r["id"]}: enclosed water needs surfaceY')
             check(w.get('opacity') is None or (num(w['opacity']) and 0 < w['opacity'] <= 1), f'{r["id"]}: opacity must be in (0, 1]')
             basin = w.get('basin')
-            check(basin is None or (num(basin.get('depthM')) and basin['depthM'] > 0 and len(basin.get('falloffM', [])) == 2 and all(num(v) and v > 0 for v in basin['falloffM'])),
-                  f'{r["id"]}: basin needs depthM and two positive falloffM')
+            # A basin is a Gaussian bowl (falloffM) or deepens ground below a level (belowM, optional softM).
+            bowl = basin is not None and len(basin.get('falloffM', [])) == 2 and all(num(v) and v > 0 for v in basin['falloffM'])
+            below = basin is not None and num(basin.get('belowM')) and (basin.get('softM') is None or (num(basin['softM']) and basin['softM'] > 0))
+            check(basin is None or (num(basin.get('depthM')) and basin['depthM'] > 0 and (bowl or below)),
+                  f'{r["id"]}: basin needs depthM and either two positive falloffM or belowM')
+            for k in ['deep', 'sky']:
+                c = w.get('colors', {}).get(k)
+                check(c is None or (isinstance(c, str) and len(c) == 7 and c.startswith('#')), f'{r["id"]}: water colour {k} must be #rrggbb')
     for a in anchors.values():
         check(set(a['safeFor']) <= entity_ids, f'Unknown safe type at {a["id"]}')
         check(len(a['position']) == 3 and all(isinstance(v, (int, float)) and math.isfinite(v) for v in a['position']), f'Invalid position at {a["id"]}')

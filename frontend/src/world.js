@@ -7,18 +7,91 @@ const UP=new THREE.Vector3(0,1,0);
 const smooth=(a,b,x)=>{const t=THREE.MathUtils.clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
 function hash(x,z){return (Math.sin(x*127.1+z*311.7)*43758.5453123)%1;}
 function noise(x,z){const a=Math.floor(x),b=Math.floor(z),u=smooth(0,1,x-a),v=smooth(0,1,z-b);return THREE.MathUtils.lerp(THREE.MathUtils.lerp(hash(a,b),hash(a+1,b),u),THREE.MathUtils.lerp(hash(a,b+1),hash(a+1,b+1),u),v);}
+// Main island heightfield (env.world.heightfield): a grid baked from a terrain model by
+// project/bake_terrain.py. Height queries read the grid, so a generated model is never ray-cast.
+let FIELD=null;
+export async function loadTerrainField(entry){
+  const f=entry?.heightfield;FIELD=null;if(!f)return;
+  const [buffer,color]=await Promise.all([
+    fetch(f.url).then(r=>{if(!r.ok)throw Error(`${f.url} ${r.status}`);return r.arrayBuffer();}),
+    f.colorMap?new THREE.TextureLoader().loadAsync(f.colorMap):null]);
+  const raw=new Uint16Array(buffer),[nx,nz]=f.grid,[lo,hi]=f.heightRange;
+  if(raw.length!==nx*nz)throw Error(`${f.url}: ${raw.length} samples, expected ${nx}×${nz}`);
+  const heights=Float32Array.from(raw,v=>lo+v/65535*(hi-lo));
+  if(color)color.colorSpace=THREE.SRGBColorSpace;
+  FIELD={nx,nz,size:f.size,heights,color,floor:lo};
+}
+function fieldHeight(x,z){
+  const {nx,nz,size:[w,d],heights}=FIELD,fx=(x+w/2)/w*(nx-1),fz=(z+d/2)/d*(nz-1);
+  if(!(fx>=0&&fz>=0&&fx<=nx-1&&fz<=nz-1))return FIELD.floor;
+  const i=Math.min(Math.floor(fx),nx-2),j=Math.min(Math.floor(fz),nz-2),u=fx-i,v=fz-j,k=j*nx+i;
+  return (heights[k]*(1-u)+heights[k+1]*u)*(1-v)+(heights[k+nx]*(1-u)+heights[k+nx+1]*u)*v;
+}
+// Enclosed water basins: `belowM` deepens only ground lower than that level inside the
+// region (keeps islands in an oxbow), otherwise a Gaussian bowl is carved.
+function carveBasins(h,x,z){
+  for(const r of WATERS){
+    const b=r.water.basin;if(!b)continue;
+    if(b.belowM!=null){
+      const e=Math.hypot((x-r.center[0])/r.radii[0],(z-r.center[1])/r.radii[1]);
+      if(e<1)h-=b.depthM*smooth(b.belowM,b.belowM-(b.softM??1),h)*smooth(1,.8,e);
+    }else h-=b.depthM*Math.exp(-((x-r.center[0])**2/(2*b.falloffM[0]**2)+(z-r.center[1])**2/(2*b.falloffM[1]**2)));
+  }
+  return h;
+}
+// Ground lying almost exactly at sea level flickers against the water plane; steepen the
+// waterline so the crossing is narrow (heights stay continuous and monotonic).
+function steepenWaterline(h){
+  const sea=WATERS.find(r=>r.water.type==='sea')?.water.levelM??0;
+  return h+.35*Math.tanh((h-sea)/.2);
+}
 export function terrainHeight(x,z){
+  if(FIELD)return carveBasins(steepenWaterline(fieldHeight(x,z)),x,z)-(x*x+z*z)/(2*PLANET_RADIUS);
   const radius=Math.hypot(x/430,z/350);
   let h=8+Math.sin(x*.024)*2.5+Math.cos(z*.031)*2+noise(x*.025,z*.025)*3;
   // The large rocky hill is its own movable body, not a baked terrain duplicate.
   h+=37*Math.exp(-((x+180)**2/12000+(z+185)**2/7000));
   // Placeholder terrain carves each enclosed water body's basin; a GLB terrain brings its own.
-  for(const r of WATERS){const b=r.water.basin;if(b)h-=b.depthM*Math.exp(-((x-r.center[0])**2/(2*b.falloffM[0]**2)+(z-r.center[1])**2/(2*b.falloffM[1]**2)));}
+  h=carveBasins(h,x,z);
   h=THREE.MathUtils.lerp(h,-12,smooth(.73,1.03,radius));
   return h-(x*x+z*z)/(2*PLANET_RADIUS);
 }
 
+// Tileable ground grain for close views: fine speckle (r) and soft blotches (g).
+function detailTexture(){
+  const n=256,c=document.createElement('canvas');c.width=c.height=n;const ctx=c.getContext('2d'),img=ctx.createImageData(n,n),r=mulberry32(911);
+  const lattice=p=>{const g=Array.from({length:p*p},()=>r());return(x,y)=>{const a=Math.floor(x),b=Math.floor(y),u=smooth(0,1,x-a),v=smooth(0,1,y-b),at=(i,j)=>g[((j%p+p)%p)*p+((i%p+p)%p)];return THREE.MathUtils.lerp(THREE.MathUtils.lerp(at(a,b),at(a+1,b),u),THREE.MathUtils.lerp(at(a,b+1),at(a+1,b+1),u),v);};};
+  const periods=[8,16,32,64],octaves=periods.map(lattice),blotch=[2,4].map(lattice);
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    let fine=0,amp=.5;octaves.forEach((o,k)=>{fine+=o(x/n*periods[k],y/n*periods[k])*amp;amp*=.55;});
+    const soft=blotch[0](x/n*2,y/n*2)*.65+blotch[1](x/n*4,y/n*4)*.35,i=(y*n+x)*4;
+    img.data[i]=Math.min(255,fine*255*1.1);img.data[i+1]=soft*255;img.data[i+2]=128;img.data[i+3]=255;
+  }
+  ctx.putImageData(img,0,0);const tex=new THREE.CanvasTexture(c);tex.wrapS=tex.wrapT=THREE.RepeatWrapping;return tex;
+}
+// The baked island: macro colour from the model, grain from a tiled detail map, darker where wet.
+function createFieldTerrain(){
+  const {nx,nz,size:[w,d]}=FIELD,geo=new THREE.PlaneGeometry(w,d,nx-1,nz-1);geo.rotateX(-Math.PI/2);
+  const p=geo.attributes.position,colors=new Float32Array(p.count*3);
+  for(let i=0;i<p.count;i++){
+    const y=terrainHeight(p.getX(i),p.getZ(i));p.setY(i,y);
+    const wet=.62+.38*smooth(-.6,1.4,y);colors[i*3]=wet;colors[i*3+1]=wet;colors[i*3+2]=wet*.97;
+  }
+  geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.computeVertexNormals();
+  const detail=detailTexture(),bump=detail.clone();bump.repeat.set(w/2.2,d/2.2);bump.needsUpdate=true;
+  const mat=new THREE.MeshStandardMaterial({map:FIELD.color,vertexColors:true,bumpMap:bump,bumpScale:.9,roughness:.95,metalness:0});
+  const repeat=new THREE.Vector2(w/2.2,d/2.2);
+  if(FIELD.color)mat.onBeforeCompile=shader=>{
+    shader.uniforms.detailMap={value:detail};shader.uniforms.detailRepeat={value:repeat};
+    shader.fragmentShader='uniform sampler2D detailMap;uniform vec2 detailRepeat;\n'+shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+  {float fine=texture2D(detailMap,vMapUv*detailRepeat).r;float soft=texture2D(detailMap,vMapUv*detailRepeat*.061).g;
+  diffuseColor.rgb*=mix(.76,1.18,fine)*mix(.94,1.04,soft);}`);
+  };
+  const mesh=new THREE.Mesh(geo,mat);mesh.receiveShadow=true;return mesh;
+}
+
 function createTerrain(){
+  if(FIELD)return createFieldTerrain();
   const geo=new THREE.PlaneGeometry(960,820,190,164);geo.rotateX(-Math.PI/2);
   const p=geo.attributes.position,colors=[];
   const green=new THREE.Color('#83916d'),sand=new THREE.Color('#c1ba9b'),rock=new THREE.Color('#899184'),dark=new THREE.Color('#74845e');
@@ -44,7 +117,7 @@ const waterFragment=`varying vec3 vWorld;varying vec3 vNormal;uniform float time
 #include <tonemapping_fragment>
 #include <colorspace_fragment>
 }`;
-function waterMaterial(alpha=1){return new THREE.ShaderMaterial({uniforms:{time:{value:0},deep:{value:new THREE.Color('#377b76')},sky:{value:new THREE.Color('#c6d6c0')},alpha:{value:alpha}},vertexShader:waterVertex,fragmentShader:waterFragment,transparent:alpha<1,side:THREE.DoubleSide,depthWrite:alpha===1});}
+function waterMaterial(alpha=1,colors={}){return new THREE.ShaderMaterial({uniforms:{time:{value:0},deep:{value:new THREE.Color(colors.deep||'#377b76')},sky:{value:new THREE.Color(colors.sky||'#c6d6c0')},alpha:{value:alpha}},vertexShader:waterVertex,fragmentShader:waterFragment,transparent:alpha<1,side:THREE.DoubleSide,depthWrite:alpha===1});}
 
 // Seeds come from ids, so each individual keeps its model variant when others are added or removed.
 function seedOf(id){let seed=2166136261;for(const c of id)seed=Math.imul(seed^c.charCodeAt(0),16777619);return seed>>>0;}
@@ -80,16 +153,17 @@ export class World {
     // The ocean coordinate frame is inert; no playable planets in this version.
     this.islandRoot=new THREE.Group();this.islandRoot.position.y=PLANET_RADIUS;this.planetRoot.add(this.islandRoot);
     const mainKind=LAYOUT.instances.find(i=>i.placement==='main')?.kind;
-    this.terrain=mainKind&&assets.hasModel(mainKind)?assets.make(mainKind,1):createTerrain();this.islandRoot.add(this.terrain);
-    if(mainKind&&assets.hasModel(mainKind))this.externalTerrain=this.terrain;
+    const modelled=!FIELD&&mainKind&&assets.hasModel(mainKind);
+    this.terrain=modelled?assets.make(mainKind,1):createTerrain();this.islandRoot.add(this.terrain);
+    if(modelled)this.externalTerrain=this.terrain;
     this.islandRoot.updateWorldMatrix(true,true);
-    this.waterMat=waterMaterial();
-    const waterGeo=new THREE.PlaneGeometry(12000,12000,150,150);waterGeo.rotateX(-Math.PI/2);
     const sea=WATERS.find(r=>r.water.type==='sea');this.seaLevel=sea.water.levelM;
+    this.waterMat=waterMaterial(1,sea.water.colors);
+    const waterGeo=new THREE.PlaneGeometry(12000,12000,150,150);waterGeo.rotateX(-Math.PI/2);
     const p=waterGeo.attributes.position;for(let i=0;i<p.count;i++){const r2=p.getX(i)**2+p.getZ(i)**2;p.setY(i,Math.sqrt(Math.max(0,PLANET_RADIUS**2-r2))-PLANET_RADIUS+this.seaLevel);}waterGeo.computeVertexNormals();
     this.sea=new THREE.Mesh(waterGeo,this.waterMat);this.sea.position.y=PLANET_RADIUS;this.planetRoot.add(this.sea);
     this.waterBodies=WATERS.filter(r=>r.water.type==='enclosed').map(r=>{
-      const mesh=new THREE.Mesh(new THREE.CircleGeometry(1,80),waterMaterial(r.water.opacity??1));mesh.rotation.x=-Math.PI/2;
+      const mesh=new THREE.Mesh(new THREE.CircleGeometry(1,80),waterMaterial(r.water.opacity??1,r.water.colors));mesh.rotation.x=-Math.PI/2;
       mesh.scale.set(r.radii[0],r.radii[1],1);mesh.position.set(r.center[0],r.water.surfaceY,r.center[1]);this.islandRoot.add(mesh);return mesh;
     });
     this.populate();this.createDecor();this.createSky();this.createRipples();

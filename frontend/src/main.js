@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
-import { World, terrainHeight, PLANET_RADIUS } from './world.js';
+import { World, terrainHeight, PLANET_RADIUS, loadTerrainField } from './world.js';
 import { SPECIES,SCALE_TIERS,TUNING,LAYOUT,loadRuntimeConfig,actionForCode,canEmbody,layerOf } from './species.js';
 import { InteractionSystem } from './interactions.js';
 import { WorldCollision } from './collision.js';
@@ -481,7 +481,10 @@ async function boot(){
     const renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:true,alpha:false,powerPreference:'high-performance'});
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     await loadRuntimeConfig();
-    const assets=new AssetLibrary();await assets.prepare();game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
+    const assets=new AssetLibrary();await assets.prepare();
+    // A missing or broken heightfield keeps the procedural island.
+    try{await loadTerrainField(assets.manifest.environment);}catch(e){assets.errors.push('heightfield: '+e.message);console.warn('Heightfield unavailable; procedural terrain kept.',e);}
+    game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
     if(!game.hasSave)$('enter-label').textContent='进入旷野';$('enter').disabled=false;
     // Debug access is available only with ?debug; the normal product UI stays quiet.
     if(new URLSearchParams(location.search).has('debug'))window.__world=game;

@@ -12,7 +12,7 @@
 <text x="560" y="220" font-size="15" fill="#315c51" text-anchor="start">A05 岩丘 (104, -142)</text>
 <path d="M384.3,427.7 L334,295" stroke="#315c51" stroke-width="1" fill="none"/>
 <circle cx="384.3" cy="427.7" r="5" fill="#315c51"/>
-<text x="330" y="300" font-size="15" fill="#315c51" text-anchor="end">A04 山湖 (-83, -65)</text>
+<text x="330" y="300" font-size="15" fill="#315c51" text-anchor="end">A04 牛轭湖 (-205, 0)</text>
 <path d="M414.4,443.8 L334,355" stroke="#315c51" stroke-width="1" fill="none"/>
 <circle cx="414.4" cy="443.8" r="5" fill="#315c51"/>
 <text x="330" y="360" font-size="15" fill="#315c51" text-anchor="end">A08 湖面空域 (-45, -45)</text>
@@ -30,10 +30,10 @@
 <text x="330" y="600" font-size="15" fill="#315c51" text-anchor="end">A01 晨雾草地·近地观察点 (0, 22)</text>
 <path d="M687.5,576.6 L646,635" stroke="#315c51" stroke-width="1" fill="none"/>
 <circle cx="687.5" cy="576.6" r="5" fill="#315c51"/>
-<text x="650" y="640" font-size="15" fill="#315c51" text-anchor="start">A09 岸线观察点 (300, 120)</text>
+<text x="650" y="640" font-size="15" fill="#315c51" text-anchor="start">A09 岸线观察点 (344, 100)</text>
 <path d="M616.2,657.1 L466,755" stroke="#315c51" stroke-width="1" fill="none"/>
 <circle cx="616.2" cy="657.1" r="5" fill="#315c51"/>
-<text x="470" y="760" font-size="15" fill="#315c51" text-anchor="start">A06 近海岩礁 (210, 220)</text>
+<text x="470" y="760" font-size="15" fill="#315c51" text-anchor="start">A06 近岸深水 (265, 265)</text>
 <rect x="880" y="130" width="570" height="560" rx="18" fill="#c8dedb"/>
 <text x="900" y="162" font-size="18" fill="#203b35">群岛（岛屿层，海面坐标）</text>
 <ellipse cx="984.3" cy="517.0" rx="28.4" ry="22.7" fill="#b9c69f" stroke="#829579"/>
@@ -54,6 +54,6 @@
 <text x="900" y="742" font-size="17" fill="#203b35">示例尺度往返（不在游戏中显示）</text>
 <text x="900" y="770" font-size="14" fill="#315c51">A02 人开场 → 树 → A05 巨岩（或鸟飞到 60 m 以上）→ A10 成为主岛</text>
 <text x="900" y="792" font-size="14" fill="#315c51">→ A11 邻岛 → 邻岛巨岩 → 松树 → 海岸岩石 → 草</text>
-<text x="900" y="814" font-size="14" fill="#64726b">图例：灰色椭圆＝岩丘（地貌层），蓝色＝山湖</text>
+<text x="900" y="814" font-size="14" fill="#64726b">图例：灰色椭圆＝岩丘（地貌层），蓝色＝牛轭湖；主岛轮廓为示意，未按 D-025 新地形重画</text>
 <text x="60" y="866" font-size="14" fill="#64726b">坐标为原型现状，尺寸与距离是 TUNABLE（W-07）；创作者已确认（R-11），试玩后可按 W-07 调整。</text>
 </g></svg>

@@ -2,6 +2,14 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-04 · 主岛改为亚马逊河心岛地形（Lux3D 高度场）
+
+- 负责人：@yidi0522；关联：D-025，分支 `asset/amazon-island`，PR 待关联。
+- AI：Claude Code 负责 Lux3D 生成与挑选、烘焙工具、运行时接入、布局迁移、文档与检查；人工复核：创作者在会话中提出需求并授权修改文档与参数，完整 diff、画面观感与试玩待负责人复核。
+- 变更与原因：创作者要求本版主岛像真实的亚马逊河心岛。用 Lux3D 国内版 G1 文生 3D 生成两版（任务 4662560、4662570，各 20 积分），采用后者；新增 `project/bake_terrain.py`（无新依赖，复用仓库的 Chrome 与 Three.js）把模型去倾斜、定标并烘焙为 464 × 303 高度场与俯视色图。`world.js` 新增 `loadTerrainField()`，主岛落地、遮挡、水域判断改读网格，近景加平铺细节纹理，水线附近连续加陡以免闪烁；湖盆新增 `belowM`／`softM` 写法，水体颜色改为数据字段 `water.colors`。`sync_runtime.py` 传递 `heightfield`，`validate_docs.py` 接受新湖盆写法与颜色。布局：湖区、水面（5.8 → 0.6 米）与湖鱼移入牛轭湖，蝴蝶鱼移到岛外深水，湖面海鸥与 A01～A09 中受影响的锚点随地形更新；林地散布下限 8 → 0.6 米、草地装饰 5～43 → 0.5～12 米，主岛约 960 × 820 → 1150 × 665 米。原件、任务记录、烘焙参数与截图在 `assets/lux3d/LUX3D-env.world-amazon/`，台账新增 `LUX3D-env.world-amazon`。
+- 验证：macOS 26.6.2、Python 3.9.6、Chrome 无头＋SwiftShader：`python3 project/sync_runtime.py`、`python3 project/validate_docs.py`、`python3 project/check_repository.py`（本机无 Node.js，未跑 `--javascript`）、`python3 -m unittest discover -s project/tests -v`、`python3 project/check_all.py`，结果见 PR 描述。浏览器检查在本地共运行 6 次，5 次 126 项全过，1 次在“松开鼠标后左键拖动改变镜头”偶发失败（与地形无关，复跑通过；未改动的 `main` 跑 1 次全过）。软件渲染帧耗时对比：开场视角 861 → 560 ms，岛屿视角 82 → 177 ms，仅作相对参考。
+- 未验证项 / 风险：真人试玩与目标设备帧率（QA-48）、Lux3D 服务条款、团队对 D-025 的确认、JavaScript 语法检查（待 CI）与远端 CI。人眼高度近景仍偏柔；牛轭湖椭圆把湖心陆地也算作湖区，草地装饰不会铺到那里；岩丘巨岩在平坦河心岛上显得突兀；邻岛仍为程序占位；原始 GLB 约 15 MB 直接入库，团队尚未配置 Git LFS。回退时成组撤销本条的代码、数据、生成文件与资产目录；存档版本未变，旧存档中的个体位置会按新地形读取。
+
 ## 2026-11-04 · 入场引导与紧凑常驻操作提示
 
 - 负责人：@EmilyGogogo；关联：D-024，分支 `codex/onboarding-controls-plan`，PR 待关联。

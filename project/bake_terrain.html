@@ -1,0 +1,64 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>bake terrain</title>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
+<script type="module">
+// Driven by project/bake_terrain.py: renders a terrain GLB straight down into
+// a height grid and a colour map. Nothing here is loaded by the game.
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+
+const heightVertex=`varying float vY;void main(){vec4 w=modelMatrix*vec4(position,1.);vY=w.y;gl_Position=projectionMatrix*viewMatrix*w;}`;
+// 24-bit fixed point between lo and hi; alpha marks covered cells.
+const heightFragment=`precision highp float;varying float vY;uniform float lo;uniform float hi;
+void main(){float n=floor(clamp((vY-lo)/(hi-lo),0.,1.)*16777215.);gl_FragColor=vec4(floor(n/65536.),mod(floor(n/256.),256.),mod(n,256.),255.)/255.;}`;
+
+window.bake=async({url,up,length,yaw,cell,margin,colorSize})=>{
+  const gltf=await new GLTFLoader().loadAsync(url),model=gltf.scene,holder=new THREE.Group();
+  holder.add(model);
+  // Generators often face the ground surface along one axis; turn its thinnest axis upright.
+  let size=new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+  const thin=up==='auto'?(size.x<size.y&&size.x<size.z?'x':size.z<size.y?'z':'y'):up[0],down=up.endsWith('-');
+  if(thin==='z')model.rotation.x=down?Math.PI/2:-Math.PI/2;
+  if(thin==='x')model.rotation.z=down?-Math.PI/2:Math.PI/2;
+  if(thin==='y'&&down)model.rotation.x=Math.PI;
+  holder.updateMatrixWorld(true);size=new THREE.Box3().setFromObject(holder).getSize(new THREE.Vector3());
+  // Long axis along x, then the requested turn.
+  holder.rotation.y=(size.z>size.x?Math.PI/2:0)+THREE.MathUtils.degToRad(yaw);holder.updateMatrixWorld(true);
+  let box=new THREE.Box3().setFromObject(holder);size=box.getSize(new THREE.Vector3());
+  holder.scale.setScalar(length/size.x);holder.updateMatrixWorld(true);
+  box=new THREE.Box3().setFromObject(holder);const center=box.getCenter(new THREE.Vector3());
+  holder.position.set(-center.x,-box.min.y,-center.z);holder.updateMatrixWorld(true);
+  box=new THREE.Box3().setFromObject(holder);size=box.getSize(new THREE.Vector3());
+  // Grid points sit on cell centres of an orthographic view widened by half a cell.
+  const nx=Math.round((size.x+2*margin)/cell)+1,nz=Math.round((size.z+2*margin)/cell)+1;
+  const W=(nx-1)*cell,D=(nz-1)*cell,lo=box.min.y-1,hi=box.max.y+1;
+  const scene=new THREE.Scene();scene.add(holder);
+  const camera=new THREE.OrthographicCamera(-W/2-cell/2,W/2+cell/2,D/2+cell/2,-D/2-cell/2,1,hi-lo+200);
+  camera.position.set(0,hi+100,0);camera.up.set(0,0,-1);camera.lookAt(0,0,0);
+  const renderer=new THREE.WebGLRenderer({antialias:false,preserveDrawingBuffer:true});
+  renderer.outputColorSpace=THREE.LinearSRGBColorSpace;renderer.toneMapping=THREE.NoToneMapping;renderer.setPixelRatio(1);
+
+  const heightMat=new THREE.ShaderMaterial({vertexShader:heightVertex,fragmentShader:heightFragment,uniforms:{lo:{value:lo},hi:{value:hi}},side:THREE.DoubleSide});
+  const originals=new Map();holder.traverse(o=>{if(o.isMesh){originals.set(o,o.material);o.material=heightMat;}});
+  const target=new THREE.WebGLRenderTarget(nx,nz,{depthBuffer:true});
+  renderer.setRenderTarget(target);renderer.setClearColor(0x000000,0);renderer.clear();renderer.render(scene,camera);
+  const px=new Uint8Array(nx*nz*4);renderer.readRenderTargetPixels(target,0,0,nx,nz,px);renderer.setRenderTarget(null);
+  // readPixels starts at the bottom (south); the grid starts at the north-west corner.
+  const heights=new Float32Array(nx*nz);
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){
+    const s=((nz-1-j)*nx+i)*4;
+    heights[j*nx+i]=px[s+3]?lo+(px[s]*65536+px[s+1]*256+px[s+2])/16777215*(hi-lo):NaN;
+  }
+
+  for(const [o,m] of originals){const map=Array.isArray(m)?m[0].map:m.map;o.material=new THREE.MeshBasicMaterial({map,side:THREE.DoubleSide,color:map?0xffffff:0x777777});}
+  // The colour map spans exactly the outer grid points, matching the terrain mesh UVs.
+  const cw=colorSize,ch=Math.round(colorSize*D/W),view=new THREE.OrthographicCamera(-W/2,W/2,D/2,-D/2,1,hi-lo+200);
+  view.position.copy(camera.position);view.up.set(0,0,-1);view.lookAt(0,0,0);
+  renderer.setSize(cw,ch,false);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0x5b4a35,1);renderer.clear();renderer.render(scene,view);
+  const color=renderer.domElement.toDataURL('image/jpeg',.9).split(',')[1];
+  const bytes=new Uint8Array(heights.buffer);let bin='';for(let i=0;i<bytes.length;i+=32768)bin+=String.fromCharCode(...bytes.subarray(i,i+32768));
+  return {nx,nz,size:[W,D],footprint:[size.x,size.z],relief:size.y,heights:btoa(bin),color,colorSize:[cw,ch],orientedUp:thin+(down?'-':'+')};
+};
+window.ready=true;
+</script>

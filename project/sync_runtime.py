@@ -68,7 +68,9 @@ def generate():
         }
         models[kind] = {k: e['asset'][k] for k in RUNTIME_ASSET_FIELDS}
     world = next((s for s in entities['environmentSlots'] if s['slotId'] == 'env.world'), None)
-    environment = {k: world[k] for k in ['url', 'scale', 'position', 'rotation', 'useAsTerrain']} if world and world['url'] else None
+    # A heightfield (baked by project/bake_terrain.py) or a whole-world GLB replaces the procedural island.
+    environment = ({k: world.get(k) for k in ['url', 'scale', 'position', 'rotation', 'useAsTerrain', 'heightfield']}
+                   if world and (world.get('url') or world.get('heightfield')) else None)
     decor = [{k: s.get(k) for k in RUNTIME_DECOR_FIELDS} for s in entities['environmentSlots'] if s.get('scatter')]
     to_kind = lambda item: {**{k: v for k, v in item.items() if k != 'type'}, 'kind': kinds[item['type']]}
     world_layout = {
