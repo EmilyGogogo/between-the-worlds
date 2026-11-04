@@ -12,7 +12,7 @@
 </head>
 <body>
   <main id="experience" aria-label="万物之间，三维探索世界">
-    <canvas id="world" aria-label="游戏画面。WASD 移动，鼠标环视，R 魂穿。" tabindex="0"></canvas>
+    <canvas id="world" aria-label="游戏画面。WASD 或方向键移动，鼠标环视，R 魂穿，Esc 暂停与操作说明。" aria-describedby="control-guide" tabindex="0"></canvas>
     <div class="vignette" aria-hidden="true"></div>
     <div id="perception-tint" class="perception-tint" aria-hidden="true"></div>
     <header class="topbar">
@@ -24,8 +24,8 @@
         <button id="sound" class="icon-button" aria-label="开启环境声" aria-pressed="false" title="环境声">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5 5.5 9H3v6h2.5l4.5 4Z"/><path class="sound-wave" d="M14 8c2 2 2 6 0 8m3-11c4 4 4 10 0 14"/><path class="sound-off" d="m15 9 6 6m0-6-6 6"/></svg>
         </button>
-        <button id="pause-button" class="icon-button" aria-label="暂停与操作说明" title="暂停 · Esc" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14"/></svg>
+        <button id="pause-button" class="icon-button pause-button" aria-label="暂停与操作说明" title="暂停与操作说明 · Esc" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14"/></svg><span>操作 · Esc</span>
         </button>
       </div>
     </header>
@@ -35,28 +35,36 @@
       <h1>万物之间</h1>
       <p>成为一株草，也成为一座岛。</p>
       <button id="enter" class="enter-button" disabled><span id="enter-label">风正在经过</span><svg viewBox="0 0 32 16" aria-hidden="true"><path d="M0 8h29m-6-6 6 6-6 6"/></svg></button>
-      <div class="welcome-footnote">以另一种尺度，与世界相遇</div>
+      <div class="welcome-controls">WASD / 方向键移动，鼠标环视。<br>进入后指针会隐藏，按 Esc 暂停并显示鼠标。<br>若指针仍可见，按住鼠标左键拖动画面。</div>
     </section>
     <div id="opening-mark" class="opening-mark" aria-hidden="true"><span>风起的地方</span><i></i><small>THE QUIET SHORE</small></div>
 
     <div id="presence" class="presence" hidden><span class="presence-line"></span><div><span id="body-name">草</span><small id="body-place">风起的地方</small></div></div>
     <div id="first-hint" class="first-hint" role="status"></div>
+    <aside id="control-guide" class="control-guide" aria-label="操作速查" hidden>
+      <div id="control-status" class="control-status" role="status" hidden></div>
+      <div id="move-guide"><kbd>WASD / ↑↓←→</kbd> 移动 <span>·</span> <span id="look-guide">鼠标环视</span></div>
+      <div id="possess-guide"><kbd>R</kbd> 看向涟漪，成为它</div>
+      <div><kbd>Shift</kbd> 加速 <span>·</span> <kbd>Esc</kbd> 暂停 / 操作</div>
+      <div id="vertical-guide" hidden>抬头或低头，向前移动可升降</div>
+    </aside>
     <div id="response" class="response" aria-live="polite"></div>
     <div id="loading-notice" class="loading-notice" role="status" hidden></div>
 
     <section id="pause" class="pause-layer" aria-label="暂停菜单" hidden>
       <div class="pause-card">
-        <div class="eyebrow">停留片刻</div>
+        <div id="pause-reason" class="eyebrow">停留片刻</div>
         <h2>世界仍在这里。</h2>
         <div class="controls">
-          <div><span>移动</span><kbd>W A S D</kbd></div>
-          <div><span>环视</span><span>鼠标 · 或按住拖动</span></div>
+          <div><span>前 / 后 / 左 / 右</span><kbd>W S A D / ↑ ↓ ← →</kbd></div>
+          <div><span>环视</span><span>移动鼠标 / 按住左键拖动</span></div>
           <div><span>加速</span><kbd>Shift</kbd></div>
-          <div><span>魂穿</span><kbd>R</kbd></div>
+          <div><span>魂穿</span><span>看向涟漪，按 <kbd>R</kbd></span></div>
           <div><span>鸟与鱼升降</span><span>抬头或低头，再向前</span></div>
           <div><span>暂停</span><kbd>Esc</kbd></div>
           <div><span>环境声</span><button id="pause-sound" class="text-toggle" aria-pressed="false" aria-label="开启环境声">关</button></div>
         </div>
+        <p class="resume-note">继续后指针会隐藏，用于环视。<br>若指针仍可见，按住鼠标左键拖动。</p>
         <button id="resume" class="enter-button"><span>继续漫游</span><svg viewBox="0 0 32 16" aria-hidden="true"><path d="M0 8h29m-6-6 6 6-6 6"/></svg></button>
         <div class="pause-footer"><span id="save-status">足迹会留在这台设备上</span><button id="new-journey">重新开始</button></div>
       </div>

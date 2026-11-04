@@ -106,8 +106,9 @@
       "rule": "C-05",
       "reviewState": "proposed"
     },
-    "firstPossessionHintSec": {
-      "value": 4,
+    "pointerHintSec": {
+      "note": "D-024：锁定成功后的指针说明；探索计时，过渡和暂停不计时。魂穿目标提示每次随合法主目标显示，不按秒消失，不受成功次数影响。",
+      "value": 6,
       "unit": "s",
       "min": 2,
       "max": 6,
