@@ -38,9 +38,9 @@ class Game {
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
     this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
-    this.actions=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
+    this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
     this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;
-    this.hints={r:false};this.hintTimer=0;this.lastResponse=-90;this.responseTimer=0;this.shown=new Set();this.pendingMoment=null;
+    this.hints={};this.pointerHintTime=0;this.lastResponse=-90;this.responseTimer=0;this.shown=new Set();this.pendingMoment=null;
     this.stuck={time:0,anchor:null};this.audio=new Ambience();this.filter='';
     this.hasSave=this.restore();this.view=viewOf(this.player.kind);
     this.focusGoal=new THREE.Vector3();this.introFocus=new THREE.Vector3(-5,6,-15);
@@ -58,21 +58,30 @@ class Game {
     window.addEventListener('keydown',event=>{
       if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.code))event.preventDefault();
       const action=actionForCode(event.code);
-      if(action==='pause'){if(this.started){if(this.paused)this.resume(false);else this.pause();}return;}
+      if(action==='pause'){if(this.started&&!event.repeat){if(this.paused)this.resume(false);else this.pause();}return;}
       if(!this.started||this.paused||!action)return;
-      this.actions.add(action);if(event.repeat||this.transition)return;
+      // Ignore transition inputs completely: a held repeat must not move the new body.
+      if(this.transition||event.repeat)return;
+      this.pressedCodes.add(event.code);this.actions.add(action);
       if(action==='possess')this.possess();
     });
-    window.addEventListener('keyup',event=>{const action=actionForCode(event.code);if(action)this.actions.delete(action);});
-    window.addEventListener('blur',()=>{this.actions.clear();if(this.started&&!this.paused)this.pause();});
-    document.addEventListener('visibilitychange',()=>{if(document.hidden&&this.started)this.pause();});
+    window.addEventListener('keyup',event=>{const action=actionForCode(event.code);this.pressedCodes.delete(event.code);if(action&&![...this.pressedCodes].some(code=>actionForCode(code)===action))this.actions.delete(action);});
+    window.addEventListener('blur',()=>{this.clearInput();if(this.started&&!this.paused)this.pause('离开画面，已为你暂停');});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden&&this.started)this.pause('离开画面，已为你暂停');});
     const canvas=this.renderer.domElement;
     canvas.addEventListener('click',()=>{if(this.started&&!this.paused)this.lockMouse();});
-    canvas.addEventListener('pointerdown',e=>{if(e.button===0&&this.started&&!this.paused){this.dragging=true;canvas.setPointerCapture?.(e.pointerId);}});
+    canvas.addEventListener('pointerdown',e=>{if(e.button===0&&this.started&&!this.paused&&!document.pointerLockElement){this.dragging=true;canvas.setPointerCapture?.(e.pointerId);}});
     canvas.addEventListener('pointerup',()=>{this.dragging=false;});
-    document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&this.started&&!this.paused&&this.wasLocked)this.pause();this.wasLocked=Boolean(document.pointerLockElement);});
+    for(const type of ['pointercancel','lostpointercapture'])canvas.addEventListener(type,()=>{this.dragging=false;});
+    document.addEventListener('pointerlockchange',()=>{
+      const locked=document.pointerLockElement===canvas,lost=this.wasLocked&&!locked;this.wasLocked=locked;
+      this.dragging=false;if(locked)this.pointerHintTime=tune('pointerHintSec',6);
+      if(lost&&this.started&&!this.paused)this.pause();
+      this.updateControlGuide();
+    });
+    document.addEventListener('pointerlockerror',()=>this.updateControlGuide());
     document.addEventListener('mousemove',e=>{
-      if(!this.started||this.paused||(!document.pointerLockElement&&!this.dragging))return;
+      if(!this.started||this.paused||(document.pointerLockElement!==canvas&&!this.dragging))return;
       const sensitivity=tune('mouseSensitivityRadPerPixel',.0025);
       this.yaw-=e.movementX*sensitivity;this.pitch=clamp(this.pitch+e.movementY*sensitivity*.8,this.pitchMin(),1.16);
     });
@@ -92,22 +101,39 @@ class Game {
   }
   lockMouse(){
     if(document.pointerLockElement||!this.renderer.domElement.requestPointerLock)return;
-    try{const result=this.renderer.domElement.requestPointerLock();result?.catch?.(()=>{});}catch{}
+    try{const result=this.renderer.domElement.requestPointerLock();result?.catch?.(()=>this.updateControlGuide());}catch{this.updateControlGuide();}
   }
   start(){
     this.started=true;document.body.classList.add('playing');$('welcome').setAttribute('aria-hidden','true');$('enter').tabIndex=-1;$('presence').hidden=false;$('pause-button').hidden=false;this.updatePresence();
     this.transition={opening:true,from:this.player,to:this.player,start:this.camera.position.clone(),startFocus:this.introFocus.clone(),elapsed:0,duration:tune('possessionDurationSec',2.4)};
-    this.focusGoal.copy(this.world.focus(this.player));this.setSound(this.soundPreference());this.lockMouse();this.renderer.domElement.focus();this.save();
+    this.focusGoal.copy(this.world.focus(this.player));this.setSound(this.soundPreference());this.renderer.domElement.focus();this.lockMouse();this.updateControlGuide();this.save();
   }
-  pause(){
-    if(!this.started||this.paused)return;this.paused=true;this.needsRender=true;this.actions.clear();this.dragging=false;this.save();$('pause').hidden=false;document.exitPointerLock?.();$('resume').focus();
+  clearInput(){this.actions.clear();this.pressedCodes.clear();this.dragging=false;}
+  pause(reason='停留片刻'){
+    if(!this.started||this.paused)return;this.paused=true;this.needsRender=true;this.clearInput();this.save();$('pause-reason').textContent=reason;$('pause').hidden=false;document.body.classList.add('paused');this.updateControlGuide();document.exitPointerLock?.();$('resume').focus();
   }
   resume(lock=true){
-    this.paused=false;this.actions.clear();$('pause').hidden=true;this.renderer.domElement.focus();if(lock)this.lockMouse();
+    this.paused=false;this.clearInput();$('pause').hidden=true;document.body.classList.remove('paused');this.renderer.domElement.focus();if(lock)this.lockMouse();this.updateControlGuide();
   }
   resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.renderer.setSize(innerWidth,innerHeight);this.needsRender=true;}
-  hint(key,text,seconds){
-    $('first-hint').replaceChildren();const k=document.createElement('kbd');k.textContent=key;$('first-hint').append(k,document.createTextNode(text));$('first-hint').classList.add('visible');this.hintTimer=seconds;
+  updateControlGuide(){
+    const active=this.started&&!this.paused,locked=document.pointerLockElement===this.renderer.domElement;
+    const target=active&&!this.transition?this.target:null;
+    const state=[active,locked,this.transition?.opening?2:this.transition?1:0,this.pointerHintTime>0,this.player.kind,target?.id].join('|');
+    // Keep stable hints out of the render loop's DOM/aria-live updates.
+    if(state===this.controlGuideState)return;this.controlGuideState=state;
+    $('control-guide').hidden=!active;
+    $('look-guide').textContent=locked?'鼠标环视':'左键拖动环视';
+    $('move-guide').classList.toggle('unavailable',Boolean(this.transition));
+    $('possess-guide').classList.toggle('unavailable',Boolean(this.transition));
+    $('vertical-guide').hidden=SPECIES[this.player.kind].verticalControl!=='view_direction';
+    const status=this.transition?(this.transition.opening?'镜头到位后即可移动':'正在成为另一种存在…'):locked&&this.pointerHintTime>0?'指针已隐藏 · Esc 显示鼠标':'';
+    $('control-status').hidden=!status;$('control-status').textContent=status;
+    const hint=$('first-hint');
+    hint.classList.toggle('visible',Boolean(target));
+    if(target&&hint.dataset.target!==target.id){
+      const key=document.createElement('kbd');key.textContent='R';hint.replaceChildren(key,document.createTextNode(`成为${SPECIES[target.kind].name}`));hint.dataset.target=target.id;
+    }else if(!target){hint.replaceChildren();delete hint.dataset.target;}
   }
   updatePresence(){const s=SPECIES[this.player.kind];$('body-name').textContent=s.name;$('body-place').textContent=s.place;}
   pitchMin(){return SPECIES[this.player.kind].verticalControl==='view_direction'?-.45:.06;}
@@ -121,11 +147,11 @@ class Game {
     if(!this.evaluate(target,this.camera.position,this.camera.getWorldDirection(v2))){this.target=null;this.candidate=null;return false;}
     const minPitch=layerOf(target.kind).possessMinPitch;if(minPitch!=null)this.pitch=Math.max(this.pitch,minPitch);
     this.transition={from:this.player,to:target,start:this.camera.position.clone(),startFocus:this.focusGoal.clone(),elapsed:0,duration:tune('possessionDurationSec',2.4)};
-    this.player.moving=false;this.target=null;this.candidate=null;this.zoom=1;this.actions.clear();
-    document.body.classList.add('transitioning');this.audio.chime();return true;
+    this.player.moving=false;this.target=null;this.candidate=null;this.zoom=1;this.clearInput();
+    document.body.classList.add('transitioning');this.updateControlGuide();this.audio.chime();return true;
   }
   finishTransition(){
-    const tr=this.transition;this.transition=null;document.body.classList.remove('transitioning');this.actions.clear();
+    const tr=this.transition;this.transition=null;document.body.classList.remove('transitioning');this.clearInput();
     if(tr.opening)return;
     if(!this.world.byId.has(tr.to.id)){
       // The target vanished: glide back to the body we never left.
@@ -395,15 +421,15 @@ class Game {
     if(reach>0)this.audio.play(name,volume*h.distantCueGain*Math.sqrt(reach),this.panOf(entity,p));
   }
 
-  // --- Minimal UI: one R hint, rare world responses (U-01～U-05).
+  // --- Compact controls, current possession target guidance, rare responses (D-024).
   showResponse(text,key){
     this.lastResponse=this.elapsed;this.shown.add(key);this.responseTimer=tune('dialogueDisplaySec',6);
     $('response').textContent=text;$('response').classList.add('visible');
   }
   updateHints(dt){
-    if(this.hintTimer>0){this.hintTimer-=dt;if(this.hintTimer<=0)$('first-hint').classList.remove('visible');}
+    if(!this.transition)this.pointerHintTime=Math.max(0,this.pointerHintTime-dt);
+    this.updateControlGuide();
     if(this.responseTimer>0){this.responseTimer-=dt;if(this.responseTimer<=0)$('response').classList.remove('visible');}
-    if(this.target&&!this.hints.r&&this.hintTimer<=0&&!this.transition){this.hints.r=true;this.hint('R','成为另一种存在',tune('firstPossessionHintSec',4));}
     if(this.pendingMoment&&this.player.kind!==this.pendingMoment.kind)this.pendingMoment=null;
     if(this.transition||this.elapsed-this.lastResponse<90)return;
     if(this.pendingMoment){const m=this.pendingMoment;this.pendingMoment=null;this.showResponse(m.text,m.key);return;}

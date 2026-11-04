@@ -12,7 +12,8 @@
     {
       "action": "move_forward",
       "codes": [
-        "KeyW"
+        "KeyW",
+        "ArrowUp"
       ],
       "label": "移动",
       "enabledWhen": "exploring"
@@ -20,7 +21,8 @@
     {
       "action": "move_left",
       "codes": [
-        "KeyA"
+        "KeyA",
+        "ArrowLeft"
       ],
       "label": "移动",
       "enabledWhen": "exploring"
@@ -28,7 +30,8 @@
     {
       "action": "move_back",
       "codes": [
-        "KeyS"
+        "KeyS",
+        "ArrowDown"
       ],
       "label": "移动",
       "enabledWhen": "exploring"
@@ -36,7 +39,8 @@
     {
       "action": "move_right",
       "codes": [
-        "KeyD"
+        "KeyD",
+        "ArrowRight"
       ],
       "label": "移动",
       "enabledWhen": "exploring"

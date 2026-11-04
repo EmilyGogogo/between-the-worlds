@@ -2125,7 +2125,8 @@
       {
         "action": "move_forward",
         "codes": [
-          "KeyW"
+          "KeyW",
+          "ArrowUp"
         ],
         "label": "移动",
         "enabledWhen": "exploring"
@@ -2133,7 +2134,8 @@
       {
         "action": "move_left",
         "codes": [
-          "KeyA"
+          "KeyA",
+          "ArrowLeft"
         ],
         "label": "移动",
         "enabledWhen": "exploring"
@@ -2141,7 +2143,8 @@
       {
         "action": "move_back",
         "codes": [
-          "KeyS"
+          "KeyS",
+          "ArrowDown"
         ],
         "label": "移动",
         "enabledWhen": "exploring"
@@ -2149,7 +2152,8 @@
       {
         "action": "move_right",
         "codes": [
-          "KeyD"
+          "KeyD",
+          "ArrowRight"
         ],
         "label": "移动",
         "enabledWhen": "exploring"
@@ -2323,8 +2327,9 @@
       "rule": "C-05",
       "reviewState": "proposed"
     },
-    "firstPossessionHintSec": {
-      "value": 4,
+    "pointerHintSec": {
+      "note": "D-024：锁定成功后的指针说明；探索计时，过渡和暂停不计时。魂穿目标提示每次随合法主目标显示，不按秒消失，不受成功次数影响。",
+      "value": 6,
       "unit": "s",
       "min": 2,
       "max": 6,

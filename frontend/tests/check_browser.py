@@ -43,7 +43,8 @@ def load():
 PRELUDE = r"""
 const g=window.__world,W=g.world,{SPECIES,CATEGORIES,TUNING,LAYOUT,WATERS,canEmbody}=await import('./src/species.js'),results=[];
 const assert=(name,ok,detail='')=>{if(!ok)throw Error(name+' '+detail);results.push(name);};
-const step=(n,dt=1/30)=>{for(let i=0;i<n;i++){g.elapsed+=dt;g.collision.refresh();if(!g.transition){g.move(dt);g.collision.refresh();}g.updateCamera(dt);if(!g.transition)g.selectTarget(dt);g.updateHints(dt);W.update(dt,g.player,g.target,g.targetInfo?.point,1);g.interactions.update(dt);}};
+// Freeze requestAnimationFrame between steps, but update exploration UI as unpaused.
+const step=(n,dt=1/30)=>{for(let i=0;i<n;i++){g.elapsed+=dt;g.collision.refresh();if(!g.transition){g.move(dt);g.collision.refresh();}g.updateCamera(dt);if(!g.transition)g.selectTarget(dt);const paused=g.paused;g.paused=false;g.updateHints(dt);g.paused=paused;W.update(dt,g.player,g.target,g.targetInfo?.point,1);g.interactions.update(dt);}};
 const seek=id=>{for(const pitch of [.06,.16,.27,.4,.52,.8,1.1]){g.pitch=pitch;for(let i=0;i<48;i++){g.yaw=i/48*6.283;step(5);if(g.target?.id===id)return true;}}return false;};
 const go=id=>{if(!seek(id))return false;g.possess();step(100);return g.player.id===id;};
 const take=id=>{g.player=W.byId.get(id);g.transition=null;g.collision.refresh();step(5);};
@@ -253,5 +254,141 @@ passed.append('sound button stays clickable while paused')
 click_at(*center('pause-sound'))
 c.wait_for("document.getElementById('sound').getAttribute('aria-pressed')==='true'", 10)
 passed.append('pause menu has its own sound toggle')
+
+# D-024: real click/keyboard/pointer entry path, without replacing Game.lockMouse.
+load()
+def key_event(code, kind='keyDown', repeat=False):
+    names = {'Escape': ('Escape', 27), 'KeyW': ('w', 87), 'KeyS': ('s', 83),
+             'KeyA': ('a', 65), 'KeyD': ('d', 68), 'ArrowUp': ('ArrowUp', 38),
+             'ArrowDown': ('ArrowDown', 40), 'ArrowLeft': ('ArrowLeft', 37),
+             'ArrowRight': ('ArrowRight', 39)}
+    key_name, virtual = names[code]
+    c.call('Input.dispatchKeyEvent', {'type': kind, 'code': code, 'key': key_name,
+                                     'windowsVirtualKeyCode': virtual, 'autoRepeat': repeat})
+
+def browser_assert(name, expression):
+    assert c.evaluate(expression), name
+    passed.append(name)
+
+browser_assert('entry explains hidden pointer and Escape before playing',
+               "document.querySelector('.welcome-controls').textContent.includes('指针会隐藏')")
+# Hold the opening transition long enough to inspect and test its input boundary.
+c.evaluate("window.__world.startOriginal=window.__world.start;window.__world.start=function(){this.startOriginal();this.transition.duration=20;};true")
+click_at(*center('enter'))
+c.wait_for("document.pointerLockElement===document.getElementById('world')", 10)
+browser_assert('real entry click locks the pointer and explains the opening transition',
+               "!document.getElementById('control-guide').hidden&&document.getElementById('control-status').textContent.includes('镜头到位')")
+key_event('KeyW')
+browser_assert('opening transition ignores movement input', 'window.__world.actions.size===0')
+c.evaluate('window.__world.finishTransition();window.__world.pointerHintTime=60;window.__world.updateControlGuide();true')
+key_event('KeyW', repeat=True)
+browser_assert('held repeat cannot move after transition until a fresh press', 'window.__world.actions.size===0')
+key_event('KeyW', 'keyUp')
+browser_assert('locked controls explain mouse look and Escape release',
+               "document.getElementById('look-guide').textContent==='鼠标环视'&&document.getElementById('control-status').textContent.includes('Esc')")
+yaw_before = c.evaluate('window.__world.yaw')
+c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 640, 'y': 400})
+c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 680, 'y': 400})
+browser_assert('real locked pointer movement changes the camera', f'window.__world.yaw!=={yaw_before}')
+# Each direction is exercised from the same clear spawn, checking actual displacement.
+origin = c.evaluate('window.__world.player.root.position.toArray()')
+for code in ('KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'):
+    c.evaluate(f'window.__world.player.root.position.fromArray({json.dumps(origin)});window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
+    key_event(code)
+    c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
+    key_event(code, 'keyUp')
+    passed.append(f'{code} moves during actual exploration')
+key_event('KeyW')
+key_event('ArrowUp')
+key_event('KeyW', 'keyUp')
+browser_assert('releasing W preserves held ArrowUp', "window.__world.actions.has('move_forward')")
+key_event('ArrowUp', 'keyUp')
+browser_assert('releasing both aliases stops movement', 'window.__world.actions.size===0')
+key_event('Escape')
+key_event('Escape', 'keyUp')
+c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+browser_assert('Escape pauses, releases pointer, and replaces compact guide with full menu',
+               "!document.getElementById('pause').hidden&&document.getElementById('control-guide').hidden")
+key_event('Escape', repeat=True)
+browser_assert('holding Escape does not toggle pause repeatedly', 'window.__world.paused')
+click_at(*center('resume'))
+c.wait_for('!window.__world.paused&&!!document.pointerLockElement', 10)
+passed.append('real resume click restores exploration and pointer lock')
+c.evaluate("window.dispatchEvent(new Event('blur'));true")
+c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+browser_assert('focus loss pauses with an explanation and clears all input',
+               "document.getElementById('pause-reason').textContent.includes('离开画面')&&window.__world.actions.size===0&&window.__world.pressedCodes.size===0")
+c.evaluate("window.dispatchEvent(new Event('focus'));true")
+browser_assert('returning focus does not automatically resume', 'window.__world.paused&&!document.pointerLockElement')
+# Deliberate browser rejection exercises the real request/catch path, not a no-op lockMouse.
+c.evaluate("document.getElementById('world').requestPointerLock=()=>Promise.reject(new DOMException('Test denial','NotAllowedError'));true")
+click_at(*center('resume'))
+c.wait_for("!window.__world.paused&&document.getElementById('look-guide').textContent==='左键拖动环视'", 10)
+browser_assert('rejected pointer lock gives usable drag instructions', '!document.pointerLockElement')
+for event in ({'type': 'mouseMoved', 'x': 550, 'y': 300},
+              {'type': 'mousePressed', 'x': 550, 'y': 300, 'button': 'left', 'clickCount': 1},
+              {'type': 'mouseMoved', 'x': 600, 'y': 320, 'button': 'left', 'buttons': 1}):
+    c.call('Input.dispatchMouseEvent', event)
+drag_yaw = c.evaluate('window.__world.yaw')
+c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 640, 'y': 320, 'button': 'left', 'buttons': 1})
+browser_assert('unlocked left drag changes the camera', f'window.__world.dragging&&window.__world.yaw!=={drag_yaw}')
+c.evaluate("document.getElementById('world').dispatchEvent(new PointerEvent('pointercancel'));true")
+browser_assert('cancelled pointer stops drag look', '!window.__world.dragging')
+c.call('Input.dispatchMouseEvent', {'type': 'mouseReleased', 'x': 640, 'y': 320, 'button': 'left', 'clickCount': 1})
+c.evaluate('window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
+key_event('ArrowUp')
+c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
+key_event('ArrowUp', 'keyUp')
+passed.append('movement remains usable after pointer lock rejection')
+# Deterministic target lifetime; this does not replace the real input checks above.
+passed += json.loads(c.evaluate(r"""(()=>{
+const g=window.__world,results=[],hint=document.getElementById('first-hint');
+const check=(name,ok)=>{if(!ok)throw Error(name);results.push(name);};
+g.pause();g.hints={possessed:false};g.target=g.world.byId.get('tree-first');g.paused=false;g.updateHints(0);
+check('legal target explains R with its name',hint.classList.contains('visible')&&hint.textContent.includes('阔叶树'));
+g.updateHints(10);check('first target instruction survives the old four-second timeout',hint.classList.contains('visible'));
+g.target=null;g.updateHints(0);check('invalid target immediately clears first R instruction',!hint.classList.contains('visible')&&!hint.textContent);
+g.target=g.world.byId.get('tree-first');g.updateHints(0);check('first instruction returns with a legal target',hint.classList.contains('visible'));
+g.transition={from:g.player,to:{id:'missing-onboarding-target'}};g.finishTransition();
+g.updateControlGuide();check('rollback transition hides target instruction',!hint.classList.contains('visible'));
+g.finishTransition();
+const from=g.player,to=g.target;g.transition={from,to};g.target=null;g.finishTransition();g.updateHints(0);
+check('completed possession hides instruction until a new target is selected',!hint.classList.contains('visible'));
+g.target=from;g.updateHints(0);check('next legal target shows instruction after successful possession',hint.classList.contains('visible')&&hint.textContent.includes('人'));
+g.target=to;g.updateHints(0);check('switching target updates the instruction name',hint.textContent.includes('阔叶树'));
+g.pause();check('pause hides target instruction',!hint.classList.contains('visible'));
+g.resume(false);check('resume restores current target instruction',hint.classList.contains('visible'));
+g.player=g.world.byId.get('gull-0');g.updateControlGuide();check('flying body shows concise vertical control',!document.getElementById('vertical-guide').hidden);
+g.player=from;g.updateControlGuide();check('ground body hides vertical control',document.getElementById('vertical-guide').hidden);
+g.pointerHintTime=0;g.updateControlGuide();check('compact guide stays visible without timed status',!document.getElementById('control-guide').hidden&&document.getElementById('control-status').hidden);
+g.hints={r:true,possessed:true};g.save();g.hints={};g.restore();g.updateControlGuide();check('legacy completion flags do not suppress target instruction after restore',g.hints.possessed&&hint.classList.contains('visible'));
+g.save();g.pause();return JSON.stringify(results);
+})()"""))
+# Continue a save with both old hint flags; do not clear this profile.
+previous = c.evaluate('performance.timeOrigin')
+c.call('Page.navigate', {'url': args.url + '?debug'})
+c.wait_for(f'performance.timeOrigin!=={previous}&&!!window.__world&&!document.getElementById("enter").disabled', 90)
+browser_assert('save with legacy hint flags still offers continue',
+               "window.__world.hasSave&&window.__world.hints.possessed&&document.getElementById('enter-label').textContent==='继续漫游'")
+click_at(*center('enter'))
+# Software rendering can run far below real time after the asset scenes. Advance
+# the normal camera transition deterministically; this is not a timing/FPS test.
+c.evaluate('for(let i=0;i<60&&window.__world.transition;i++)window.__world.updateCamera(.05);window.__world.updateControlGuide();true')
+browser_assert('continued save completes the normal opening camera transition', '!window.__world.transition')
+browser_assert('continued save retains compact controls', "!document.getElementById('control-guide').hidden")
+# Check geometry without screenshot exports, including the compactness requested by the creator.
+for width, height in ((1280, 720), (1366, 768), (1920, 1080), (800, 600), (640, 600)):
+    c.call('Emulation.setDeviceMetricsOverride', {'width': width, 'height': height, 'deviceScaleFactor': 1, 'mobile': False})
+    browser_assert(f'compact HUD fits and avoids presence, R hint and response at {width}x{height}', r"""(()=>{
+const g=document.getElementById('control-guide').getBoundingClientRect(),p=document.getElementById('presence').getBoundingClientRect(),h=document.getElementById('first-hint').getBoundingClientRect(),r=document.getElementById('response');
+const old=r.textContent;r.textContent='世界仍在这里';const q=r.getBoundingClientRect();r.textContent=old;
+const apart=(a,b)=>a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top;
+return g.width<=300&&g.height<=130&&g.right<=innerWidth&&g.bottom<=innerHeight&&g.left>=0&&apart(g,p)&&apart(g,h)&&apart(g,q);
+})()""")
+    c.evaluate('window.__world.pause();true')
+    browser_assert(f'pause menu remains within viewport at {width}x{height}', r"""(()=>{
+const r=document.querySelector('.pause-card').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;
+})()""")
+    c.evaluate('window.__world.resume(false);true')
 print('\n'.join('PASS ' + name for name in passed))
 print(f'{len(passed)} browser checks passed (0.4 baseline). Not a substitute for QA-01..QA-47 playtests.')
