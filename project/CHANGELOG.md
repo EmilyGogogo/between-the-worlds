@@ -6,11 +6,26 @@
 
 - 负责人：@EmilyGogogo；关联：分支 `codex/save-layout-patch-compat`，基于 `main`，[PR #5](https://github.com/EmilyGogogo/between-the-worlds/pull/5)。
 - AI：Codex 负责原因分析、存档合并实现、文档与回归；人工复核待负责人完成。
-- 变更与原因：存档增加对应实体的初始布局基线。补丁修改已有实体位置时，加载器把存档相对旧初始位置的差量叠加到新版位置，保留玩家自行移动的偏移，同时应用新版布局；新增实体使用新版配置，已删除实体忽略。无基线旧存档兼容读取并在下次保存时写入基线。更新规则记录为 D-025，补充 QA-30 和实现审计。
+- 变更与原因：存档增加对应实体的初始布局基线。补丁修改已有实体位置时，加载器把存档相对旧初始位置的差量叠加到新版位置，保留玩家自行移动的偏移，同时应用新版布局；新增实体使用新版配置，已删除实体忽略。无基线旧存档兼容读取并在下次保存时写入基线。更新规则记录为 D-027，补充 QA-30 和实现审计。
 - 验证：首次 `python project/validate_docs.py` 通过（1659 项）；`python project/check_repository.py --javascript` 通过（59 个第一方文件、0 错误）；`python -m unittest discover -s project/tests -v` 通过（14 项）；`git diff --check` 通过。更正此前浏览器通过的记录：当时误读了遗留结果文件，不能作为最终修改的通过证据；[首次远端 CI](https://github.com/EmilyGogogo/between-the-worlds/actions/runs/42379122987) 在朝向差量断言处失败。
 - CI 修复：Three.js `Euler.toArray()` 包含第四项旋转顺序，导致基线不符合恢复器的三项角度校验。改为显式记录三个角度，保留失败断言并补充所有存档基线均为三个有限角度的检查。修复后 `python project/check_all.py --output .work/save-layout-ci-fix-20261107-01` 通过（文档 1659 项、隔离 Chrome 131 项；Windows 11、Python 3.13.9、Chrome 157）。
+- PR 冲突处理与合并验证：为解决 PR #5 与 `main` 上 PR #6 的冲突，将布局补丁决策编号顺延至 D-027，保留双方 CHANGELOG 和文档更新；人物模型、转向与游泳更新由 Git 自动合并。合并后文档数据校验通过（1664 项）、源码检查通过（67 个第一方文件、0 错误）、工具单元测试通过（14 项）、部分隔离 Chrome 检查通过（95 项）。完整隔离浏览器回归在真实按键移动检查处超时，尚未确认这是本机输入模拟限制还是行为问题；因此不记录完整浏览器回归通过，等待推送后的 GitHub CI 验证。
 - 未验证项 / 风险：线上托管缓存策略与已打开页面的更新体验未验证；已打开页面需刷新才会加载新版本。旧存档无布局基线，首次升级无法区分玩家改变量与历史布局差异，仍沿用旧行为一次。
 
+## 2026-11-07 · 接入人物模型
+
+- 负责人：@EmilyGogogo；关联：分支 `codex/character-a-standard-v001`，PR 待关联。
+- AI：Codex 负责检查资产、接入、文档与验证；人工复核待负责人完成。
+- 游泳追加（D-026）：接入用户提供的游泳 GLB；人物进入游戏识别的水域时切换游泳并保持水面附近，出水恢复陆地动作。同步规则、资产说明和 QA；游泳动作、岸边过渡、目标机性能与真人试玩待验收，游泳素材来源及公开发布授权待核实。
+- 游泳验证：`python project/sync_runtime.py`、`python project/check_all.py --no-pointer-lock --output .work/character-swim-safe`（1663 项文档数据检查、95 项部分浏览器检查）、`python project/check_repository.py --javascript`（67 个文件）及 `git diff --check` 通过；浏览器以模拟水域验证入水、静止游泳、出水与动作轨道，真实鼠标锁定及其后回归未运行，实际湖海岸边与画面未试玩。游泳和步行的 23 条骨骼轨道名称匹配。
+- 变更与原因：将用户提供的静态、步行 A 及冲刺 GLB 接入人槽，保留原文件和程序占位回退。静止显示静态模型，移动和 Shift 移动分别播放步行与冲刺动作；人物模型旋转 180 度，纠正面部朝向。用户确认资产可用于本游戏；生成来源及公开发布授权待核实，不宣称 Lux3D 证据链完成。
+- 行走体验追加调整：克隆步行和冲刺动作并固定骨盆水平轨道，保留垂直起伏，避免动作自身与游戏位移叠加；根据碰撞后的实际移动控制人物动作及速度，受阻时停止播放。新增可跳过真实指针锁定的部分浏览器检查模式，不将其视为完整回归。
+- 转向追加调整（D-025）：按创作者要求，人使用左右键原地转向，第三人称镜头随之转动，前后键沿当前视线移动；其他身体保留原操作。同步游戏提示、规则、决策与验收要求。骨盆中心实测距离旋转轴约 0.05 米；转向响应采用原有朝向追随系数作为初值，手感待试玩确认。
+- 转向验证：`python project/check_all.py --no-pointer-lock --output .work/character-turn-safe` 通过 1662 项文档数据检查和 89 项部分浏览器检查，包含左右原地转向与镜头方向同步；真实指针锁定及其后检查未运行。`python project/check_repository.py --javascript` 通过 65 个文件，`git diff --check` 通过；实际镜头观感、转向速度及真人试玩未验证。
+- 资产目录整理：用户将人物源文件移入 `assets/lux3d/character/` 并重命名静态与冲刺文件；更新台账路径及源文件与运行时副本的对应说明。SHA-256 核对确认三个源文件与现有运行时副本分别一致，无需替换游戏文件或变更运行时路径；运行 `python project/sync_runtime.py`、`python project/validate_docs.py`（1662 项）、`python project/check_repository.py --javascript`（65 个文件）及 `git diff --check` 均通过。本次未进行真人试玩或完整浏览器回归。
+- 追加验证：`python project/check_all.py --no-pointer-lock --output .work/character-motion-safe` 通过 1662 项文档数据检查及 87 项部分浏览器检查，覆盖动作水平轨道、受阻停止与部分位移；跳过真实指针锁定及其后的检查。`python project/check_repository.py --javascript` 通过 65 个文件；工具单元测试 14 项通过。首次沙箱运行因临时目录权限失败，随后在沙箱外完成。未进行真人试玩或目标设备帧率测量。
+- 验证：冲刺及朝向调整后 `python project/sync_runtime.py`、文档数据校验（1662 项）、`python project/check_repository.py --javascript`（65 个文件、0 错误）及工具单元测试（14 项）通过；静态检查确认步行与冲刺文件骨骼和动作轨道名称一致。此前 `python project/check_all.py` 两次未完成：第一次在多次加载后等待页面超时，第二次在真实按键移动的 5 秒等待处超时。本轮为避免再次限制用户鼠标，未运行会真实请求指针锁定的隔离浏览器回归；新增冲刺断言尚未执行，不能宣称浏览器验收通过。
+- 未验证项 / 风险：模型 217488 三角面，高于 L1 动物 30000 预算；动作切换、轴向、碰撞、真人试玩、目标机性能及 QA-31～34 待验收；回退可撤销本任务提交并恢复人槽占位。
 ## 2026-11-04 · 入场引导与紧凑常驻操作提示
 
 - 负责人：@EmilyGogogo；关联：D-024，分支 `codex/onboarding-controls-plan`，PR 待关联。

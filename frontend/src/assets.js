@@ -231,8 +231,9 @@ export class AssetLibrary {
       const merged={...entry,...source};
       try{
         const gltf=await this.load(merged.url);
+        const [idle,run,swim]=await Promise.all([merged.idleUrl?this.load(merged.idleUrl):null,merged.runUrl?this.load(merged.runUrl):null,merged.swimUrl?this.load(merged.swimUrl):null]);
         const lod=await Promise.all((merged.lod||[]).map(async level=>({distance:level.distance,gltf:await this.load(level.url)})));
-        return {gltf,entry:merged,lod,weight:merged.weight??1};
+        return {gltf,idle,run,swim,entry:merged,lod,weight:merged.weight??1};
       }catch(e){this.errors.push(`${name} ${merged.url}: ${e.message}`);console.warn(`Asset ${name} kept its placeholder:`,e);return null;}
     }));
     return loaded.filter(Boolean);
@@ -265,12 +266,18 @@ export class AssetLibrary {
       for(const level of template.lod){const far=level.gltf.scene.clone();this.fit(far,entry,SPECIES[kind].height);lod.addLevel(far,level.distance);}
       root.add(lod);
     }else root.add(model);
+    let idleModel=null;
+    if(template.idle){idleModel=clone(template.idle.scene);this.fit(idleModel,entry,SPECIES[kind].height);root.add(idleModel);model.visible=false;}
     root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
     if(template.gltf.animations.length){
       const mixer=new THREE.AnimationMixer(model),actions={};
-      for(const [role,name] of Object.entries(entry.animations||{})){const clip=THREE.AnimationClip.findByName(template.gltf.animations,name);if(clip)actions[role]=mixer.clipAction(clip);}
+      for(const [role,name] of Object.entries(entry.animations||{})){const clips=role==='run'&&template.run?template.run.animations:role==='swim'&&template.swim?template.swim.animations:template.gltf.animations;let clip=THREE.AnimationClip.findByName(clips,name);
+        if(clip&&template.idle&&(role==='move'||role==='run'||role==='swim')){clip=clip.clone();for(const track of clip.tracks){if(!/Hips\.position$/i.test(track.name))continue;for(let i=3;i<track.values.length;i+=3){track.values[i]=track.values[0];track.values[i+2]=track.values[2];}}}
+        if(clip)actions[role]=mixer.clipAction(clip);}
       if(!actions.idle)actions.idle=mixer.clipAction(template.gltf.animations[0]);
-      actions.idle.play();root.userData.animation={mixer,actions,current:'idle'};this.mixers.push(root);
+      actions.idle.play();
+      if(actions.idle===actions.move)actions.idle.paused=true;
+      root.userData.animation={mixer,actions,current:'idle',model,idleModel};this.mixers.push(root);
     }
     root.updateMatrixWorld(true);root.userData.localBounds=new THREE.Box3().setFromObject(model);
     root.userData.collisionBoxes=entry.collisionBoxes;root.userData.external=true;root.userData.variant=entry.url;return root;
@@ -294,8 +301,15 @@ export class AssetLibrary {
     return group;
   }
   update(dt){
-    for(const root of this.mixers){const a=root.userData.animation,desired=root.userData.moving&&a.actions.move?'move':'idle';
-      if(a.current!==desired){a.actions[a.current]?.fadeOut(.3);a.actions[desired].reset().fadeIn(.3).play();a.current=desired;}
+    for(const root of this.mixers){const a=root.userData.animation,desired=root.userData.swimming&&a.actions.swim?'swim':root.userData.moving&&a.actions.move?(root.userData.boosting&&a.actions.run?'run':'move'):'idle';
+      if(a.idleModel){a.idleModel.visible=desired==='idle';a.model.visible=desired!=='idle';}
+      if(a.current!==desired){
+        const previous=a.actions[a.current],next=a.actions[desired];
+        if(previous!==next){previous?.fadeOut(.3);next.reset().fadeIn(.3).play();}
+        if(next===a.actions.move&&next===a.actions.idle){next.paused=desired==='idle';if(next.paused)next.time=0;}
+        next.setEffectiveTimeScale(desired==='run'&&next===a.actions.move?1.5:1);a.current=desired;
+      }
+      if(a.idleModel&&desired!=='idle')a.actions[desired].setEffectiveTimeScale(desired==='swim'&&!root.userData.moving?1:Math.max(.05,Math.min(1,root.userData.movementRatio??1)));
       a.mixer.update(dt);
     }
   }
