@@ -2,6 +2,16 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-07 · 补丁更新保留游玩进度并采用新版布局
+
+- 负责人：@EmilyGogogo；关联：分支 `codex/save-layout-patch-compat`，基于 `main`，[PR #5](https://github.com/EmilyGogogo/between-the-worlds/pull/5)。
+- AI：Codex 负责原因分析、存档合并实现、文档与回归；人工复核待负责人完成。
+- 变更与原因：存档增加对应实体的初始布局基线。补丁修改已有实体位置时，加载器把存档相对旧初始位置的差量叠加到新版位置，保留玩家自行移动的偏移，同时应用新版布局；新增实体使用新版配置，已删除实体忽略。无基线旧存档兼容读取并在下次保存时写入基线。更新规则记录为 D-027，补充 QA-30 和实现审计。
+- 验证：首次 `python project/validate_docs.py` 通过（1659 项）；`python project/check_repository.py --javascript` 通过（59 个第一方文件、0 错误）；`python -m unittest discover -s project/tests -v` 通过（14 项）；`git diff --check` 通过。更正此前浏览器通过的记录：当时误读了遗留结果文件，不能作为最终修改的通过证据；[首次远端 CI](https://github.com/EmilyGogogo/between-the-worlds/actions/runs/42379122987) 在朝向差量断言处失败。
+- CI 修复：Three.js `Euler.toArray()` 包含第四项旋转顺序，导致基线不符合恢复器的三项角度校验。改为显式记录三个角度，保留失败断言并补充所有存档基线均为三个有限角度的检查。修复后 `python project/check_all.py --output .work/save-layout-ci-fix-20261107-01` 通过（文档 1659 项、隔离 Chrome 131 项；Windows 11、Python 3.13.9、Chrome 157）。
+- PR 冲突处理与合并验证：为解决 PR #5 与 `main` 上 PR #6 的冲突，将布局补丁决策编号顺延至 D-027，保留双方 CHANGELOG 和文档更新；人物模型、转向与游泳更新由 Git 自动合并。合并后文档数据校验通过（1664 项）、源码检查通过（67 个第一方文件、0 错误）、工具单元测试通过（14 项）、部分隔离 Chrome 检查通过（95 项）。完整隔离浏览器回归在真实按键移动检查处超时，尚未确认这是本机输入模拟限制还是行为问题；因此不记录完整浏览器回归通过，等待推送后的 GitHub CI 验证。
+- 未验证项 / 风险：线上托管缓存策略与已打开页面的更新体验未验证；已打开页面需刷新才会加载新版本。旧存档无布局基线，首次升级无法区分玩家改变量与历史布局差异，仍沿用旧行为一次。
+
 ## 2026-11-07 · 接入人物模型
 
 - 负责人：@EmilyGogogo；关联：分支 `codex/character-a-standard-v001`，PR 待关联。
@@ -16,7 +26,6 @@
 - 追加验证：`python project/check_all.py --no-pointer-lock --output .work/character-motion-safe` 通过 1662 项文档数据检查及 87 项部分浏览器检查，覆盖动作水平轨道、受阻停止与部分位移；跳过真实指针锁定及其后的检查。`python project/check_repository.py --javascript` 通过 65 个文件；工具单元测试 14 项通过。首次沙箱运行因临时目录权限失败，随后在沙箱外完成。未进行真人试玩或目标设备帧率测量。
 - 验证：冲刺及朝向调整后 `python project/sync_runtime.py`、文档数据校验（1662 项）、`python project/check_repository.py --javascript`（65 个文件、0 错误）及工具单元测试（14 项）通过；静态检查确认步行与冲刺文件骨骼和动作轨道名称一致。此前 `python project/check_all.py` 两次未完成：第一次在多次加载后等待页面超时，第二次在真实按键移动的 5 秒等待处超时。本轮为避免再次限制用户鼠标，未运行会真实请求指针锁定的隔离浏览器回归；新增冲刺断言尚未执行，不能宣称浏览器验收通过。
 - 未验证项 / 风险：模型 217488 三角面，高于 L1 动物 30000 预算；动作切换、轴向、碰撞、真人试玩、目标机性能及 QA-31～34 待验收；回退可撤销本任务提交并恢复人槽占位。
-
 ## 2026-11-04 · 入场引导与紧凑常驻操作提示
 
 - 负责人：@EmilyGogogo；关联：D-024，分支 `codex/onboarding-controls-plan`，PR 待关联。
