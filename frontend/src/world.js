@@ -97,7 +97,7 @@ export class World {
   }
   addBody(id,kind,root,visual){
     if(this.byId.has(id))throw new Error(`Duplicate body id: ${id}`);
-    const entity={id,kind,root,visual,heading:0,moving:false,baseY:root.position.y,groundOffset:root.position.y-terrainHeight(root.position.x,root.position.z),seed:this.entities.length,home:root.position.clone(),homeRotation:root.rotation.toArray(),homeBaseY:root.position.y};
+    const entity={id,kind,root,visual,heading:0,moving:false,baseY:root.position.y,groundOffset:root.position.y-terrainHeight(root.position.x,root.position.z),seed:this.entities.length,home:root.position.clone(),homeRotation:[root.rotation.x,root.rotation.y,root.rotation.z],homeBaseY:root.position.y};
     this.entities.push(entity);this.byId.set(id,entity);this.byRoot.set(root,entity);return entity;
   }
   spawn(kind,x,y,z,id,parent,random=false){

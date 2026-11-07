@@ -363,6 +363,7 @@ g.player=from;g.updateControlGuide();check('ground body hides vertical control',
 g.pointerHintTime=0;g.updateControlGuide();check('compact guide stays visible without timed status',!document.getElementById('control-guide').hidden&&document.getElementById('control-status').hidden);
 g.hints={r:true,possessed:true};g.save();g.hints={};g.restore();g.updateControlGuide();check('legacy completion flags do not suppress target instruction after restore',g.hints.possessed&&hint.classList.contains('visible'));
 const human=g.world.byId.get('human-first'),home=human.home.clone(),homeRotation=[...human.homeRotation],homeBaseY=human.homeBaseY,save=JSON.parse(localStorage.getItem('between-all-things.save.v4'));
+check('saved layout rotation baselines contain three finite angles',save.layout.every(record=>record.rotation.length===3&&record.rotation.every(Number.isFinite)));
 human.root.position.copy(home).add(home.clone().set(5,0,-3));human.root.rotation.y=homeRotation[1]+.3;human.baseY=homeBaseY+2;g.save();const moved=human.root.position.clone();
 const patchedHome=home.clone().add(home.clone().set(10,0,0));human.home.copy(patchedHome);human.homeRotation[1]+=.5;human.homeBaseY+=4;
 g.world.restore(JSON.parse(localStorage.getItem('between-all-things.save.v4')).entities,save.layout);
