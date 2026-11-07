@@ -97,7 +97,7 @@ export class World {
   }
   addBody(id,kind,root,visual){
     if(this.byId.has(id))throw new Error(`Duplicate body id: ${id}`);
-    const entity={id,kind,root,visual,heading:0,moving:false,baseY:root.position.y,groundOffset:root.position.y-terrainHeight(root.position.x,root.position.z),seed:this.entities.length,home:root.position.clone()};
+    const entity={id,kind,root,visual,heading:0,moving:false,baseY:root.position.y,groundOffset:root.position.y-terrainHeight(root.position.x,root.position.z),seed:this.entities.length,home:root.position.clone(),homeRotation:root.rotation.toArray(),homeBaseY:root.position.y};
     this.entities.push(entity);this.byId.set(id,entity);this.byRoot.set(root,entity);return entity;
   }
   spawn(kind,x,y,z,id,parent,random=false){
@@ -296,13 +296,25 @@ export class World {
     }else this.ripple.visible=false;
   }
   serialize(){return this.entities.map(e=>({id:e.id,kind:e.kind,position:e.root.position.toArray(),rotation:[e.root.rotation.x,e.root.rotation.y,e.root.rotation.z],baseY:e.baseY,heading:e.heading}));}
-  restore(records){
+  serializeLayout(){return this.entities.map(e=>({id:e.id,position:e.home.toArray(),rotation:e.homeRotation,baseY:e.homeBaseY}));}
+  restore(records,layout=[]){
+    const oldLayout=new Map((Array.isArray(layout)?layout:[]).filter(r=>r&&typeof r.id==='string').map(r=>[r.id,r]));
     for(const record of records||[]){
       const e=this.byId.get(record.id);if(!e||!Array.isArray(record.position)||record.position.length!==3||!record.position.every(Number.isFinite))continue;
-      e.root.position.fromArray(record.position);e.heading=Number.isFinite(record.heading)?record.heading:0;
-      if(Array.isArray(record.rotation)&&record.rotation.length===3&&record.rotation.every(Number.isFinite))e.root.rotation.set(...record.rotation);
+      const previous=oldLayout.get(record.id),oldPosition=previous?.position;
+      const position=Array.isArray(oldPosition)&&oldPosition.length===3&&oldPosition.every(Number.isFinite)
+        ?e.home.clone().add(new THREE.Vector3(...record.position).sub(new THREE.Vector3(...oldPosition))).toArray()
+        :record.position;
+      e.root.position.fromArray(position);e.heading=Number.isFinite(record.heading)?record.heading:0;
+      if(Array.isArray(record.rotation)&&record.rotation.length===3&&record.rotation.every(Number.isFinite)){
+        const oldRotation=previous?.rotation;
+        if(Array.isArray(oldRotation)&&oldRotation.length===3&&oldRotation.every(Number.isFinite))
+          e.root.rotation.set(...record.rotation.map((value,index)=>e.homeRotation[index]+value-oldRotation[index]));
+        else e.root.rotation.set(...record.rotation);
+      }
       else if(SPECIES[e.kind].mode!=='island')e.root.rotation.y=e.heading;
-      e.baseY=Number.isFinite(record.baseY)?record.baseY:e.root.position.y;
+      const oldBaseY=previous?.baseY;
+      e.baseY=Number.isFinite(record.baseY)&&Number.isFinite(oldBaseY)?e.homeBaseY+record.baseY-oldBaseY:Number.isFinite(record.baseY)?record.baseY:e.root.position.y;
     }
     this.scene.updateMatrixWorld(true);
   }

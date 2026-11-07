@@ -440,12 +440,12 @@ class Game {
   }
   save(){
     if(!this.started||this.resetting||(this.transition&&!this.transition.opening))return;
-    try{localStorage.setItem(STORAGE,JSON.stringify({version:4,player:this.player.id,entities:this.world.serialize(),yaw:this.yaw,pitch:this.pitch,hints:this.hints,shown:[...this.shown]}));$('save-status').textContent='足迹已留在这台设备上';}
+    try{localStorage.setItem(STORAGE,JSON.stringify({version:4,player:this.player.id,entities:this.world.serialize(),layout:this.world.serializeLayout(),yaw:this.yaw,pitch:this.pitch,hints:this.hints,shown:[...this.shown]}));$('save-status').textContent='足迹已留在这台设备上';}
     catch{$('save-status').textContent='暂时无法保存足迹';}
   }
   restore(){
     try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'null');if(!saved||saved.version!==4||!this.world.byId.has(saved.player))return false;
-      this.world.restore(saved.entities);this.player=this.world.byId.get(saved.player);
+      this.world.restore(saved.entities,saved.layout);this.player=this.world.byId.get(saved.player);
       this.yaw=Number.isFinite(saved.yaw)?saved.yaw:.35;this.pitch=clamp(Number.isFinite(saved.pitch)?saved.pitch:.27,this.pitchMin(),1.16);
       this.hints={...this.hints,...saved.hints};this.shown=new Set(Array.isArray(saved.shown)?saved.shown:[]);$('enter-label').textContent='继续漫游';return true;
     }catch{return false;}
