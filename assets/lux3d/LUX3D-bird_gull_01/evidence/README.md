@@ -1,0 +1,14 @@
+# 海鸥（LUX3D-bird_gull_01）游戏内证据
+
+日期：2026-11-07。分支 `asset/fish-birds-v001` 提交前的工作区；macOS 14.8.7、Chrome 156 无头模式、SwiftShader 软件渲染，1600 × 900。通过调试接口（`?debug`）摆放身体与镜头，不是连续试玩录像。脚本：`verify_gull.py`；结果：`verify-result.json`（14 项全部通过，游戏加载约 8–25 s）。
+
+| 文件 | 内容 |
+| --- | --- |
+| `01-gull-glide-idle.jpg` | 成为海鸥后静止：滑翔姿态（idle=Glide） |
+| `02-gull-flap-move.jpg` | 海鸥向前飞：扇翅动作上扬段（move=Flap） |
+| `03-human-targets-gull.jpg` | 人看向海鸥，出现“成为海鸥”提示；可见海鸥与人的体型对比 |
+| `04-gull-high-over-island.jpg` | 海鸥飞高后俯看主岛，提示“成为岛屿”（P-15） |
+
+自动核对（`verify-result.json`）：8 只海鸥全部使用新模型；定标身高 0.65 m；idle／move 映射到 Glide／Flap 且随移动切换；碰撞盒随模型包围盒；抬头爬升、180 m 限高；高飞选中并成为岛；人选中并成为海鸥。
+
+未包含：完整 `check_browser.py` 回归（本机 Chrome 156 在测试脚本 0.2 s 高频轮询下重新加载会停住，干净的 main 同样失败，见 CHANGELOG）；目标设备帧率；连续试玩录像；真人观感评审（QA-31～QA-34 仍待人工验收）。

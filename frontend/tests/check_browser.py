@@ -73,6 +73,8 @@ W.restore(W.serialize());g.collision.refresh();
 const bad=W.entities.filter(e=>SPECIES[e.kind].collision.solid&&SPECIES[e.kind].stage<3&&g.collision.collides(e,W.position(e)));
 assert('no solid bodies overlap at spawn (M-01)',bad.length===0,bad.map(e=>e.id).join());
 assert('first R hint appears with a target (U-01)',!!g.target&&document.getElementById('first-hint').textContent.startsWith('R'));
+// Ground bodies cannot look up, so the human -> bird route needs a gull in level view from the start (G-07, A14).
+assert('the human at the start can select a gull without moving it (G-07)',seek('gull-0'));
 const p0=W.position(g.player).clone();g.yaw=.35;g.pitch=.27;key('KeyW');step(30);key('KeyW','keyup');
 assert('WASD moves the current body',W.position(g.player).distanceTo(p0)>1);
 key('Space');key('KeyE');key('ControlLeft');assert('Space, Ctrl and E are unbound (I-02, I-03)',g.actions.size===0);

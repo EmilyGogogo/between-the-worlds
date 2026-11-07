@@ -339,6 +339,21 @@
       ],
       "purpose": "同上",
       "validatedInGame": false
+    },
+    {
+      "id": "A14",
+      "name": "草地低飞海鸥",
+      "frame": "main_island",
+      "position": [
+        -1.5,
+        12.4,
+        2
+      ],
+      "safeFor": [
+        "bird_gull_01"
+      ],
+      "purpose": "人出生点前方约 13 米、离地 2.5 米低飞的海鸥；人平视即可选中，是“人 → 鸟”路线的起点（G-07）",
+      "validatedInGame": true
     }
   ],
   "instances": [
@@ -611,12 +626,12 @@
       "type": "bird_gull_01",
       "carrier": "island-main",
       "position": [
-        12,
-        16.0,
-        0
+        -1.5,
+        2.5,
+        2
       ],
       "placement": "surface",
-      "anchorId": "A07"
+      "anchorId": "A14"
     },
     {
       "id": "gull-4",

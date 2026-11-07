@@ -890,8 +890,8 @@
       },
       "asset": {
         "slotId": "slot.gull",
-        "status": "placeholder",
-        "url": null,
+        "status": "integrated",
+        "url": "./public/models/bird_gull_01-v001.glb",
         "variants": [],
         "height": 0.65,
         "rotation": [
@@ -902,21 +902,24 @@
         "pivot": "bottom_center",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
-        "animations": {},
+        "animations": {
+          "idle": "Glide",
+          "move": "Flap"
+        },
         "requiredAnimationRoles": [
           "idle",
           "move"
         ],
-        "rigSource": null,
+        "rigSource": "blender",
         "colliderMode": "auto_bounds",
         "collisionBoxes": null,
         "lod": [],
         "placeholder": "procedural:bird",
         "placeholderStyle": "gull",
         "finalSource": "Aholo Lux3D",
-        "lux3dUsed": false,
-        "plannedModelPath": "frontend/public/models/gull-v1.glb",
-        "ledgerId": "PLAN-bird_gull_01",
+        "lux3dUsed": true,
+        "plannedModelPath": "frontend/public/models/bird_gull_01-v001.glb",
+        "ledgerId": "LUX3D-bird_gull_01",
         "fallbackLedgerId": "PH-bird_gull_01"
       },
       "place": "风的路径",

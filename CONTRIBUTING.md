@@ -118,9 +118,9 @@ MUST 的修改按既有流程确认并记入 [决策](docs/09-decisions.md)。TU
 
 提交说明应包含：种类与槽 ID、作者、版本、真实动作名、米制尺寸、面数、贴图、轴向、原点、碰撞建议、来源与授权、原文件位置、导入截图、已测与未测项目。动物必须提供 idle / move，不能用静态模型宣称已完成动作验收。GLB 贴图内嵌，当前不支持直接使用 Draco / Meshopt / KTX2 压缩文件。
 
-当前可玩资产槽均为程序化占位；仓库中的导入测试夹具不算正式模型，也不算 Lux3D 产物。后续大模型、Blender 原件和视频增加时，建议集成负责人统一配置 Git LFS，并确认团队仓库的实际配额；启用后同事需安装 Git LFS 并拉取真实对象，避免把未拉取的指针当作完整模型提交。参考 [Git LFS](https://github.com/git-lfs/git-lfs) 与[指针格式](https://github.com/git-lfs/git-lfs/blob/main/docs/spec.md)。
+当前可玩资产槽除海鸥（`slot.gull`，Lux3D v001，待验收）外均为程序化占位；仓库中的导入测试夹具不算正式模型，也不算 Lux3D 产物。后续大模型、Blender 原件和视频增加时，建议集成负责人统一配置 Git LFS，并确认团队仓库的实际配额；启用后同事需安装 Git LFS 并拉取真实对象，避免把未拉取的指针当作完整模型提交。参考 [Git LFS](https://github.com/git-lfs/git-lfs) 与[指针格式](https://github.com/git-lfs/git-lfs/blob/main/docs/spec.md)。
 
-当前正式模型与来源链均未完成。
+海鸥 v001 已建立生成原件 → Blender 修整 → 导入 → 游戏内截图的来源链（生成任务记录待补、未验收）；其余正式模型与来源链未完成。
 
 ### 共享文件与集成
 

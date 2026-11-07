@@ -2,6 +2,24 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-07 · 开局可选中海鸥：`gull-0` 降到人出生点前方低飞
+
+- 负责人：zora-alt111（会话中要求修复并试玩）；分支 `asset/fish-birds-v001` 工作区，PR 待关联；与海鸥资产条目分开记录，提交时可拆为独立 PR。
+- AI：Claude Code（Claude Opus 5.5）负责复现、定位、数据修改、文档与回归；人工：待负责人试玩确认。
+- 问题：地面身体视线下限 `pitchMin` 为 0.06（不能上仰），8 只海鸥都在离地 15～17 米处；从人出生点无论朝哪个方向都选不中海鸥，干净的 `origin/main`（占位海鸥）同样复现，设计路线“人 → 鸟 → 飞高 → 岛”（G-07）在实际玩法中中断。逐项排查：16 米处因无法仰视落在视线锥外；降到 2.5～6 米时又被 `rock-first` 或林地树的碰撞盒遮挡。
+- 变更：`data/anchors.json` 中 `gull-0` 从林地上空 `[12, 16, 0]` 移到 `[-1.5, 2.5, 2]`（草地上空 2.5 米，距人出生点约 13 米，在默认视角正前方、大于 6 米惊飞半径），新增锚点 A14；其余 7 只海鸥不动。同步 05 布局表与 11 布局修正记录；`frontend/tests/check_browser.py` 新增“人在出生点不移动海鸥即可选中 gull-0”的回归。未改玩法代码、视角限制或数值。
+- 验证：macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1670 项。单次加载游戏的核对全部通过：出生时无实心重叠；人在出生点以 yaw 0.39、pitch 0.06 选中 `gull-0`；按 R 成为海鸥；抬头飞到离地约 110 米；俯视选中并成为主岛；岛可再选中 `boulder-main`。海鸥资产 14 项核对复跑通过。新增回归所在的完整 `check_browser.py` 在本机仍因 Chrome 156 重新加载停住而未跑完（见下条），须由远端 CI 验证。
+- 未验证项／风险：真人能否在 30 秒内自然注意到这只低飞海鸥（G-06）待试玩；同伴分支 `asset/amazon-island`（D-025，PR #4 已关闭未合并）也改动海鸥锚点，合并时需协调。回退：`gull-0` 恢复 `[12, 16, 0]`、`anchorId` 恢复 A07，删除 A14 与回归断言，重跑同步。
+
+## 2026-11-07 · 海鸥接入 Lux3D 模型 v001（Blender 绑骨与动作）
+
+- 负责人：zora-alt111；分支 `asset/fish-birds-v001`，PR 待关联。本分支后续还将处理两种鱼（七彩神仙鱼、银斧鱼）的种类与模型，本条只记录海鸥。
+- AI：Claude Code（Claude Opus 5.5）负责参考图准备（Commons 照片去背景）、原件检查、Blender 脚本化修整／绑骨／动作、导出、数据与文档同步及验证；人工：生成人在 Lux3D 国内版网页生成并提供 GLB；diff、游戏内观感与 QA 待负责人复核。
+- 变更与原因：`slot.gull` 接入首个真实 Lux3D 产物。原件 355,008 三角面、无骨骼，经 Blender 4.5.15 LTS 转向 -Z、放平 17.48°、减面到 24,000、定标身高 0.65 m，建 10 根骨骼（rigSource=blender；Lux3D 网页绑骨面向人形，未用于鸟），做 `Glide`（idle）与 `Flap`（move）循环动作，导出 2.0 MB GLB（贴图 JPEG 内嵌，无 Draco）。槽改为 `integrated`／`lux3dUsed: true`，台账原 `PLAN-bird_gull_01` 行替换为 `LUX3D-bird_gull_01`；来源链放在 `assets/lux3d/LUX3D-bird_gull_01/`（输入参考图与许可、原件、`.blend` 与脚本、导出记录、游戏内截图）。同步 04／06／10／11、README、CONTRIBUTING、THIRD_PARTY、LICENSES 中“尚无真实 Lux3D 资产”的表述。未改玩法代码、数值、布局或规则。
+- 验证：macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1666 项；`python3 project/check_repository.py` 检查 80 个文件、0 错误（本机无 Node.js，JavaScript 语法检查未运行，本次无 JS 改动）；`python3 -m unittest discover -s project/tests` 通过 14 项；`git diff --check` 通过。游戏内用 `evidence/verify_gull.py` 加载一次游戏并核对 14 项，全部通过：8 只海鸥均用新模型、身高 0.65 m、idle／move 映射 Glide／Flap 且随移动切换、碰撞盒随模型、抬头爬升与 180 m 限高、高飞选中并成为岛、人选中并成为海鸥；附 4 张软件渲染截图。
+- 未完成的检查：`python3 project/check_all.py --only browser` 在本机两次超时于 `check_browser.py` 的重新加载；在干净的 `origin/main`（a35fa03）工作树上同样失败。排查为本机 Chrome 156 无头模式下 0.2 s 高频 `Runtime.evaluate` 轮询使重新加载停住（10 s 轮询可正常加载），与本次资产无关，未修改检查工具；完整 126 项回归须看远端 CI 或另一台机器。
+- 未验证项／风险：生成任务 ID、生成方式（图生／文生）、版本、积分与迭代次数待生成人补充，台账对应字段暂空；Lux3D 用户协议与活动素材条款未查阅；参考照片 CC BY 3.0 须署名。按现有 `body.height` 定标后翼展约 2.84 m，约为真实海鸥两倍，与 `scaleTierReason`“翼展略超 1 m”不符，是否调小属 TUNABLE 调整，待负责人决定并试玩。权重为程序计算，翅根大幅扇动处可能拉伸；无真人试玩、目标设备帧率与 QA-31～QA-34 人工验收。回退：槽 `url` 改回 `null`、`status` 改回 `placeholder`、`lux3dUsed` 改回 `false`，台账恢复计划行并重跑同步脚本。
+
 ## 2026-11-04 · 入场引导与紧凑常驻操作提示
 
 - 负责人：@EmilyGogogo；关联：D-024，分支 `codex/onboarding-controls-plan`，PR 待关联。

@@ -1234,12 +1234,12 @@
         "id": "gull-0",
         "carrier": "island-main",
         "position": [
-          12,
-          16.0,
-          0
+          -1.5,
+          2.5,
+          2
         ],
         "placement": "surface",
-        "anchorId": "A07",
+        "anchorId": "A14",
         "kind": "gull"
       },
       {
