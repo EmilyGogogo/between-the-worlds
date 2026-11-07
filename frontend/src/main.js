@@ -124,6 +124,8 @@ class Game {
     if(state===this.controlGuideState)return;this.controlGuideState=state;
     $('control-guide').hidden=!active;
     $('look-guide').textContent=locked?'鼠标环视':'左键拖动环视';
+    $('movement-label').textContent=SPECIES[this.player.kind].category==='human'?'前后移动 · 左右转向':'移动';
+    $('pause-movement-label').textContent=SPECIES[this.player.kind].category==='human'?'前后移动 / 左右转向':'前 / 后 / 左 / 右';
     $('move-guide').classList.toggle('unavailable',Boolean(this.transition));
     $('possess-guide').classList.toggle('unavailable',Boolean(this.transition));
     $('vertical-guide').hidden=SPECIES[this.player.kind].verticalControl!=='view_direction';
@@ -279,25 +281,34 @@ class Game {
       return deep(this.world.water(x,z))||!deep(this.world.water(p.x,p.z));
     }
     if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion],d=r=>Math.hypot(r[0]-air.center[0],r[1]-air.center[1]);return d([x,z])<=air.radius||d([x,z])<d([p.x,p.z]);}
+    if(s.category==='human')return true;
     const limit=-s.wadeDepth;
     return this.world.height(x,z)>=limit||this.world.height(p.x,p.z)<limit;
   }
   move(dt){
     const e=this.player,s=SPECIES[e.kind],a=this.actions;
     const x=Number(a.has('move_right'))-Number(a.has('move_left')),z=Number(a.has('move_back'))-Number(a.has('move_forward'));
-    const dir=new THREE.Vector3(x,0,z);if(dir.lengthSq())dir.normalize();dir.applyAxisAngle(UP,this.yaw);
+    const human=s.category==='human';
+    if(human&&x)this.yaw-=x*dt*5;
+    const dir=new THREE.Vector3(human?0:x,0,z);if(dir.lengthSq())dir.normalize();dir.applyAxisAngle(UP,this.yaw);
     if(s.verticalControl==='view_direction'&&z)dir.y=-z*this.climb();
     if(dir.lengthSq()>1)dir.normalize();
-    e.moving=dir.lengthSq()>0;
+    e.moving=dir.lengthSq()>0;e.boosting=e.moving&&a.has('boost');
     const speed=s.speed*(a.has('boost')?s.boost:1),parentQ=e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
-    this.moveBody(e,dir.applyQuaternion(parentQ).multiplyScalar(speed*dt),dt);
+    const before=e.root.position.clone();
+    if(human&&x){const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ);e.heading=Math.atan2(-facing.x,-facing.z);e.root.rotation.y=e.heading;}
+    this.moveBody(e,dir.applyQuaternion(parentQ).multiplyScalar(speed*dt),dt,human);
     if(s.mode!=='island')this.unstick(e,dt);
+    const distance=e.root.position.distanceTo(before);
+    e.movementRatio=e.moving&&dt>0?Math.min(1,distance/(speed*dt)):0;
+    e.animationMoving=e.movementRatio>.01;
   }
   // Moves any body (the player's, or one answering an interaction) by a delta in its
   // carrier's frame: soft activity areas first, then solid collision (M-01～M-08).
-  moveBody(e,local,dt){
+  moveBody(e,local,dt,keepHeading=false){
     const s=SPECIES[e.kind];
-    if(local.x||local.z){const angle=Math.atan2(-local.x,-local.z);e.heading+=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading))*Math.min(1,dt*5);if(s.mode!=='island')e.root.rotation.y=e.heading;}
+    if((local.x||local.z)&&!keepHeading){const angle=Math.atan2(-local.x,-local.z);e.heading+=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading))*Math.min(1,dt*5);if(s.mode!=='island')e.root.rotation.y=e.heading;}
+    if(keepHeading&&(local.x||local.z)){const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert());e.heading=Math.atan2(-facing.x,-facing.z);e.root.rotation.y=e.heading;}
     if(s.mode==='island'){this.moveIsland(e,local);return;}
     if(s.mode==='ground')local.y=0;
     const p=e.root.position;
@@ -308,7 +319,11 @@ class Game {
       }
     }
     if(local.lengthSq()>0)this.collision.move(e,local.clone().applyQuaternion(e.root.parent.getWorldQuaternion(new THREE.Quaternion())));
-    if(s.mode==='ground')p.y=this.groundHeight(e);
+    if(s.mode==='ground'){
+      const water=s.category==='human'&&e.root.parent===this.world.islandRoot?this.world.water(p.x,p.z):null;
+      e.swimming=Boolean(water&&water.surface>water.floor);
+      p.y=e.swimming?Math.max(water.floor,water.surface-s.height*.7):this.groundHeight(e);
+    }
     else this.clampVertical(e,s);
   }
   clampVertical(e,s){
