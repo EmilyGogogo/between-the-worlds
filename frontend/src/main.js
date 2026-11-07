@@ -36,7 +36,7 @@ class Game {
     this.camera.position.set(25,14,55);this.camera.lookAt(-5,6,-15);
     this.scene.add(new THREE.HemisphereLight('#dfe8d9','#75804e',1.8));
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
-    this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
+    this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.world.collision=this.collision;this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
     this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
     this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;
@@ -484,6 +484,7 @@ class Game {
         this.camera.lookAt(this.introFocus);this.scene.userData.cameraPosition=this.camera.position;this.applyPerception();
       }
       const info=this.targetInfo,size=info?.carrier?Math.max(1.5,this.camera.position.distanceTo(info.point)*.05):Math.max(SPECIES[this.target?.kind]?.radius||0,.5);
+      this.world.ambientHold=this.transition?.to||null;
       this.world.update(dt,subject,this.target,info?.point||null,size);
       if(this.started)this.interactions.update(dt);
     }

@@ -58,7 +58,7 @@
         65,
         39
       ],
-      "definition": "山湖，银色小鱼的水体",
+      "definition": "山湖：银斧鱼群与七彩神仙鱼的水体",
       "water": {
         "type": "enclosed",
         "surfaceY": 5.8,
@@ -87,7 +87,7 @@
     },
     {
       "id": "near_sea",
-      "definition": "主岛周边浅海，蝴蝶鱼所在"
+      "definition": "主岛周边浅海"
     },
     {
       "id": "island_airspace",
@@ -186,9 +186,10 @@
       ],
       "safeFor": [
         "fish_silver_01",
-        "bird_gull_01"
+        "bird_gull_01",
+        "fish_discus_01"
       ],
-      "purpose": "湖面 y=5.8；银色小鱼，上空有海鸥",
+      "purpose": "山湖：银斧鱼成群在水面下来回游，七彩神仙鱼单只在较深处巡游",
       "validatedInGame": false
     },
     {
@@ -217,10 +218,8 @@
         -4,
         220
       ],
-      "safeFor": [
-        "fish_butterfly_01"
-      ],
-      "purpose": "蝴蝶鱼所在近海水下",
+      "safeFor": [],
+      "purpose": "近海岩礁（原蝴蝶鱼位置；D-027 后鱼类移入山湖）",
       "validatedInGame": false
     },
     {
@@ -235,7 +234,7 @@
       "safeFor": [
         "bird_gull_01"
       ],
-      "purpose": "低空飞行起点",
+      "purpose": "林地与草地上空的海鸥航线（D-027）",
       "validatedInGame": false
     },
     {
@@ -250,7 +249,7 @@
       "safeFor": [
         "bird_gull_01"
       ],
-      "purpose": "湖上空，海鸥",
+      "purpose": "湖面上空的海鸥航线（D-027）",
       "validatedInGame": false
     },
     {
@@ -454,6 +453,222 @@
       "anchorId": "A02"
     },
     {
+      "id": "silverfish-0",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -82.17,
+        4.98,
+        -62.87
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-1",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -82.72,
+        4.98,
+        -62.29
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-2",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -83.28,
+        4.98,
+        -61.71
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-3",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -83.83,
+        4.98,
+        -61.13
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-4",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -83.03,
+        4.98,
+        -63.13
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-5",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -83.58,
+        4.98,
+        -62.55
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-6",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -84.13,
+        4.98,
+        -61.97
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-7",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -84.68,
+        4.98,
+        -61.39
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-8",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -83.33,
+        4.98,
+        -63.97
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-9",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -83.88,
+        4.98,
+        -63.39
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-10",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -84.43,
+        4.98,
+        -62.82
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "silverfish-11",
+      "type": "fish_silver_01",
+      "carrier": "island-main",
+      "position": [
+        -84.99,
+        4.98,
+        -62.24
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "discus-0",
+      "type": "fish_discus_01",
+      "carrier": "island-main",
+      "position": [
+        -56.0,
+        3.15,
+        -56.0
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "discus-1",
+      "type": "fish_discus_01",
+      "carrier": "island-main",
+      "position": [
+        -69.4,
+        3.15,
+        -75.16
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "discus-2",
+      "type": "fish_discus_01",
+      "carrier": "island-main",
+      "position": [
+        -100.95,
+        3.15,
+        -53.89
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "discus-3",
+      "type": "fish_discus_01",
+      "carrier": "island-main",
+      "position": [
+        -101.3,
+        3.15,
+        -82.45
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "discus-4",
+      "type": "fish_discus_01",
+      "carrier": "island-main",
+      "position": [
+        -79.76,
+        3.15,
+        -67.35
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
+      "id": "discus-5",
+      "type": "fish_discus_01",
+      "carrier": "island-main",
+      "position": [
+        -114.29,
+        3.15,
+        -66.96
+      ],
+      "placement": "fixed",
+      "anchorId": "A04"
+    },
+    {
       "id": "dog-first",
       "type": "dog_01",
       "carrier": "island-main",
@@ -626,240 +841,48 @@
       "type": "bird_gull_01",
       "carrier": "island-main",
       "position": [
-        -1.5,
-        2.5,
-        2
+        25.57,
+        7.14,
+        -9.84
       ],
       "placement": "surface",
       "anchorId": "A14"
-    },
-    {
-      "id": "gull-4",
-      "type": "bird_gull_01",
-      "carrier": "island-main",
-      "position": [
-        -45,
-        15.0,
-        -45
-      ],
-      "placement": "fixed",
-      "anchorId": "A08"
-    },
-    {
-      "id": "silverfish-0",
-      "type": "fish_silver_01",
-      "carrier": "island-main",
-      "position": [
-        -76.0,
-        4.4,
-        -55
-      ],
-      "placement": "fixed",
-      "anchorId": "A04"
-    },
-    {
-      "id": "silverfish-4",
-      "type": "fish_silver_01",
-      "carrier": "island-main",
-      "position": [
-        -93.0,
-        3.4,
-        -66
-      ],
-      "placement": "fixed",
-      "anchorId": "A04"
-    },
-    {
-      "id": "butterflyfish-0",
-      "type": "fish_butterfly_01",
-      "carrier": "island-main",
-      "position": [
-        210,
-        -4,
-        220
-      ],
-      "placement": "fixed",
-      "anchorId": "A06"
     },
     {
       "id": "gull-1",
       "type": "bird_gull_01",
       "carrier": "island-main",
       "position": [
-        14,
-        16.4,
-        -3
+        -18.3,
+        5.46,
+        21.59
       ],
       "placement": "surface",
       "anchorId": "A07"
-    },
-    {
-      "id": "gull-5",
-      "type": "bird_gull_01",
-      "carrier": "island-main",
-      "position": [
-        -43,
-        15.3,
-        -42
-      ],
-      "placement": "fixed",
-      "anchorId": "A08"
-    },
-    {
-      "id": "silverfish-1",
-      "type": "fish_silver_01",
-      "carrier": "island-main",
-      "position": [
-        -74.7,
-        4.4,
-        -56
-      ],
-      "placement": "fixed",
-      "anchorId": "A04"
-    },
-    {
-      "id": "silverfish-5",
-      "type": "fish_silver_01",
-      "carrier": "island-main",
-      "position": [
-        -91.7,
-        3.4,
-        -67
-      ],
-      "placement": "fixed",
-      "anchorId": "A04"
-    },
-    {
-      "id": "butterflyfish-1",
-      "type": "fish_butterfly_01",
-      "carrier": "island-main",
-      "position": [
-        212,
-        -4,
-        218
-      ],
-      "placement": "fixed",
-      "anchorId": "A06"
     },
     {
       "id": "gull-2",
       "type": "bird_gull_01",
       "carrier": "island-main",
       "position": [
-        16,
-        16.8,
-        -6
+        -40.87,
+        3.8,
+        -53.76
       ],
       "placement": "surface",
-      "anchorId": "A07"
-    },
-    {
-      "id": "gull-6",
-      "type": "bird_gull_01",
-      "carrier": "island-main",
-      "position": [
-        -41,
-        15.6,
-        -39
-      ],
-      "placement": "fixed",
       "anchorId": "A08"
-    },
-    {
-      "id": "silverfish-2",
-      "type": "fish_silver_01",
-      "carrier": "island-main",
-      "position": [
-        -73.4,
-        4.4,
-        -57
-      ],
-      "placement": "fixed",
-      "anchorId": "A04"
-    },
-    {
-      "id": "silverfish-6",
-      "type": "fish_silver_01",
-      "carrier": "island-main",
-      "position": [
-        -90.4,
-        3.4,
-        -68
-      ],
-      "placement": "fixed",
-      "anchorId": "A04"
-    },
-    {
-      "id": "butterflyfish-2",
-      "type": "fish_butterfly_01",
-      "carrier": "island-main",
-      "position": [
-        214,
-        -4,
-        216
-      ],
-      "placement": "fixed",
-      "anchorId": "A06"
     },
     {
       "id": "gull-3",
       "type": "bird_gull_01",
       "carrier": "island-main",
       "position": [
-        18,
-        17.2,
-        -9
+        194.97,
+        5.93,
+        143.36
       ],
       "placement": "surface",
       "anchorId": "A07"
-    },
-    {
-      "id": "gull-7",
-      "type": "bird_gull_01",
-      "carrier": "island-main",
-      "position": [
-        -39,
-        15.9,
-        -36
-      ],
-      "placement": "fixed",
-      "anchorId": "A08"
-    },
-    {
-      "id": "silverfish-3",
-      "type": "fish_silver_01",
-      "carrier": "island-main",
-      "position": [
-        -72.1,
-        4.4,
-        -58
-      ],
-      "placement": "fixed",
-      "anchorId": "A04"
-    },
-    {
-      "id": "silverfish-7",
-      "type": "fish_silver_01",
-      "carrier": "island-main",
-      "position": [
-        -89.1,
-        3.4,
-        -69
-      ],
-      "placement": "fixed",
-      "anchorId": "A04"
-    },
-    {
-      "id": "butterflyfish-3",
-      "type": "fish_butterfly_01",
-      "carrier": "island-main",
-      "position": [
-        216,
-        -4,
-        214
-      ],
-      "placement": "fixed",
-      "anchorId": "A06"
     },
     {
       "id": "island-0",
@@ -1435,10 +1458,330 @@
         "A02",
         "A07",
         "A08",
-        "A04",
-        "A06"
+        "A04"
       ],
-      "note": "人→狗（黑白／远听）→海鸥（林地与湖面上空）→湖鱼→近海鱼"
+      "note": "人→狗（黑白／远听）→低飞的海鸥（A14）→湖鱼（银斧鱼群、七彩神仙鱼）"
+    }
+  ],
+  "ambient": [
+    {
+      "id": "AM-GULL-0",
+      "members": [
+        "gull-0"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -1.5,
+        -28
+      ],
+      "radii": [
+        34,
+        30
+      ],
+      "periodSec": 32,
+      "phaseDeg": 0,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 2.5,
+        "highM": 26,
+        "lowAtDeg": 90,
+        "lowSlowdown": 0.65
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-1",
+      "members": [
+        "gull-1"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -25,
+        -12
+      ],
+      "radii": [
+        44,
+        32
+      ],
+      "rotationDeg": 20,
+      "periodSec": 44,
+      "phaseDeg": 35,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 3,
+        "highM": 32,
+        "lowAtDeg": 100,
+        "lowSlowdown": 0.6
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-2",
+      "members": [
+        "gull-2"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -83,
+        -65
+      ],
+      "radii": [
+        46,
+        28
+      ],
+      "periodSec": 40,
+      "phaseDeg": 50,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 3,
+        "highM": 22,
+        "lowAtDeg": 0,
+        "lowSlowdown": 0.6
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-3",
+      "members": [
+        "gull-3"
+      ],
+      "shape": "ellipse",
+      "center": [
+        120,
+        -10
+      ],
+      "radii": [
+        190,
+        150
+      ],
+      "rotationDeg": 25,
+      "periodSec": 150,
+      "phaseDeg": 60,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 5,
+        "highM": 55,
+        "lowAtDeg": 30,
+        "lowSlowdown": 0.5
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-HATCHET-SCHOOL",
+      "type": "path",
+      "members": [
+        "silverfish-0",
+        "silverfish-1",
+        "silverfish-2",
+        "silverfish-3",
+        "silverfish-4",
+        "silverfish-5",
+        "silverfish-6",
+        "silverfish-7",
+        "silverfish-8",
+        "silverfish-9",
+        "silverfish-10",
+        "silverfish-11"
+      ],
+      "shape": "figure8",
+      "center": [
+        -83,
+        -62
+      ],
+      "radii": [
+        24,
+        16
+      ],
+      "rotationDeg": 10,
+      "periodSec": 70,
+      "phaseDeg": 0,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "lake",
+        "depthM": 0.5
+      },
+      "formation": {
+        "columns": 4,
+        "spacingM": 0.8,
+        "wobbleM": 0.3
+      },
+      "animation": "move",
+      "maxSpeedMS": 5,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-0",
+      "type": "path",
+      "members": [
+        "discus-0"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -62,
+        -56
+      ],
+      "radii": [
+        6,
+        4
+      ],
+      "rotationDeg": 0,
+      "periodSec": 34,
+      "phaseDeg": 0,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "lake",
+        "depthM": 2.2
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-1",
+      "type": "path",
+      "members": [
+        "discus-1"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -70,
+        -80
+      ],
+      "radii": [
+        7,
+        4
+      ],
+      "rotationDeg": 37,
+      "periodSec": 40,
+      "phaseDeg": 61,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "lake",
+        "depthM": 2.2
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-2",
+      "type": "path",
+      "members": [
+        "discus-2"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -96,
+        -52
+      ],
+      "radii": [
+        6,
+        5
+      ],
+      "rotationDeg": 74,
+      "periodSec": 38,
+      "phaseDeg": 122,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "lake",
+        "depthM": 2.2
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-3",
+      "type": "path",
+      "members": [
+        "discus-3"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -104,
+        -76
+      ],
+      "radii": [
+        7,
+        4
+      ],
+      "rotationDeg": 111,
+      "periodSec": 44,
+      "phaseDeg": 183,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "lake",
+        "depthM": 2.2
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-4",
+      "type": "path",
+      "members": [
+        "discus-4"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -84,
+        -70
+      ],
+      "radii": [
+        5,
+        5
+      ],
+      "rotationDeg": 148,
+      "periodSec": 36,
+      "phaseDeg": 244,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "lake",
+        "depthM": 2.2
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-5",
+      "type": "path",
+      "members": [
+        "discus-5"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -118,
+        -64
+      ],
+      "radii": [
+        6,
+        4
+      ],
+      "rotationDeg": 5,
+      "periodSec": 42,
+      "phaseDeg": 305,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "lake",
+        "depthM": 2.2
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
     }
   ]
 }

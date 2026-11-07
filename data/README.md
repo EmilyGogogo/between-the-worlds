@@ -8,7 +8,7 @@
 | input-map.json | 键位、保留的 E、已删除的 Space／Ctrl、过渡中的输入规则 | integrated |
 | tuning.json | 可调初值、范围、单位、对应规则与硬约束 | integrated |
 | dialogue.json | 世界回应正文、来源、触发与冷却 | integrated |
-| anchors.json | 世界布局：72 个具名个体、10 组成片布景、区域与锚点 | integrated |
+| anchors.json | 世界布局：74 个具名个体、10 组成片布景、区域、锚点与海鸥／鱼的环境航线 `ambient`（D-027） | integrated |
 | interactions.json | 互动规则：触发、过滤、效果 | integrated |
 | asset-ledger.csv | 每个资产槽的占位行与计划行；真实产物的来源证据 | 文档台账，不是加载清单 |
 

@@ -2,6 +2,20 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-08 · 鱼和鸟：七彩神仙鱼、银斧鱼、海鸥 v002 与环境移动（D-027）
+
+- 负责人：zora-alt111；分支 `asset/fish-birds-v001`（已合并 `origin/main` 197f216，解决 04／06／11／CHANGELOG 的文字冲突，两边内容都保留），PR 待关联；按负责人要求与本分支的海鸥 v001、开局可选海鸥两条记录放在同一个 PR。
+- AI：Claude Code（Claude Opus 5.5）负责方案整理、三件 GLB 的 Blender 脚本化修整／绑骨／动作、数据与种类调整、环境移动代码、文档与验证；人工：负责人在 Lux3D 国内版网页生成三件 GLB，确认种类、数量、山湖位置、卡通风格与离开后归队方式；diff、试玩与 QA 待负责人复核。
+- 变更与原因（D-027）：
+  - 种类：蝴蝶鱼 `fish_butterfly_01` 改为七彩神仙鱼 `fish_discus_01`（`slot.discus`，台账 `PH-fish_discus_01`／`LUX3D-fish_discus_01`，引文 ID 改为 `TXT-FISH-DISCUS`，引文内容不变）；`fish_silver_01` 种类定为银斧鱼。两种鱼都在山湖，近海暂无鱼。能力、感知与数值未改。
+  - 资产：海鸥 v002（卡通版，146,242 → 20,000 面，翼展 2.20 m）替换 v001（文件与台账行保留，台账标 `superseded`）；银斧鱼 267,884 → 8,000 面、七彩神仙鱼 273,990 → 29,000 面（低面数时贴图出现白斑，按渲染对比选定）。鱼为 4 段脊椎骨骼，动作 `Swim`（idle）／`SwimFast`（move）；均为 rigSource=blender，JPEG 内嵌，无 Draco。新增“自动转向”判定（鸟：翼展＋头窄尾宽；鱼：尾端更薄），用 v001 原件复跑结果与原手工转向一致。
+  - 布局：海鸥 8 → 4，银斧鱼 8 → 12（一群），七彩神仙鱼 6；`anchors.json` 新增 `ambient` 航线（11 组），出生点取各航线起点。
+  - 代码：新增 `frontend/src/ambient.js`，`world.js` 每帧驱动、`main.js` 传入碰撞与正在进入的身体、`sync_runtime.py` 输出 `ambient`。航线按时间重复（环线／“8”字形），海鸥低飞段减速、按模型实际尺寸抬过实心身体，鱼限制在所属水体，银斧鱼保持队形；被占据或正在进入时不驱动，离开后停约 4 秒再归队；惊飞／四散期间让给互动。
+  - 测试与文档：`check_browser.py` 把“开局不动即可选中 gull-0”改为“低飞经过时可选中”，惊飞测试期间暂停航线，新增环境移动回归（数量来自数据，不写死）。同步 01、03、04、05、07、08（QA-15、QA-18、新增 QA-48）、09（D-027）、10、11、GLOSSARY、CONTRIBUTING、README、数据指南、THIRD_PARTY、LICENSES；三件资产的原件、`task.json`、修整与导出记录、游戏内截图放在 `assets/lux3d/LUX3D-bird_gull_01`（v002 子目录）、`LUX3D-fish_silver_01`、`LUX3D-fish_discus_01`。
+- 验证：macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80、Blender 4.5.15 LTS：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1716 项；`python3 project/check_repository.py` 检查 138 个文件、0 错误（本机无 Node.js，JavaScript 语法检查未运行；新 JS 已在游戏中加载执行）；`python3 -m unittest discover -s project/tests` 通过；`git diff --check` 通过。单次加载游戏核对 15 项全部通过（数量与模型、全部移动、60 秒鱼不出水、群体距中心最大 1.93 m、海鸥不低于 1.5 m 且不与实心身体重叠、扇翅与滑翔、`gull-0` 最低 2.50 m 且低飞时人在出生点可选中并成为它、占据不被带走、释放后静止约 4 秒再归队、被占据的银斧鱼不随群）；`check_browser.py` 新增与修改的片段在游戏中单独运行 9 项全部通过。首轮核对发现海鸥与树冠、巨岩包围盒重叠（避障按种类半径 0.65 m 而模型翼展 2.2 m），已改为按模型实际尺寸并逐帧检查后复测通过。
+- 未完成的检查：完整 `check_browser.py`（含 `check_all.py --only browser`）在本机 Chrome 156 仍于加载阶段停住，与本次改动无关（干净 main 同样），须看远端 CI 或另一台机器。
+- 未验证项／风险：三件 GLB 的生成方式、任务 ID、版本、积分与迭代次数待生成人补充（台账与 `task.json` 已标“待补”）；Lux3D 用户协议与活动素材条款未查阅。鱼群是否属于 DF-03“群体动作”待团队确认（D-027 已写明退回方式）。海鸥体型仍偏大；新手能否自然发现低飞海鸥、低飞频率与群游观感、目标设备帧率、QA-31～QA-34、QA-48 均待真人验收。与开放中的 PR #5（存档与布局兼容）可能相关：减少海鸥后，旧存档里的 `gull-4`～`gull-7` 会被忽略（`restore` 跳过不存在的 ID）。回退：删除 `anchors.json` 的 `ambient` 段即恢复静止鸟鱼；槽 `url` 改回 v001 或 `null` 并重跑同步可回退模型；种类与数量按本条恢复。
+
 ## 2026-11-07 · 开局可选中海鸥：`gull-0` 降到人出生点前方低飞
 
 - 负责人：zora-alt111（会话中要求修复并试玩）；分支 `asset/fish-birds-v001` 工作区，PR 待关联；与海鸥资产条目分开记录，提交时可拆为独立 PR。

@@ -205,7 +205,7 @@
       "pivot": "sea_level_center"
     },
     "gull": {
-      "url": "./public/models/bird_gull_01-v001.glb",
+      "url": "./public/models/bird_gull_01-v002.glb",
       "variants": [],
       "lod": [],
       "height": 0.65,
@@ -228,7 +228,7 @@
       "pivot": "bottom_center"
     },
     "silverfish": {
-      "url": null,
+      "url": "./public/models/fish_silver_01-v001.glb",
       "variants": [],
       "lod": [],
       "height": 0.32,
@@ -237,18 +237,21 @@
         0,
         0
       ],
-      "animations": {},
+      "animations": {
+        "idle": "Swim",
+        "move": "SwimFast"
+      },
       "colliderMode": "auto_bounds",
       "collisionBoxes": null,
       "slotId": "slot.silverfish",
-      "status": "placeholder",
+      "status": "integrated",
       "placeholder": "procedural:fish",
       "placeholderStyle": "silver",
-      "lux3dUsed": false,
+      "lux3dUsed": true,
       "pivot": "bottom_center"
     },
-    "butterflyfish": {
-      "url": null,
+    "discus": {
+      "url": "./public/models/fish_discus_01-v001.glb",
       "variants": [],
       "lod": [],
       "height": 0.45,
@@ -257,14 +260,17 @@
         0,
         0
       ],
-      "animations": {},
+      "animations": {
+        "idle": "Swim",
+        "move": "SwimFast"
+      },
       "colliderMode": "auto_bounds",
       "collisionBoxes": null,
-      "slotId": "slot.butterflyfish",
-      "status": "placeholder",
+      "slotId": "slot.discus",
+      "status": "integrated",
       "placeholder": "procedural:fish",
       "placeholderStyle": "butterfly",
-      "lux3dUsed": false,
+      "lux3dUsed": true,
       "pivot": "bottom_center"
     },
     "human": {

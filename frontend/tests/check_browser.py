@@ -108,8 +108,9 @@ W.restore(W.serialize());g.collision.refresh();
 const bad=W.entities.filter(e=>SPECIES[e.kind].collision.solid&&SPECIES[e.kind].stage<3&&g.collision.collides(e,W.position(e)));
 assert('no solid bodies overlap at spawn (M-01)',bad.length===0,bad.map(e=>e.id).join());
 assert('first R hint appears with a target (U-01)',!!g.target&&document.getElementById('first-hint').textContent.startsWith('R'));
-// Ground bodies cannot look up, so the human -> bird route needs a gull in level view from the start (G-07, A14).
-assert('the human at the start can select a gull without moving it (G-07)',seek('gull-0'));
+// Ground bodies cannot look up, so the human -> bird route needs a gull that dips into level view (G-07, D-027).
+let lowPass=false;for(let k=0;k<120&&!lowPass;k++){step(10);const p=W.byId.get('gull-0').root.position;if(p.y-W.height(p.x,p.z)<4.5){W.ambient.paused=true;lowPass=seek('gull-0');W.ambient.paused=false;}}
+assert('during its low pass the human at the start can select gull-0 (G-07, D-027)',lowPass);
 const p0=W.position(g.player).clone();g.yaw=.35;g.pitch=.27;key('KeyW');step(30);key('KeyW','keyup');
 assert('WASD moves the current body',W.position(g.player).distanceTo(p0)>1);
 key('Space');key('KeyE');key('ControlLeft');assert('Space, Ctrl and E are unbound (I-02, I-03)',g.actions.size===0);
@@ -229,10 +230,11 @@ assert('a drifting island carries its grass (W-06)',W.position(grass).distanceTo
 load()
 passed += run(r"""
 // Interactions come from data/interactions.json (X-01..X-04).
-take('human-first');const h=g.player,gull=W.byId.get('gull-0');
+take('human-first');const h=g.player,gull=W.byId.get('gull-0');W.ambient.paused=true;   // isolate the flee from route motion
 gull.root.position.set(h.root.position.x+2,h.root.position.y+1,h.root.position.z);const home=gull.root.position.clone();
 step(30);assert('a gull flees when a human comes near (IX-BIRDS-RISE)',gull.root.position.distanceTo(home)>3);
 step(420);assert('the gull returns home afterwards (X-02)',gull.root.position.distanceTo(home)<.2&&!gull.flee);
+W.ambient.paused=false;
 // Asset slots: variants, LOD and decoration instancing, with a test fixture (L-04, L-07).
 const {AssetLibrary,makeProcedural}=await import('./src/assets.js'),fixture='./tests/animated-triangle.gltf';
 const lib=new AssetLibrary();
@@ -281,6 +283,29 @@ assert('environment replacement remains the only main-island terrain after updat
 assert('environment replacement supplies main-body collision bounds',main.visual.userData.external&&!g.collision.localBoxes(main)[0].isEmpty());
 """)
 
+# Ambient routes: unplayed birds and fish keep moving (D-027). Counts come from the data.
+load()
+passed += run(r"""
+const A=W.ambient,groups=LAYOUT.ambient||[],members=groups.flatMap(gr=>gr.members.map(id=>W.byId.get(id)));
+assert('every ambient member exists and is driven by its route',groups.length>0&&members.every(e=>e&&A.has(e)));
+const start=new Map(members.map(e=>[e,e.root.position.clone()]));step(300);
+assert('unplayed ambient bodies move on their own',members.every(e=>e.root.position.distanceTo(start.get(e))>1),members.filter(e=>e.root.position.distanceTo(start.get(e))<=1).map(e=>e.id).join());
+const out=[];let spread=0;
+for(let k=0;k<40;k++){step(30);g.collision.refresh();
+  for(const gr of groups){const list=gr.members.map(id=>W.byId.get(id));
+    for(const e of list){const p=e.root.position;
+      if(gr.vertical.mode==='belowSurface'){const w=W.water(p.x,p.z);if(!w||w.id!==gr.vertical.water||p.y<w.floor-.01||p.y+SPECIES[e.kind].height>w.surface+.01)out.push(e.id+' left water');}
+      else if(g.collision.collides(e,W.position(e)))out.push(e.id+' overlaps');}
+    if(gr.formation&&list.length>1){const c=list.reduce((m,e)=>m.add(e.root.position),list[0].root.position.clone().set(0,0,0)).multiplyScalar(1/list.length);
+      spread=Math.max(spread,...list.map(e=>e.root.position.distanceTo(c)/(gr.formation.spacingM*Math.sqrt(list.length))));}}}
+assert('fish stay in their water body and birds clear solid bodies (M-01, M-04)',out.length===0,out.slice(0,5).join());
+assert('a school keeps together',spread<2,spread.toFixed(2));
+const bird=W.byId.get(groups.find(gr=>gr.vertical.mode==='aboveGround').members[0]);
+take(bird.id);const held=bird.root.position.clone();step(60);
+assert('the played body is not moved by its route',bird.root.position.distanceTo(held)<.01);
+take('human-first');const left=bird.root.position.clone();step(60);const rest=bird.root.position.distanceTo(left);step(180);
+assert('a released body rests, then rejoins its route',rest<.01&&bird.root.position.distanceTo(left)>2,rest.toFixed(3));
+""")
 # Sound: starts with the first click and stays reachable while paused (A-02).
 load()
 def click_at(x, y):

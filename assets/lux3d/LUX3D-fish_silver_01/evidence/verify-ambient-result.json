@@ -1,0 +1,86 @@
+{
+ "load_seconds": 10.6,
+ "checks": [
+  {
+   "name": "counts: 4 gulls, 12 silver hatchetfish, 6 discus",
+   "ok": true,
+   "detail": "4/12/6"
+  },
+  {
+   "name": "all three species use their GLB",
+   "ok": true,
+   "detail": "bird_gull_01-v002.glb,fish_silver_01-v001.glb,fish_discus_01-v001.glb"
+  },
+  {
+   "name": "every gull and fish is driven by an ambient route",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "after 10 s every unplayed gull and fish has moved",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "fish stay inside the lake water for 60 s (M-04)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "the 12 hatchetfish stay together as one school",
+   "ok": true,
+   "detail": "max distance to centre 1.93 m"
+  },
+  {
+   "name": "gulls never sink below 1.5 m over land",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "gulls do not overlap solid bodies (M-01)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "gulls both flap (climbing) and glide",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "gull-0 dips low on its loop",
+   "ok": true,
+   "detail": "2.50 m"
+  },
+  {
+   "name": "during its low pass, the human at the start can select gull-0 (G-07)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "R: human -> moving gull-0",
+   "ok": true,
+   "detail": "gull-0"
+  },
+  {
+   "name": "the gull the player is in is not moved by its route",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "a released gull rests about 4 s, then rejoins its route",
+   "ok": true,
+   "detail": "rest 0.000 then 53.8"
+  },
+  {
+   "name": "a played hatchetfish leaves the school motion to the player",
+   "ok": true,
+   "detail": ""
+  }
+ ],
+ "screenshots": [
+  "01-gull-low-pass-from-start.jpg",
+  "02-gull-flying-high.jpg",
+  "03-hatchetfish-school.jpg",
+  "04-discus.jpg"
+ ]
+}

@@ -76,6 +76,7 @@ def generate():
         'regions': {r['id']: r for r in layout['regions']},
         'instances': [to_kind(i) for i in layout['instances']],
         'scatter': [to_kind(s) for s in layout['scatter']],
+        'ambient': layout.get('ambient', []),
     }
     rules = [{k: v for k, v in x.items() if k not in ('description', 'rules', 'reviewState')} for x in interactions['interactions']]
     return {
