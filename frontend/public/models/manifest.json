@@ -265,20 +265,28 @@
       "pivot": "bottom_center"
     },
     "human": {
-      "url": null,
+      "url": "./public/models/human_01-v001.glb",
+      "idleUrl": "./public/models/human_01-static-v001.glb",
+      "runUrl": "./public/models/human_01-run-v001.glb",
+      "swimUrl": "./public/models/human_01-swim-v001.glb",
       "variants": [],
       "lod": [],
       "height": 1.75,
       "rotation": [
         0,
-        0,
+        3.141592653589793,
         0
       ],
-      "animations": {},
+      "animations": {
+        "idle": "model-action",
+        "move": "model-action",
+        "run": "model-action",
+        "swim": "model-action"
+      },
       "colliderMode": "auto_bounds",
       "collisionBoxes": null,
       "slotId": "slot.human",
-      "status": "placeholder",
+      "status": "integrated",
       "placeholder": "procedural:human",
       "placeholderStyle": "human",
       "lux3dUsed": false,
