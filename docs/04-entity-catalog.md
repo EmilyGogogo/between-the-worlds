@@ -88,7 +88,7 @@
 
 ## 资产槽（L-04）
 
-每个种类有一个 `asset` 槽。海鸥槽已接入 Lux3D v001 模型（待验收），其余仍是程序化占位。槽的字段、约定和替换步骤见 [06](06-lux3d-asset-pipeline.md)。
+每个种类有一个 `asset` 槽。人槽已接入用户提供的模型，海鸥槽已接入 Lux3D v001 模型（待验收），其余仍是程序化占位。槽的字段、约定和替换步骤见 [06](06-lux3d-asset-pipeline.md)。
 
 | 槽 ID | 种类 | 必需动作 | 计划文件 | 状态 |
 | --- | --- | --- | --- | --- |
@@ -101,10 +101,10 @@
 | `slot.gull` | 海鸥 | idle、move | `bird_gull_01-v001.glb`（Glide／Flap） | 已接入，待验收 |
 | `slot.silverfish` | 银色小鱼 | idle、move | `silverfish-v1.glb` | 占位 |
 | `slot.butterflyfish` | 蝴蝶鱼 | idle、move | `butterflyfish-v1.glb` | 占位 |
-| `slot.human` | 人 | idle、move | `human-v1.glb` | 占位 |
+| `slot.human` | 人 | idle、move | `human_01-v001.glb` | 已接入，动作及资产验收待完成 |
 | `slot.dog` | 狗 | idle、move | `dog-v1.glb` | 占位 |
 
-模型文件放在 `frontend/public/models/`；目前只有海鸥的 `bird_gull_01-v001.glb`，其余计划文件尚不存在。一个种类可以挂多个变体模型（`variants`），让同种个体外形不完全相同，也可以配远景简化模型（`lod`），见 L-07 与 [06](06-lux3d-asset-pipeline.md)。
+模型文件放在 `frontend/public/models/`；目前有人槽的文件与海鸥的 `bird_gull_01-v001.glb`，其余计划文件尚不存在。一个种类可以挂多个变体模型（`variants`），让同种个体外形不完全相同，也可以配远景简化模型（`lod`），见 L-07 与 [06](06-lux3d-asset-pipeline.md)。
 
 ## 类别与扩展
 

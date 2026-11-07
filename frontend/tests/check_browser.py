@@ -25,6 +25,7 @@ override_targets = [s['runtimeKind'] for s in override_source['entities'] if s['
 parser = argparse.ArgumentParser()
 parser.add_argument('--port', type=int, default=9223)
 parser.add_argument('--url', default='http://127.0.0.1:4173/')
+parser.add_argument('--no-pointer-lock', action='store_true', help='Skip checks that request real pointer lock')
 args = parser.parse_args()
 c = CDP(args.port)
 for method in ['Runtime.enable', 'Page.enable', 'Network.enable']:
@@ -69,6 +70,40 @@ assert('every type has a physical instance',Object.keys(SPECIES).every(k=>W.enti
 assert('no flower or planet bodies',!W.entities.some(e=>['flower','planet','rockPlanet'].includes(e.kind)));
 const ids=W.entities.map(e=>e.id);assert('instance ids unique',new Set(ids).size===ids.length);
 assert('a new journey starts as human-first (D-017)',g.player.id==='human-first'&&g.player.kind==='human');
+assert('configured human model is loaded for every human',W.assets.hasModel('human')&&W.entities.filter(e=>e.kind==='human').every(e=>e.visual.userData.external===true));
+const humanVisual=W.byId.get('human-first').visual,humanAnimation=humanVisual.userData.animation;
+assert('human idle uses the static model',!!humanAnimation.idleModel&&humanAnimation.idleModel.visible&&!humanAnimation.model.visible);
+humanVisual.userData.moving=true;humanVisual.userData.movementRatio=1;W.assets.update(.1);
+assert('human movement uses the animated model',!humanAnimation.idleModel.visible&&humanAnimation.model.visible);
+assert('human walking and sprinting use distinct clips',humanAnimation.actions.move!==humanAnimation.actions.run&&Math.abs(humanAnimation.actions.move.getClip().duration-humanAnimation.actions.run.getClip().duration)>.1);
+for(const role of ['move','run','swim']){const track=humanAnimation.actions[role].getClip().tracks.find(t=>/Hips\.position$/i.test(t.name));
+  assert(`${role} keeps hips horizontal position fixed`,!!track&&Array.from(track.values).every((v,i)=>i%3===1||Math.abs(v-track.values[i%3])<1e-6));}
+humanVisual.userData.boosting=true;W.assets.update(.1);
+assert('human boost selects sprint animation',humanAnimation.current==='run'&&humanAnimation.actions.run.getEffectiveTimeScale()===1);
+humanVisual.userData.boosting=false;
+humanVisual.userData.moving=false;W.assets.update(.1);
+const originalMoveBody=g.moveBody,originalUnstick=g.unstick;
+g.unstick=()=>{};g.actions.add('move_forward');
+g.moveBody=()=>{};g.move(.1);assert('blocked movement stops the human animation',!g.player.animationMoving&&g.player.movementRatio===0);
+g.moveBody=(e,delta)=>e.root.position.addScaledVector(delta,.5);g.move(.1);
+assert('partial movement slows the human animation',g.player.animationMoving&&Math.abs(g.player.movementRatio-.5)<.001);
+g.moveBody=originalMoveBody;g.unstick=originalUnstick;g.actions.clear();
+W.restore(W.serialize());g.player.root.position.y=g.groundHeight(g.player);
+const turnStart=g.player.root.position.clone(),yawStart=g.yaw;g.actions.add('move_left');g.move(.1);g.actions.clear();
+assert('human turns in place and camera follows left',g.player.root.position.distanceTo(turnStart)<.001&&g.yaw>yawStart&&Math.abs(Math.sin((g.player.heading-g.yaw)/2))<.001,JSON.stringify([g.player.root.position.distanceTo(turnStart),g.yaw,g.player.heading]));
+const rightStart=g.yaw;g.actions.add('move_right');g.move(.1);g.actions.clear();
+assert('human turns in place and camera follows right',g.player.root.position.distanceTo(turnStart)<.001&&g.yaw<rightStart&&Math.abs(Math.sin((g.player.heading-g.yaw)/2))<.001);
+const originalWater=W.water,originalHeight=W.height,originalCollisionMove=g.collision.move;
+W.water=(x,z)=>x>1?{id:'test-water',surface:2,floor:-3}:null;W.height=()=>0;g.collision.move=(e,delta)=>e.root.position.add(delta);
+g.player.root.position.set(2,0,0);g.moveBody(g.player,g.player.root.position.clone().set(0,0,0),.1);
+assert('human enters water and stays near surface',g.player.swimming&&Math.abs(g.player.root.position.y-(2-SPECIES.human.height*.7))<.001);
+humanVisual.userData.swimming=true;humanVisual.userData.moving=false;W.assets.update(.1);
+assert('human uses swimming animation while stationary in water',humanAnimation.current==='swim'&&humanAnimation.model.visible);
+assert('human may enter deep water',g.allowed(g.player,SPECIES.human,3,0));
+g.player.root.position.x=0;g.moveBody(g.player,g.player.root.position.clone().set(0,0,0),.1);
+assert('human exits water and restores ground state',!g.player.swimming&&Number.isFinite(g.player.root.position.y));
+humanVisual.userData.swimming=false;W.assets.update(.1);assert('human returns to idle on land',humanAnimation.current==='idle');
+W.water=originalWater;W.height=originalHeight;g.collision.move=originalCollisionMove;
 W.restore(W.serialize());g.collision.refresh();
 const bad=W.entities.filter(e=>SPECIES[e.kind].collision.solid&&SPECIES[e.kind].stage<3&&g.collision.collides(e,W.position(e)));
 assert('no solid bodies overlap at spawn (M-01)',bad.length===0,bad.map(e=>e.id).join());
@@ -208,6 +243,17 @@ for(let seed=1;seed<40;seed++){const m=lib.make('gull',seed);heights.add(+m.user
 assert('one species can carry several models (variants)',heights.has(.65)&&heights.has(1.3),[...heights]);
 assert('a far model (LOD) is attached to each individual',lods===39);
 assert('variants keep their animation',lib.mixers.length>0);
+const sharedLib=new AssetLibrary();
+await sharedLib.prepare({species:{gull:{url:fixture,height:.65,animations:{idle:'Glide',move:'Glide',run:'Glide'}}}});
+const shared=sharedLib.make('gull',1),animation=shared.userData.animation;
+sharedLib.update(.2);const beforeSwitch=animation.actions.idle.time;
+assert('shared idle remains still',beforeSwitch===0&&animation.actions.idle.paused);
+shared.userData.moving=true;sharedLib.update(.1);
+assert('shared animation continues across idle and move',animation.current==='move'&&animation.actions.idle===animation.actions.move&&animation.actions.idle.time>beforeSwitch);
+shared.userData.boosting=true;sharedLib.update(.1);
+assert('shared animation speeds up when boosting',animation.current==='run'&&animation.actions.run.getEffectiveTimeScale()===1.5);
+shared.userData.moving=false;sharedLib.update(.1);
+assert('shared animation returns to still idle',animation.current==='idle'&&animation.actions.idle.paused&&animation.actions.idle.time===0);
 const decor=lib.makeDecor({slotId:'env.test',scatter:{seed:3}},Array.from({length:10},(_,i)=>({position:[i,0,0],rotationY:0,scale:1})));
 let placed=0;decor.traverse(o=>{if(o.isInstancedMesh)placed+=o.count;});
 assert('decoration slots render GLB instances',placed===10);
@@ -257,6 +303,10 @@ click_at(*center('pause-sound'))
 c.wait_for("document.getElementById('sound').getAttribute('aria-pressed')==='true'", 10)
 passed.append('pause menu has its own sound toggle')
 
+if args.no_pointer_lock:
+    print(f'PASS: {len(passed)} browser checks (real pointer lock and subsequent checks skipped)')
+    sys.exit(0)
+
 # D-024: real click/keyboard/pointer entry path, without replacing Game.lockMouse.
 load()
 def key_event(code, kind='keyDown', repeat=False):
@@ -292,14 +342,20 @@ yaw_before = c.evaluate('window.__world.yaw')
 c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 640, 'y': 400})
 c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 680, 'y': 400})
 browser_assert('real locked pointer movement changes the camera', f'window.__world.yaw!=={yaw_before}')
-# Each direction is exercised from the same clear spawn, checking actual displacement.
+# Human forward/backward movement and left/right turning use real key events.
 origin = c.evaluate('window.__world.player.root.position.toArray()')
-for code in ('KeyW', 'KeyS', 'KeyA', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'):
+for code in ('KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'):
     c.evaluate(f'window.__world.player.root.position.fromArray({json.dumps(origin)});window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
     key_event(code)
     c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
     key_event(code, 'keyUp')
     passed.append(f'{code} moves during actual exploration')
+for code in ('KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'):
+    yaw_before = c.evaluate('window.__world.yaw')
+    key_event(code)
+    c.wait_for(f'Math.abs(window.__world.yaw-({yaw_before}))>.1', 10)
+    key_event(code, 'keyUp')
+    passed.append(f'{code} turns during actual exploration')
 key_event('KeyW')
 key_event('ArrowUp')
 key_event('KeyW', 'keyUp')
