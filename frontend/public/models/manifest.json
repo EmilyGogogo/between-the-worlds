@@ -205,7 +205,7 @@
       "pivot": "sea_level_center"
     },
     "gull": {
-      "url": "./public/models/bird_gull_01-v002.glb",
+      "url": "./public/models/bird_gull_01-v003.glb",
       "variants": [],
       "lod": [],
       "height": 0.32,

@@ -891,7 +891,7 @@
       "asset": {
         "slotId": "slot.gull",
         "status": "integrated",
-        "url": "./public/models/bird_gull_01-v002.glb",
+        "url": "./public/models/bird_gull_01-v003.glb",
         "variants": [],
         "height": 0.32,
         "rotation": [
@@ -918,8 +918,8 @@
         "placeholderStyle": "gull",
         "finalSource": "Aholo Lux3D",
         "lux3dUsed": true,
-        "plannedModelPath": "frontend/public/models/bird_gull_01-v002.glb",
-        "ledgerId": "LUX3D-bird_gull_01-v002",
+        "plannedModelPath": "frontend/public/models/bird_gull_01-v003.glb",
+        "ledgerId": "LUX3D-bird_gull_01-v003",
         "fallbackLedgerId": "PH-bird_gull_01"
       },
       "place": "风的路径",

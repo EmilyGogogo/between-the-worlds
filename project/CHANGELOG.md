@@ -2,6 +2,14 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-08 · 海鸥换用 v003 模型
+
+- 负责人：zora-alt111；分支 `asset/fish-birds-v001`，与 D-027 同一 PR。
+- AI：Claude Code（Claude Opus 5.5）负责原件检查、Blender 修整／绑骨／动作、接入与复测；人工：负责人在 Lux3D 国内版网页重新生成海鸥（下载名「海鸥ffv.glb」）并要求替换。
+- 变更：`slot.gull` 由 v002 换为 `bird_gull_01-v003.glb`。原件 137,378 面、双翅高举成 V 形（约 31.5°）、双脚下垂；用 `rig_gull_v3.py`（v2 + 放平翅膀）在肩部把两翼各压低约 23.5°，留约 8° 上反角，烘焙为新的静止姿态，再做 10 根骨骼与 `Glide`／`Flap` 动作，减面到 20,000，JPEG 内嵌导出（1,795,964 字节）。原因：直接使用时，静止滑翔像扇翅中途，扇翅会接近竖直；而且运行时按静止包围盒定标，抬高的翅膀会把鸟身缩得过小。台账新增 `LUX3D-bird_gull_01-v003`，v002 行标 `superseded`；v001、v002 文件保留作回退。`body.height` 仍为 0.32，模型比例变化后游戏内翼展约 0.89 m（v002 为 1.08 m）。同步 04、06、10、11、CONTRIBUTING、THIRD_PARTY、LICENSES 的版本说明；来源记录在 `assets/lux3d/LUX3D-bird_gull_01/{raw,edit,export}/v003`。
+- 验证：macOS 14.8.7、Chrome 156、Blender 4.5.15：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1726 项；单次加载复跑环境移动核对 15 项全部通过（4 只海鸥均用 v003，低飞时人在出生点可选中并成为海鸥，不与实心身体重叠）；重拍游戏内截图。
+- 未验证项／风险：生成方式、任务 ID 等待补；双脚未收起；翅根权重在放平后大幅扇动时的观感待真人查看；翼展比上一版小约 18%，是否回调 `body.height` 待负责人试玩决定（TUNABLE）。回退：槽 `url` 改回 v002 并恢复台账行状态后重跑同步。
+
 ## 2026-11-08 · 海鸥体型调小（TUNABLE）
 
 - 负责人：zora-alt111；分支 `asset/fish-birds-v001`，与 D-027 同一 PR。

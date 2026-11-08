@@ -1,5 +1,5 @@
 {
- "load_seconds": 10.9,
+ "load_seconds": 11.5,
  "checks": [
   {
    "name": "counts: 4 gulls, 12 silver hatchetfish, 6 discus",
@@ -9,7 +9,7 @@
   {
    "name": "all three species use their GLB",
    "ok": true,
-   "detail": "bird_gull_01-v002.glb,fish_silver_01-v001.glb,fish_discus_01-v001.glb"
+   "detail": "bird_gull_01-v003.glb,fish_silver_01-v001.glb,fish_discus_01-v001.glb"
   },
   {
    "name": "every gull and fish is driven by an ambient route",

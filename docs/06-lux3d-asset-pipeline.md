@@ -2,7 +2,7 @@
 
 版本：0.4-review · 2026-11-01。规则：L-01～L-07。扩展方法汇总见 [数据与扩展指南](../data/README.md)。资产台账：[asset-ledger.csv](../data/asset-ledger.csv)。
 
-**当前事实：人槽已接入用户提供的绑骨 GLB，来源和授权待核实；海鸥（`slot.gull` v002，v001 保留回退）、银斧鱼（`slot.silverfish`）、七彩神仙鱼（`slot.discus`）已接入 Lux3D 国内版生成、Blender 绑骨与动作的模型（来源链见 `assets/lux3d/LUX3D-*`，生成任务记录待补、未通过 QA-31～QA-34 验收）；其余资产槽仍为程序化占位。** 下文是替换合同，不代表资产已经验收。
+**当前事实：人槽已接入用户提供的绑骨 GLB，来源和授权待核实；海鸥（`slot.gull` v003，v001、v002 保留回退）、银斧鱼（`slot.silverfish`）、七彩神仙鱼（`slot.discus`）已接入 Lux3D 国内版生成、Blender 绑骨与动作的模型（来源链见 `assets/lux3d/LUX3D-*`，生成任务记录待补、未通过 QA-31～QA-34 验收）；其余资产槽仍为程序化占位。** 下文是替换合同，不代表资产已经验收。
 
 ## 思路
 
