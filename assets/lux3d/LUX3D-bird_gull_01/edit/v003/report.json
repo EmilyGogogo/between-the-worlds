@@ -148,6 +148,11 @@
    ]
   ]
  },
+ "shoulder_relax": {
+  "vertices": 12460,
+  "factor": 0.6,
+  "iterations": 6
+ },
  "repose": {
   "R": {
    "wing_elevation_deg": 31.6,
@@ -173,5 +178,5 @@
    "seconds": 2.0
   }
  },
- "glb_bytes": 1795964
+ "glb_bytes": 1795172
 }

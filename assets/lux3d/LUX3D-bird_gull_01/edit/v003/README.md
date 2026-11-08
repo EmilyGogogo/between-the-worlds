@@ -3,7 +3,7 @@
 日期：2026-11-08。工具：Blender 4.5.15 LTS。执行：Claude Code，后台命令：
 
 ```sh
-blender -b -P rig_gull_v3.py -- ../../raw/v003/textured.glb <out_dir> bird_gull_01-v003 20000 8
+blender -b -P rig_gull_v4.py -- ../../raw/v003/textured.glb <out_dir> bird_gull_01-v003 20000 8
 ```
 
 `rig_gull_v3.py` = v2 脚本 + “放平翅膀”：原件双翅高举成 V 形（右 31.60°、左 31.45°，按肩到翼尖的连线计）。若直接使用，静止滑翔会像扇翅中途，扇翅时翅膀接近竖直，而且运行时按静止包围盒定标，鸟身会被缩得过小。因此在肩部把两翼各压低约 23.5°，留约 8° 上反角，烘焙进网格并设为新的静止姿态，再做动作。数值见 `report.json`：
@@ -12,5 +12,11 @@ blender -b -P rig_gull_v3.py -- ../../raw/v003/textured.glb <out_dir> bird_gull_
 - 放平翅膀后比例：翼展 : 体长 : 高 ≈ 1.281 : 0.918 : 0.459（脚下垂计入高度）。按 `body.height` 0.32 运行时缩放后，翼展约 0.89 m、体长约 0.64 m。
 - 骨骼 10 根，动作 `Glide`（idle）、`Flap`（move），同 v002。
 
-文件：`bird_gull_01-v003.blend`（压缩保存）、`rig_gull_v3.py`、`render_anim.py`、`report.json`、`previews/rig-and-animation-frames.png`。
+平滑修订（2026-11-08，负责人试玩反馈“扇翅时拐弯处像折了一样”）：改用 `rig_gull_v4.py` 重做并覆盖本版导出（未推送过）。
+- 权重：翅膀从身体边缘起整体转动（过渡区 0.55～1.05 倍肩宽，原 0.75～1.35），关节过渡加宽到翼长的 16%（原 7%），弯曲分散成弧线。
+- 网格：放平翅膀并烘焙后，对肩部带状区域（12,460 个顶点）做 Smooth 放松（系数 0.6、6 次），再开启平滑着色。
+- 动作：`Flap`／`Glide` 改为每 2／4 帧采样的连续余弦曲线；肩部 +38°～-22°，前臂与手部只比肩部稍晚、各自相对角度不超过 9°／12°，翅膀呈一道柔和的波；下扑时身体沿竖直方向微升（原实现误沿身体前后方向移动，已更正）。
+- 对比图：`previews/flap-before-after-smoothing.png`（旧版 f7～f11 翅根拱起成 M 形折角，新版成平滑弧线；翅根仍有轻微鼓起）。
+
+文件：`bird_gull_01-v003.blend`（压缩保存）、`rig_gull_v3.py`（初版）、`rig_gull_v4.py`（当前）、`render_anim.py`、`render_flap_close.py`、`report.json`、`previews/`。
 已知问题：双脚保持下垂，未收起；权重为程序计算，翅根在放平和大幅扇动时可能轻微拉伸，需近距离真人查看。

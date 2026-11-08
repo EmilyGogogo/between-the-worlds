@@ -1,5 +1,5 @@
 {
- "load_seconds": 11.5,
+ "load_seconds": 11.0,
  "checks": [
   {
    "name": "counts: 4 gulls, 12 silver hatchetfish, 6 discus",
@@ -29,7 +29,7 @@
   {
    "name": "the 12 hatchetfish stay together as one school",
    "ok": true,
-   "detail": "max distance to centre 1.93 m"
+   "detail": "max distance to centre 1.94 m"
   },
   {
    "name": "gulls never sink below 1.5 m over land",
