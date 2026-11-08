@@ -2,72 +2,32 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
-## 2026-11-08 · 修复海鸥 v003 翅膀斑块（由上一条平滑修订引入）
+## 2026-11-07～11-08 · 鱼和鸟：七彩神仙鱼、银斧鱼、海鸥 v003 与鸟鱼环境移动（D-027）
 
-- 负责人：zora-alt111；分支 `asset/fish-birds-v001`，与 D-027 同一 PR。
-- AI：Claude Code（Claude Opus 5.5）负责定位、重做与复测；人工：负责人试玩反馈“很多地方没有颜色、直接穿透、一块一块的”。
-- 原因：上一条“翅膀平滑”对肩部带状区域做了 Smooth 顶点放松。卡通羽毛由多层贴得很近的薄片组成，放松把相邻层拉到互相穿插，渲染时前后层交替可见（z-fighting），翅膀内侧满是斑块，看起来像洞。这是本 AI 在上一条引入的问题；当时只在 Blender 预览中检查，没有做游戏内近景检查。逐项排除：原件放进游戏是干净的；金属度设为 0、双面渲染、贴图改 PNG、不减面（137k）都无效；只去掉放松后斑块消失。
-- 变更：`rig_gull_v7.py` = 平滑版去掉肩部放松，保留宽权重过渡、连续扇翅曲线与平滑着色（只改法线）；面数 20,000 → 30,000（L-06 动物上限），贴图仍为 JPEG（与 PNG 对比无差别），重新导出并覆盖 `bird_gull_01-v003.glb`（2,407,440 字节，未推送过）。对比图 `assets/lux3d/LUX3D-bird_gull_01/edit/v003/previews/in-game-wing-speckles-fix.png`。
-- 验证：macOS 14.8.7、Chrome 156、Blender 4.5.15：游戏内近景对照，斑块消失，与原件接近；扇翅逐帧确认没有 M 形折角（翅根轻微鼓起）；两种鱼也做了游戏内近景检查，没有斑块；`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1726 项；单次加载复跑环境移动核对 15 项全部通过并重拍截图。
-- 未验证项／风险：负责人试玩确认；之后的模型处理改动都先做游戏内近景对照，再交付。回退：从提交历史取回上一版 `bird_gull_01-v003.glb` 与 `edit/v003`。
-
-## 2026-11-08 · 海鸥 v003 翅膀平滑与扇翅动作修订
-
-- 负责人：zora-alt111；分支 `asset/fish-birds-v001`，与 D-027 同一 PR。
-- AI：Claude Code（Claude Opus 5.5）负责定位、Blender 重做、复测与记录；人工：负责人试玩后反馈“扇翅时拐弯处像折了一样”。
-- 原因：近距离逐帧渲染确认，下扑段（f7～f11）翅根拱起再急转向下，形成 M 形折角。原因有三：肩部权重过渡区偏向翼内，翼根只转了一部分；关节过渡区窄（翼长 7%）；动作只有 4 个关键帧且关节反向弯折较大。
-- 变更：用 `rig_gull_v4.py` 从同一 v003 原件重做并覆盖 `bird_gull_01-v003.glb`（该版本未推送）。权重改为翅膀从身体边缘整体转动，关节过渡加宽到翼长 16%；放平翅膀后对肩部带状区域做 Smooth 放松（系数 0.6、6 次）并平滑着色；`Flap`／`Glide` 改为连续余弦曲线，关节相对角度不超过约 12°，肩部下扑由 -34° 收到 -22°；更正身体起伏的方向（原实现误沿前后方向）。面数、尺寸、骨骼、动作名与槽字段不变。对比图 `assets/lux3d/LUX3D-bird_gull_01/edit/v003/previews/flap-before-after-smoothing.png`。
-- 验证：macOS 14.8.7、Chrome 156、Blender 4.5.15：逐帧对比渲染（M 形折角消失，翅根仍有轻微鼓起）；`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1726 项；单次加载复跑环境移动核对 15 项全部通过并重拍截图。
-- 未验证项／风险：游戏中近距离扇翅观感待负责人试玩确认；翅根与身体交界仍有轻微鼓起，如需进一步改善，可在 Blender 中手工修权重或请生成人提供翅膀放平的原件。回退：从提交历史取回上一版 `bird_gull_01-v003.glb` 与 `edit/v003` 文件。
-
-## 2026-11-08 · 海鸥换用 v003 模型
-
-- 负责人：zora-alt111；分支 `asset/fish-birds-v001`，与 D-027 同一 PR。
-- AI：Claude Code（Claude Opus 5.5）负责原件检查、Blender 修整／绑骨／动作、接入与复测；人工：负责人在 Lux3D 国内版网页重新生成海鸥（下载名「海鸥ffv.glb」）并要求替换。
-- 变更：`slot.gull` 由 v002 换为 `bird_gull_01-v003.glb`。原件 137,378 面、双翅高举成 V 形（约 31.5°）、双脚下垂；用 `rig_gull_v3.py`（v2 + 放平翅膀）在肩部把两翼各压低约 23.5°，留约 8° 上反角，烘焙为新的静止姿态，再做 10 根骨骼与 `Glide`／`Flap` 动作，减面到 20,000，JPEG 内嵌导出（1,795,964 字节）。原因：直接使用时，静止滑翔像扇翅中途，扇翅会接近竖直；而且运行时按静止包围盒定标，抬高的翅膀会把鸟身缩得过小。台账新增 `LUX3D-bird_gull_01-v003`，v002 行标 `superseded`；v001、v002 文件保留作回退。`body.height` 仍为 0.32，模型比例变化后游戏内翼展约 0.89 m（v002 为 1.08 m）。同步 04、06、10、11、CONTRIBUTING、THIRD_PARTY、LICENSES 的版本说明；来源记录在 `assets/lux3d/LUX3D-bird_gull_01/{raw,edit,export}/v003`。
-- 验证：macOS 14.8.7、Chrome 156、Blender 4.5.15：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1726 项；单次加载复跑环境移动核对 15 项全部通过（4 只海鸥均用 v003，低飞时人在出生点可选中并成为海鸥，不与实心身体重叠）；重拍游戏内截图。
-- 未验证项／风险：生成方式、任务 ID 等待补；双脚未收起；翅根权重在放平后大幅扇动时的观感待真人查看；翼展比上一版小约 18%，是否回调 `body.height` 待负责人试玩决定（TUNABLE）。回退：槽 `url` 改回 v002 并恢复台账行状态后重跑同步。
-
-## 2026-11-08 · 海鸥体型调小（TUNABLE）
-
-- 负责人：zora-alt111；分支 `asset/fish-birds-v001`，与 D-027 同一 PR。
-- AI：Claude Code（Claude Opus 5.5）负责数值修改、复测与记录；人工：负责人试玩后提出。
-- 原因（试玩反馈）：负责人试玩海鸥 v002 时认为“从某些角度看会变得非常大”，模型本身不够精细，调小观感更好。
-- 旧值 → 新值（`data/entities.json` 的 `bird_gull_01`，B-02／C-05 范围内的数值调整，未改能力、尺度档或关系）：`body.height` 与 `asset.height` 0.65 → 0.32（运行时翼展约 2.20 → 1.08 m，与 `scaleTierReason`“翼展略超 1 m”一致）；`collisionRadius` 0.65 → 0.5；占位碰撞盒按同比例缩小为 `[-0.69, 0, -0.34, 0.69, 0.32, 0.39]`；镜头距离 5.0 → 3.5 m（与鱼相同），描述性的 `camera.height` 0.286 → 0.1408。GLB 文件未重导，由导入器按高度等比缩放。同步 04 种类表。
-- 验证：macOS 14.8.7、Chrome 156：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1719 项；单次加载复跑环境移动核对 15 项全部通过（低飞时人在出生点仍可选中并成为海鸥、海鸥不与实心身体重叠）；新增截图 `05-gull-size-next-to-human.jpg`（与人对比）与 `06-gull-third-person.jpg`（3.5 m 镜头构图）。
-- 未验证项／风险：调小后低飞海鸥在画面中更小，新手能否注意到并选中待真人试玩（QA-48）；3.5 m 镜头在高速飞行与贴近树冠时的观感待试玩。回退：上述字段改回旧值并重跑同步。
-
-## 2026-11-08 · 鱼和鸟：七彩神仙鱼、银斧鱼、海鸥 v002 与环境移动（D-027）
-
-- 负责人：zora-alt111；分支 `asset/fish-birds-v001`（已合并 `origin/main` 197f216，解决 04／06／11／CHANGELOG 的文字冲突，两边内容都保留），PR 待关联；按负责人要求与本分支的海鸥 v001、开局可选海鸥两条记录放在同一个 PR。
-- AI：Claude Code（Claude Opus 5.5）负责方案整理、三件 GLB 的 Blender 脚本化修整／绑骨／动作、数据与种类调整、环境移动代码、文档与验证；人工：负责人在 Lux3D 国内版网页生成三件 GLB，确认种类、数量、山湖位置、卡通风格与离开后归队方式；diff、试玩与 QA 待负责人复核。
-- 变更与原因（D-027）：
-  - 种类：蝴蝶鱼 `fish_butterfly_01` 改为七彩神仙鱼 `fish_discus_01`（`slot.discus`，台账 `PH-fish_discus_01`／`LUX3D-fish_discus_01`，引文 ID 改为 `TXT-FISH-DISCUS`，引文内容不变）；`fish_silver_01` 种类定为银斧鱼。两种鱼都在山湖，近海暂无鱼。能力、感知与数值未改。
-  - 资产：海鸥 v002（卡通版，146,242 → 20,000 面，翼展 2.20 m）替换 v001（文件与台账行保留，台账标 `superseded`）；银斧鱼 267,884 → 8,000 面、七彩神仙鱼 273,990 → 29,000 面（低面数时贴图出现白斑，按渲染对比选定）。鱼为 4 段脊椎骨骼，动作 `Swim`（idle）／`SwimFast`（move）；均为 rigSource=blender，JPEG 内嵌，无 Draco。新增“自动转向”判定（鸟：翼展＋头窄尾宽；鱼：尾端更薄），用 v001 原件复跑结果与原手工转向一致。
-  - 布局：海鸥 8 → 4，银斧鱼 8 → 12（一群），七彩神仙鱼 6；`anchors.json` 新增 `ambient` 航线（11 组），出生点取各航线起点。
-  - 代码：新增 `frontend/src/ambient.js`，`world.js` 每帧驱动、`main.js` 传入碰撞与正在进入的身体、`sync_runtime.py` 输出 `ambient`。航线按时间重复（环线／“8”字形），海鸥低飞段减速、按模型实际尺寸抬过实心身体，鱼限制在所属水体，银斧鱼保持队形；被占据或正在进入时不驱动，离开后停约 4 秒再归队；惊飞／四散期间让给互动。
-  - 测试与文档：`check_browser.py` 把“开局不动即可选中 gull-0”改为“低飞经过时可选中”，惊飞测试期间暂停航线，新增环境移动回归（数量来自数据，不写死）。同步 01、03、04、05、07、08（QA-15、QA-18、新增 QA-48）、09（D-027）、10、11、GLOSSARY、CONTRIBUTING、README、数据指南、THIRD_PARTY、LICENSES；三件资产的原件、`task.json`、修整与导出记录、游戏内截图放在 `assets/lux3d/LUX3D-bird_gull_01`（v002 子目录）、`LUX3D-fish_silver_01`、`LUX3D-fish_discus_01`。
-- 验证：macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80、Blender 4.5.15 LTS：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1716 项；`python3 project/check_repository.py` 检查 138 个文件、0 错误（本机无 Node.js，JavaScript 语法检查未运行；新 JS 已在游戏中加载执行）；`python3 -m unittest discover -s project/tests` 通过；`git diff --check` 通过。单次加载游戏核对 15 项全部通过（数量与模型、全部移动、60 秒鱼不出水、群体距中心最大 1.93 m、海鸥不低于 1.5 m 且不与实心身体重叠、扇翅与滑翔、`gull-0` 最低 2.50 m 且低飞时人在出生点可选中并成为它、占据不被带走、释放后静止约 4 秒再归队、被占据的银斧鱼不随群）；`check_browser.py` 新增与修改的片段在游戏中单独运行 9 项全部通过。首轮核对发现海鸥与树冠、巨岩包围盒重叠（避障按种类半径 0.65 m 而模型翼展 2.2 m），已改为按模型实际尺寸并逐帧检查后复测通过。
-- 未完成的检查：完整 `check_browser.py`（含 `check_all.py --only browser`）在本机 Chrome 156 仍于加载阶段停住，与本次改动无关（干净 main 同样），须看远端 CI 或另一台机器。
-- 未验证项／风险：三件 GLB 的生成方式、任务 ID、版本、积分与迭代次数待生成人补充（台账与 `task.json` 已标“待补”）；Lux3D 用户协议与活动素材条款未查阅。鱼群是否属于 DF-03“群体动作”待团队确认（D-027 已写明退回方式）。海鸥体型仍偏大；新手能否自然发现低飞海鸥、低飞频率与群游观感、目标设备帧率、QA-31～QA-34、QA-48 均待真人验收。与开放中的 PR #5（存档与布局兼容）可能相关：减少海鸥后，旧存档里的 `gull-4`～`gull-7` 会被忽略（`restore` 跳过不存在的 ID）。回退：删除 `anchors.json` 的 `ambient` 段即恢复静止鸟鱼；槽 `url` 改回 v001 或 `null` 并重跑同步可回退模型；种类与数量按本条恢复。
-
-## 2026-11-07 · 开局可选中海鸥：`gull-0` 降到人出生点前方低飞
-
-- 负责人：zora-alt111（会话中要求修复并试玩）；分支 `asset/fish-birds-v001` 工作区，PR 待关联；与海鸥资产条目分开记录，提交时可拆为独立 PR。
-- AI：Claude Code（Claude Opus 5.5）负责复现、定位、数据修改、文档与回归；人工：待负责人试玩确认。
-- 问题：地面身体视线下限 `pitchMin` 为 0.06（不能上仰），8 只海鸥都在离地 15～17 米处；从人出生点无论朝哪个方向都选不中海鸥，干净的 `origin/main`（占位海鸥）同样复现，设计路线“人 → 鸟 → 飞高 → 岛”（G-07）在实际玩法中中断。逐项排查：16 米处因无法仰视落在视线锥外；降到 2.5～6 米时又被 `rock-first` 或林地树的碰撞盒遮挡。
-- 变更：`data/anchors.json` 中 `gull-0` 从林地上空 `[12, 16, 0]` 移到 `[-1.5, 2.5, 2]`（草地上空 2.5 米，距人出生点约 13 米，在默认视角正前方、大于 6 米惊飞半径），新增锚点 A14；其余 7 只海鸥不动。同步 05 布局表与 11 布局修正记录；`frontend/tests/check_browser.py` 新增“人在出生点不移动海鸥即可选中 gull-0”的回归。未改玩法代码、视角限制或数值。
-- 验证：macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1670 项。单次加载游戏的核对全部通过：出生时无实心重叠；人在出生点以 yaw 0.39、pitch 0.06 选中 `gull-0`；按 R 成为海鸥；抬头飞到离地约 110 米；俯视选中并成为主岛；岛可再选中 `boulder-main`。海鸥资产 14 项核对复跑通过。新增回归所在的完整 `check_browser.py` 在本机仍因 Chrome 156 重新加载停住而未跑完（见下条），须由远端 CI 验证。
-- 未验证项／风险：真人能否在 30 秒内自然注意到这只低飞海鸥（G-06）待试玩；同伴分支 `asset/amazon-island`（D-025，PR #4 已关闭未合并）也改动海鸥锚点，合并时需协调。回退：`gull-0` 恢复 `[12, 16, 0]`、`anchorId` 恢复 A07，删除 A14 与回归断言，重跑同步。
-
-## 2026-11-07 · 海鸥接入 Lux3D 模型 v001（Blender 绑骨与动作）
-
-- 负责人：zora-alt111；分支 `asset/fish-birds-v001`，PR 待关联。本分支后续还将处理两种鱼（七彩神仙鱼、银斧鱼）的种类与模型，本条只记录海鸥。
-- AI：Claude Code（Claude Opus 5.5）负责参考图准备（Commons 照片去背景）、原件检查、Blender 脚本化修整／绑骨／动作、导出、数据与文档同步及验证；人工：生成人在 Lux3D 国内版网页生成并提供 GLB；diff、游戏内观感与 QA 待负责人复核。
-- 变更与原因：`slot.gull` 接入首个真实 Lux3D 产物。原件 355,008 三角面、无骨骼，经 Blender 4.5.15 LTS 转向 -Z、放平 17.48°、减面到 24,000、定标身高 0.65 m，建 10 根骨骼（rigSource=blender；Lux3D 网页绑骨面向人形，未用于鸟），做 `Glide`（idle）与 `Flap`（move）循环动作，导出 2.0 MB GLB（贴图 JPEG 内嵌，无 Draco）。槽改为 `integrated`／`lux3dUsed: true`，台账原 `PLAN-bird_gull_01` 行替换为 `LUX3D-bird_gull_01`；来源链放在 `assets/lux3d/LUX3D-bird_gull_01/`（输入参考图与许可、原件、`.blend` 与脚本、导出记录、游戏内截图）。同步 04／06／10／11、README、CONTRIBUTING、THIRD_PARTY、LICENSES 中“尚无真实 Lux3D 资产”的表述。未改玩法代码、数值、布局或规则。
-- 验证：macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1666 项；`python3 project/check_repository.py` 检查 80 个文件、0 错误（本机无 Node.js，JavaScript 语法检查未运行，本次无 JS 改动）；`python3 -m unittest discover -s project/tests` 通过 14 项；`git diff --check` 通过。游戏内用 `evidence/verify_gull.py` 加载一次游戏并核对 14 项，全部通过：8 只海鸥均用新模型、身高 0.65 m、idle／move 映射 Glide／Flap 且随移动切换、碰撞盒随模型、抬头爬升与 180 m 限高、高飞选中并成为岛、人选中并成为海鸥；附 4 张软件渲染截图。
-- 未完成的检查：`python3 project/check_all.py --only browser` 在本机两次超时于 `check_browser.py` 的重新加载；在干净的 `origin/main`（a35fa03）工作树上同样失败。排查为本机 Chrome 156 无头模式下 0.2 s 高频 `Runtime.evaluate` 轮询使重新加载停住（10 s 轮询可正常加载），与本次资产无关，未修改检查工具；完整 126 项回归须看远端 CI 或另一台机器。
-- 未验证项／风险：生成任务 ID、生成方式（图生／文生）、版本、积分与迭代次数待生成人补充，台账对应字段暂空；Lux3D 用户协议与活动素材条款未查阅；参考照片 CC BY 3.0 须署名。按现有 `body.height` 定标后翼展约 2.84 m，约为真实海鸥两倍，与 `scaleTierReason`“翼展略超 1 m”不符，是否调小属 TUNABLE 调整，待负责人决定并试玩。权重为程序计算，翅根大幅扇动处可能拉伸；无真人试玩、目标设备帧率与 QA-31～QA-34 人工验收。回退：槽 `url` 改回 `null`、`status` 改回 `placeholder`、`lux3dUsed` 改回 `false`，台账恢复计划行并重跑同步脚本。
+- 负责人：zora-alt111；分支 `asset/fish-birds-v001`（已合并 `origin/main` 197f216，04／06／11／CHANGELOG 的文字冲突已解决，两边内容都保留），PR 见分支；同一任务的连续调整合并为本条记录。
+- AI：Claude Code（Claude Opus 5.5）负责选种参考、Blender 脚本化修整／绑骨／动作、数据与代码、文档、检查与游戏内核对；人工：负责人在 Lux3D 国内版网页生成全部模型，确定种类、数量、山湖位置、卡通风格与归队方式，并在游戏内试玩后提出体型、扇翅与斑块三项修改。
+- 种类与数量（D-027，会话授权，待团队确认）：七彩神仙鱼 `fish_discus_01`（`slot.discus`）取代蝴蝶鱼 `fish_butterfly_01`，引文 ID 改为 `TXT-FISH-DISCUS`（内容不变）；`fish_silver_01` 定为银斧鱼。两种鱼都放在山湖，近海暂无鱼。海鸥 8 → 4 只，银斧鱼 8 → 12 条（一群），七彩神仙鱼 6 条。能力与感知未改。
+- 资产：三件 Lux3D GLB 用 Blender 4.5.15 脚本处理，包括自动转向、放平、减面、定标、绑骨，以及 idle／move 动作，JPEG 内嵌、无 Draco。
+  - 海鸥 v003：137,378 → 30,000 面；原件双翅高举成 V 形，在肩部压平后设为静止姿态；动作 `Glide`／`Flap` 为连续曲线，关节过渡加宽，避免“折翅”。
+  - 银斧鱼：8,000 面；七彩神仙鱼：29,000 面。面数更低时贴图出现白斑，两种鱼都是按游戏内近景对比选定。动作均为 `Swim`／`SwimFast`。
+  - 迭代过程：写实版 v001（参考图为 Commons 照片，PierreSelim，CC BY 3.0）未采用，只保留原件与记录，运行时文件与 `.blend` 已移除；卡通版 v002 保留作回退。海鸥 v003 曾在“翅膀平滑”中对肩部做顶点放松，导致层叠羽毛互相穿插、游戏中出现斑块，已去掉该步骤并改为平滑着色。
+  - 来源链在 `assets/lux3d/LUX3D-bird_gull_01`（raw／edit／export 分 v001～v003）、`LUX3D-fish_silver_01`、`LUX3D-fish_discus_01`；台账新增对应行，v001、v002 标为 `superseded`。
+- 环境移动（D-027）：新增 `frontend/src/ambient.js`，按 `anchors.json` 新增的 `ambient` 航线驱动未被占据的海鸥与鱼。航线是按时间重复的环线或“8”字形；海鸥在低飞段减速，并按模型实际尺寸抬过实心身体；鱼不离开所属水体；银斧鱼保持队形。玩家占据或正在进入的身体不受航线驱动，离开后先停约 4 秒再归队；惊飞／四散期间交给互动。`world.js`、`main.js` 小改，`sync_runtime.py` 输出 `ambient`。
+- 开局可选中海鸥：原有问题是地面身体不能仰视，海鸥又都在 15～17 米高空，从人出生点选不中任何海鸥（干净的 main 同样复现）。现在 `gull-0` 约每 32 秒在人出生点前方减速低飞经过（锚点 A14），人平视即可选中。
+- TUNABLE（试玩反馈“从某些角度看非常大”）：海鸥 `body.height`／`asset.height` 0.65 → 0.32、`collisionRadius` 0.65 → 0.5、占位碰撞盒等比缩小、镜头距离 5.0 → 3.5。v003 在游戏内翼展约 0.89 m。
+- 测试与文档：`check_browser.py` 改为“低飞时可选中 gull-0”，惊飞测试期间暂停航线，并新增环境移动回归（数量来自数据）。同步 01、03、04、05、06、07、08（QA-15、QA-18、新增 QA-48）、09（D-027）、10、11、GLOSSARY、CONTRIBUTING、README、数据指南、THIRD_PARTY、LICENSES。
+- 验证（macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80、Blender 4.5.15）：
+  - `python3 project/sync_runtime.py`；`python3 project/validate_docs.py` PASS（1726 项）。
+  - `python3 project/check_repository.py` 0 错误（本机无 Node.js，未运行 `--javascript`；新 JS 已在游戏中执行）；`python3 -m unittest discover -s project/tests` OK；`git diff --check` 通过。
+  - 游戏内单次加载核对 15 项全部通过：模型加载、全部移动、60 秒鱼不出水、鱼群不散、海鸥不穿实心体、低飞时人可选中并成为海鸥、占据与释放。`check_browser.py` 新增与修改的片段单独运行 9 项通过。
+  - 海鸥大小、扇翅、斑块问题都做了游戏内近景对照与逐帧渲染；截图在各资产的 `evidence/` 与 `edit/*/previews/`。
+- 未完成的检查：完整的 `check_all.py --only browser` 在本机 Chrome 156 下重新加载会停住（高频轮询所致，干净的 main 同样），以 PR 的 Actions 结果为准。
+- 未验证项／风险：
+  - 三件 GLB 的生成方式、任务 ID、版本与积分待生成人补充（台账与 `task.json` 已标“待补”）；Lux3D 用户协议未查阅。
+  - D-027 与 DF-03 的关系待团队确认。
+  - 旧存档中的 `gull-4`～`gull-7` 会被跳过（可能与 PR #5 相关）。
+  - 海鸥翅根在扇翅时有轻微鼓起、双脚下垂；新手能否发现低飞海鸥、目标设备帧率、QA-31～QA-34、QA-48 待真人验收。
+- 回退：删除 `ambient` 段即恢复静止的鸟鱼；槽 `url` 改回 v002 或 `null` 并重跑同步即回退模型；种类与数量按本条恢复，或直接 revert 本 PR。
 
 ## 2026-11-07 · 接入人物模型
 

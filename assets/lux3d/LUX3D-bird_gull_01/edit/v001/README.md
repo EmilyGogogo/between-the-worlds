@@ -19,7 +19,7 @@ blender -b -P rig_gull.py -- ../../raw/v001/textured.glb <out_dir>
    - `Flap`（move，16 帧 / 0.67 s）：肩 +38° ~ -34° 扇动，前臂与翼尖延迟弯折，下扑时身体微升。
 8. 导出 GLB：`export_animation_mode=NLA_TRACKS`，蒙皮与动画导出，贴图转 JPEG（质量 88）内嵌，未用 Draco／Meshopt／KTX2。
 
-文件：`bird_gull_01-v001.blend`（压缩保存）、`rig_gull.py`、`render_anim.py`（静止与动作帧渲染）、`report.json`、`previews/rig-and-animation-frames.png`。
+文件：`bird_gull_01-v001.blend` 已于 2026-11-08 从仓库移除（v001 未被采用；可用 `rig_gull.py` 从 `../../raw/v001/textured.glb` 重新生成）、`rig_gull.py`、`render_anim.py`（静止与动作帧渲染）、`report.json`、`previews/rig-and-animation-frames.png`。
 
 已知问题：
 - 体型偏大：按现有 `body.height` 0.65 m 定标后翼展约 2.84 m，与现有占位碰撞盒（宽 2.8 m）一致，但约为真实海鸥（约 1.3–1.5 m）的两倍，也与 `scaleTierReason`“翼展略超 1 m”不符。是否调小 `body.height` 属 TUNABLE 数值调整，需试玩记录，待负责人决定。
