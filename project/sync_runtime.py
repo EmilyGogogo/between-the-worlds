@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_ASSET_FIELDS = ['url', 'variants', 'lod', 'height', 'rotation', 'animations', 'colliderMode',
                         'collisionBoxes', 'slotId', 'status', 'placeholder', 'placeholderStyle', 'lux3dUsed', 'pivot']
-RUNTIME_DECOR_FIELDS = ['slotId', 'url', 'variants', 'height', 'scaleRange', 'wind', 'visibleUpToStage', 'placeholder', 'scatter', 'status']
+RUNTIME_DECOR_FIELDS = ['slotId', 'url', 'variants', 'height', 'scaleRange', 'wind', 'visibleUpToStage', 'placeholder', 'placeholderStyle', 'scatter', 'status']
 RUNTIME_LAYER_FIELDS = ['cameraLookAhead', 'cameraTerrainFloor', 'cameraCollision', 'fogDensity', 'localSun', 'focusHeightRatio', 'possessMinPitch']
 
 
@@ -68,7 +68,10 @@ def generate():
         }
         models[kind] = {k: e['asset'][k] for k in RUNTIME_ASSET_FIELDS}
     world = next((s for s in entities['environmentSlots'] if s['slotId'] == 'env.world'), None)
-    environment = {k: world[k] for k in ['url', 'scale', 'position', 'rotation', 'useAsTerrain']} if world and world['url'] else None
+    # A heightfield (generated in Blender by project/terrain/river_island.py) or a whole-world GLB
+    # replaces the procedural island.
+    environment = ({k: world.get(k) for k in ['url', 'scale', 'position', 'rotation', 'useAsTerrain', 'heightfield']}
+                   if world and (world.get('url') or world.get('heightfield')) else None)
     decor = [{k: s.get(k) for k in RUNTIME_DECOR_FIELDS} for s in entities['environmentSlots'] if s.get('scatter')]
     to_kind = lambda item: {**{k: v for k, v in item.items() if k != 'type'}, 'kind': kinds[item['type']]}
     world_layout = {

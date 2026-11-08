@@ -173,13 +173,13 @@ def main():
         for variant in a['variants']:
             check(isinstance(variant, str) or bool(variant.get('url')), f'{eid}: each variant needs a url')
             sources.append(variant if isinstance(variant, str) else variant.get('url'))
-        check(isinstance(a['lod'], list) and all(isinstance(l.get('distance'), (int, float)) and l.get('url') for l in a['lod']), f'{eid}: lod levels need url and distance')
+        check(isinstance(a['lod'], list) and all(isinstance(l.get('distance'), (int, float)) and (l.get('url') or l.get('node')) for l in a['lod']), f'{eid}: lod levels need a url or node, and a distance')
         if categories[e['category']]['isAnimal']:
             check({'idle', 'move'} <= set(a['requiredAnimationRoles']), f'{eid}: animals need idle and move (L-05)')
         if sources:
             check(a['status'] in SLOT_STATES[3:], f'{eid}: model set but slot not integrated')
             check(set(a['requiredAnimationRoles']) <= set(a['animations']), f'{eid}: missing animation mapping')
-            for url in sources + [l['url'] for l in a['lod']]:
+            for url in sources + [l['url'] for l in a['lod'] if l.get('url')]:
                 if url and not url.startswith('http'):
                     check((ROOT / 'frontend' / url.removeprefix('./')).exists(), f'{eid}: asset file missing: {url}')
         else:
@@ -219,14 +219,19 @@ def main():
     unique(layout['instances'], 'id', 'instance ID')
     unique(layout['scatter'], 'id', 'scatter group ID')
     regions = {r['id'] for r in layout['regions']}
-    # Water bodies (M-04): data-driven; exactly one sea, enclosed bodies need a shape and surface.
+    # Water bodies (M-04): data-driven; exactly one river (D-025), enclosed bodies need a shape and surface.
     num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
     waters = [r for r in layout['regions'] if r.get('water')]
-    seas = [r for r in waters if r['water'].get('type') == 'sea']
-    check(len(seas) == 1 and all(num(seas[0]['water'].get(k)) for k in ['levelM', 'minDepthM']), 'Need exactly one sea region with levelM and minDepthM')
+    rivers = [r for r in waters if r['water'].get('type') == 'river']
+    check(len(rivers) == 1 and all(num(rivers[0]['water'].get(k)) for k in ['levelM', 'minDepthM']), 'Need exactly one river region with levelM and minDepthM')
+    corridor = rivers[0].get('corridor', {}) if rivers else {}
+    check(all(num(corridor.get(k)) and corridor[k] > 0 for k in ['halfWidthM', 'lengthM']) and num(corridor.get('bankClearanceM')), 'River needs a corridor with halfWidthM, lengthM and bankClearanceM')
     for r in waters:
         w = r['water']
-        check(w.get('type') in {'sea', 'enclosed'}, f'{r["id"]}: water.type must be sea or enclosed')
+        check(w.get('type') in {'river', 'enclosed'}, f'{r["id"]}: water.type must be river or enclosed')
+        for k in ['deep', 'shallow']:
+            c = w.get('look', {}).get(k)
+            check(c is None or (isinstance(c, str) and len(c) == 7 and c.startswith('#')), f'{r["id"]}: water colour {k} must be #rrggbb')
         if w.get('type') == 'enclosed':
             check(r.get('shape') == 'ellipse' and len(r.get('center', [])) == 2 and len(r.get('radii', [])) == 2 and all(num(v) and v > 0 for v in r.get('radii', [])),
                   f'{r["id"]}: enclosed water needs an ellipse with center and positive radii')
@@ -238,7 +243,7 @@ def main():
     for a in anchors.values():
         check(set(a['safeFor']) <= entity_ids, f'Unknown safe type at {a["id"]}')
         check(len(a['position']) == 3 and all(isinstance(v, (int, float)) and math.isfinite(v) for v in a['position']), f'Invalid position at {a["id"]}')
-    known = {'ocean'}
+    known = {'river'}
     for i in layout['instances']:  # carriers must come first
         check(i['type'] in entities, f'Broken instance type: {i["id"]}')
         check(i['carrier'] in known, f'{i["id"]}: carrier {i["carrier"]} must be listed before it')

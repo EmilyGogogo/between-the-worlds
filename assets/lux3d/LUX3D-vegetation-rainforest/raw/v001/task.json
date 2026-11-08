@@ -1,0 +1,24 @@
+{
+  "service": "Lux3D 国内版 API https://api.aholo3d.cn",
+  "client": "lux3d-cn skill lux3d_client.py text",
+  "request": {
+    "prompt": "见 ../../input/prompt.txt",
+    "version": "G1",
+    "style": "photorealistic",
+    "faceCount": 30000,
+    "outputFormat": "默认（ZIP + GLB）"
+  },
+  "tasks": [
+    {"file": "1-kapok.glb", "downloaded": "2026-11-08T13:14+08:00", "triangles": 43752, "bytes": 12182640},
+    {"file": "2-canopy.glb", "downloaded": "2026-11-08T13:15+08:00", "triangles": 37066, "bytes": 11895512},
+    {"file": "3-acai.glb", "downloaded": "2026-11-08T13:27+08:00", "triangles": 44980, "bytes": 12232972},
+    {"file": "4-understory.glb", "downloaded": "2026-11-08T13:27+08:00", "triangles": 33102, "bytes": 10995040}
+  ],
+  "taskIds": "未留存：生成时 API Key 只在当时的终端会话中，本地日志只记录了下载路径与大小；可在 Lux3D 生成记录（2026-11-08 13:00–13:30）中按时间核对",
+  "consumedCredits": "会话中记录前两个任务各 20 积分；后两个任务同参数，未单独核对",
+  "files": {
+    "<n>.glb": "任务的 GLB 输出（贴图内嵌：2048 px 颜色贴图 + 金属/粗糙度贴图），未改动",
+    "<n>-preview.png": "生成后在 Blender 中渲染的预览，给创作者确认用",
+    "result.zip": "任务的 ZIP 输出（含 Raw*Filter 材质贴图），未入库"
+  }
+}

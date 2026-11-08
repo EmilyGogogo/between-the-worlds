@@ -119,7 +119,7 @@ def main():
                     '--disable-background-networking', '--disable-extensions', '--disable-dev-shm-usage',
                     '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
                     '--remote-debugging-address=127.0.0.1', f'--remote-debugging-port={debug_port}',
-                    f'--user-data-dir={profile}', url + '?debug',
+                    f'--user-data-dir={profile}', url + '?debug&render=0',
                 ], stdout=chrome_log, stderr=subprocess.STDOUT)
                 processes.append(browser)
                 wait_ready(f'http://127.0.0.1:{debug_port}/json/version', browser)
@@ -137,7 +137,7 @@ def main():
                     check = subprocess.run([
                         sys.executable, str(ROOT / 'frontend/tests/check_browser.py'),
                         '--port', str(debug_port), '--url', url,
-                    ], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=300)
+                    ], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)  # software rendering compiles the river-island shaders on every reload
                 print((args.output / 'browser.log').read_text(encoding='utf-8'), flush=True)
                 if check.returncode:
                     result['browser'] = 'failed'

@@ -11,7 +11,9 @@
 | 原型几何／纹理／环境声 | 由项目程序生成；来源见 `frontend/src/assets.js`、`frontend/src/world.js`、`frontend/src/audio.js`；尚未声明对外使用许可 | 随项目自有内容一并明确授权范围；程序生成不等于自动获得对外授权 |
 | 世界回应文本 | 12 条拟用引文；古籍版本、外文中译与转述尚待逐字核对，当前出处见 [dialogue.json](../data/dialogue.json) | 逐条记录原著／译文版本、译者、出版信息与使用依据，核对活动条款；不以“单句引用”推定可发布；署名方案尚待确认 |
 | 界面字体 | 使用系统字体栈；未随项目分发字体文件 | 若新增字体文件，记录授权 |
-| Lux3D 模型 | 当前未导入真实生成产物 | 生成后记录输入素材来源、服务条款／使用权信息、修改与证据 |
+| Lux3D 模型 | 雨林植被（D-029）：吉贝木棉、林冠阔叶树、阿萨伊棕榈丛、林下灌丛，Lux3D 国内版 text-to-3d G1 生成（2026-11-08，纯文本提示词，无参考图），原件与记录在 `assets/lux3d/LUX3D-vegetation-rainforest/`，经 `project/vegetation/build_vegetation.py` 减面并烘焙替身后存于 `frontend/public/models/vegetation/` | 待核实 Lux3D 国内版用户协议与活动素材条款；任务号未留存，需按生成时间在 Lux3D 记录中核对 |
+| 地表贴图（Poly Haven，CC0） | coast_sand_01、brown_mud_02、leafy_grass、mud_cracked_dry_03、forest_leaves_04 的 1K diffuse 与 OpenGL normal，取自 polyhaven.com（API 文件 2026-11-06），以 JPEG 质量 78 重新压缩，存于 `frontend/public/textures/ground/`；Poly Haven 资产以 CC0 发布 | 分发时保留来源记录；CC0 不要求署名 |
+| 主岛地形高度场 | 由 `project/terrain/river_island.py` 程序生成，无外部输入素材 | 随项目自有内容一并明确授权范围 |
 | 后续模型／纹理／录音／音乐 | 尚无新外部素材记录 | 每项入库前登记来源与许可，不以下载成功代表授权 |
 
 资产事实见 [asset-ledger.csv](../data/asset-ledger.csv)，原型依赖说明见 [THIRD_PARTY.md](../frontend/THIRD_PARTY.md)。

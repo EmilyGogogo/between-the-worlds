@@ -63,24 +63,6 @@
       "reviewState": "creator_requested_quote"
     },
     {
-      "id": "TXT-TREE-PINE",
-      "text": "岁寒，然后知松柏之后凋也。",
-      "sourceType": "quoted",
-      "author": "孔子",
-      "work": "《论语·子罕》",
-      "originalText": null,
-      "sourceReference": "孔子，《论语·子罕》",
-      "textStatus": "classical",
-      "sourceNote": "先秦典籍原文，据通行本；定稿时按团队选定的版本逐字核对",
-      "fit": "松的时间尺度",
-      "entityType": "tree_pine_01",
-      "trigger": "target_focus",
-      "triggerAnchor": null,
-      "cooldownGroup": "world_response",
-      "maxPlaysPerSession": 1,
-      "reviewState": "creator_requested_quote"
-    },
-    {
       "id": "TXT-ROCK-COAST",
       "text": "天下莫柔弱于水，而攻坚强者莫之能胜。",
       "sourceType": "quoted",

@@ -100,7 +100,7 @@ MUST 的修改按既有流程确认并记入 [决策](docs/09-decisions.md)。TU
 
 | 工作组 | 固定种类 / 槽 | 分支例子 |
 | --- | --- | --- |
-| 植被 | `plant_grass_01`、`tree_broadleaf_01`、`tree_pine_01`；`slot.grass`、`slot.broadleaf`、`slot.pine` | `asset/vegetation-v001` |
+| 植被 | `plant_grass_01`、`tree_broadleaf_01`、`tree_palm_01`；`slot.grass`、`slot.broadleaf`、`slot.palm` | `asset/vegetation-v001` |
 | 人与狗 | `human_01`、`dog_01`；`slot.human`、`slot.dog` | `asset/characters-v001` |
 | 鸟类 | `bird_gull_01`；`slot.gull` | `asset/birds-v001` |
 | 鱼类 | `fish_silver_01`、`fish_butterfly_01`；对应的鱼类槽 | `asset/fish-v001` |
@@ -139,8 +139,8 @@ MUST 的修改按既有流程确认并记入 [决策](docs/09-decisions.md)。TU
 
 ### 岛屿美化
 
-1. 先替换树、草、岩石和卵石，围绕现有草地、林地、山湖、岩丘、岸线与近海做构图；每轮少量模型。
-2. 再修改 `anchors.json` 和装饰槽的散布参数，保留人类起点的首个目标、可辨认主岛的位置、邻岛巨岩→松树→草的返回路径。
+1. 先替换树、草、岩石和卵石，围绕现有草地、林地、牛轭湖、岩丘、岸线与岛外河水做构图；每轮少量模型。
+2. 再修改 `anchors.json` 和装饰槽的散布参数，保留人类起点的首个目标、可辨认主岛的位置、邻岛巨岩→阿萨伊棕榈→草的返回路径。
 3. 整岛地形替换单独开 PR。`env.world` 用于整片主岛，`slot.island` 用于岛屿身体；模型可加载不代表高度、碰撞、湖水、出生点与锚点自动适配。
 4. 每轮测试小尺度行走、相机避障、动物活动区、成为整座岛、携带实体与返回，记录实际帧率。装饰 GLB 当前没有程序风动；不要把装饰升级成新的可魂穿类别。
 

@@ -1,14 +1,17 @@
 import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
-import { World, terrainHeight, PLANET_RADIUS } from './world.js';
+import { World, terrainHeight, PLANET_RADIUS, loadTerrainField } from './world.js';
+import { Atmosphere } from './sky.js';
 import { SPECIES,SCALE_TIERS,TUNING,LAYOUT,loadRuntimeConfig,actionForCode,canEmbody,layerOf } from './species.js';
 import { InteractionSystem } from './interactions.js';
 import { WorldCollision } from './collision.js';
 import { Ambience } from './audio.js';
 
 const $=id=>document.getElementById(id);
-// 0.3 baseline save; earlier prototype saves (planets, companions) are ignored (W-04).
-const STORAGE='between-all-things.save.v4';
+// River-island save (D-025); saves from the sea archipelago or earlier prototypes are
+// ignored, since their positions belong to another terrain (W-04).
+const STORAGE='between-all-things.save.v5';
+const SAVE_VERSION=5;
 const SOUND='between-all-things.sound';
 const UP=new THREE.Vector3(0,1,0);
 const v1=new THREE.Vector3(),v2=new THREE.Vector3(),v3=new THREE.Vector3();
@@ -34,9 +37,11 @@ class Game {
     this.scene.fog=new THREE.FogExp2('#bac9b5',.004);
     this.camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.025,400000);
     this.camera.position.set(25,14,55);this.camera.lookAt(-5,6,-15);
-    this.scene.add(new THREE.HemisphereLight('#dfe8d9','#75804e',1.8));
+    this.hemi=new THREE.HemisphereLight('#dfe8d9','#75804e',1.8);this.scene.add(this.hemi);
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
-    this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
+    // Day, night, seasons and rain (D-026) light the world and its water.
+    this.atmosphere=new Atmosphere(this.scene,{sun:this.sun,hemi:this.hemi,renderer});
+    this.world=new World(this.scene,assets,this.atmosphere);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
     this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
     this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;
@@ -317,9 +322,11 @@ class Game {
     if(s.mode==='swim'){const w=this.world.water(p.x,p.z);if(w)p.y=clamp(p.y,w.floor+s.height*.3,Math.max(w.floor+s.height*.3,w.surface-s.height*.7));}
     if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion];p.y=clamp(p.y,this.world.height(p.x,p.z)+air.minClearanceM,tune('flightCeilingM',air.maxY));}
   }
+  // Islands drift along the river between its forested banks (M-04, D-025).
   moveIsland(e,local){
     const p=e.root.position;p.add(local);
-    const limit=PLANET_RADIUS*.76,rad=Math.hypot(p.x,p.z);if(rad>limit){p.x*=limit/rad;p.z*=limit/rad;}
+    const corridor=this.world.river.corridor,s=SPECIES[e.kind],side=corridor.halfWidthM-s.surface?.radii?.[2]*1.15-corridor.bankClearanceM,end=corridor.lengthM/2-s.radius*1.2;
+    p.x=clamp(p.x,-end,end);p.z=clamp(p.z,-side,side);
     p.y=Math.sqrt(Math.max(0,PLANET_RADIUS**2-p.x*p.x-p.z*p.z));
     e.root.quaternion.setFromUnitVectors(UP,p.clone().normalize());
     this.resolveLargeBodies(e);
@@ -375,16 +382,22 @@ class Game {
     const underwater=(pool?.type==='enclosed'&&localEye.y<pool.surface)||this.world.planetRoot.worldToLocal(this.camera.position.clone()).length()<PLANET_RADIUS+this.world.seaLevel-.1;
     this.scene.userData.underwater=underwater;
     const shown=f>.5?layer:layerOf((tr?.from||subject).kind);
-    const density=underwater?.045:shown.fogDensity*this.view.fogMultiplier;
+    const density=underwater?.045:shown.fogDensity*this.view.fogMultiplier*this.atmosphere.fogBoost;
     this.scene.fog.density=THREE.MathUtils.damp(this.scene.fog.density,density,1.5,dt);
-    this.scene.fog.color.lerp(new THREE.Color(underwater?'#3e7c73':'#b5c4aa'),1-Math.exp(-dt*2));
+    this.scene.fog.color.lerp(underwater?new THREE.Color('#3b4a2c'):this.atmosphere.fogColor,1-Math.exp(-dt*2));
     this.scene.userData.cameraPosition=this.camera.position;
     const center=this.world.position(subject);
-    if(shown.localSun){this.sun.position.copy(center).add(new THREE.Vector3(-60,110,35));this.sun.target.position.copy(center);this.sun.castShadow=true;}
-    else{this.sun.castShadow=false;this.sun.position.copy(center).add(new THREE.Vector3(-15000,25000,8000));this.sun.target.position.copy(center);}
+    this.lightFollow(center,shown.localSun);
     this.applyPerception();
     if(tr&&tr.elapsed>=tr.duration)this.finishTransition();
     return f;
+  }
+  // The sun (or the moon at night) lights from the atmosphere's direction; near layers keep a
+  // tight shadow box around the body, large layers light from far away without shadows.
+  lightFollow(center,local){
+    const dir=this.sun.userData.direction||UP;
+    this.sun.position.copy(center).addScaledVector(dir,local?150:30000);this.sun.target.position.copy(center);
+    this.sun.castShadow=local&&dir.y>.05;
   }
   applyPerception(){
     const v=this.view,filter=`grayscale(${v.grayscale.toFixed(3)}) saturate(${v.saturation.toFixed(3)}) contrast(${v.contrast.toFixed(3)}) brightness(${v.brightness.toFixed(3)})`;
@@ -440,12 +453,12 @@ class Game {
   }
   save(){
     if(!this.started||this.resetting||(this.transition&&!this.transition.opening))return;
-    try{localStorage.setItem(STORAGE,JSON.stringify({version:4,player:this.player.id,entities:this.world.serialize(),yaw:this.yaw,pitch:this.pitch,hints:this.hints,shown:[...this.shown]}));$('save-status').textContent='足迹已留在这台设备上';}
+    try{localStorage.setItem(STORAGE,JSON.stringify({version:SAVE_VERSION,player:this.player.id,entities:this.world.serialize(),yaw:this.yaw,pitch:this.pitch,hints:this.hints,shown:[...this.shown],atmosphere:this.atmosphere.serialize()}));$('save-status').textContent='足迹已留在这台设备上';}
     catch{$('save-status').textContent='暂时无法保存足迹';}
   }
   restore(){
-    try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'null');if(!saved||saved.version!==4||!this.world.byId.has(saved.player))return false;
-      this.world.restore(saved.entities);this.player=this.world.byId.get(saved.player);
+    try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'null');if(!saved||saved.version!==SAVE_VERSION||!this.world.byId.has(saved.player))return false;
+      this.world.restore(saved.entities);this.atmosphere.restore(saved.atmosphere);this.player=this.world.byId.get(saved.player);
       this.yaw=Number.isFinite(saved.yaw)?saved.yaw:.35;this.pitch=clamp(Number.isFinite(saved.pitch)?saved.pitch:.27,this.pitchMin(),1.16);
       this.hints={...this.hints,...saved.hints};this.shown=new Set(Array.isArray(saved.shown)?saved.shown:[]);$('enter-label').textContent='继续漫游';return true;
     }catch{return false;}
@@ -454,6 +467,7 @@ class Game {
     requestAnimationFrame(()=>this.loop());const dt=Math.min(this.clock.getDelta(),.05);
     if(!this.paused){
       let subject=this.player;
+      this.atmosphere.update(dt,this.camera.position,{underwater:this.scene.userData.underwater,camera:this.camera});
       if(this.started){
         this.elapsed+=dt;this.collision.refresh();
         if(!this.transition){this.move(dt);this.collision.refresh();}
@@ -466,22 +480,30 @@ class Game {
         const t=this.world.time;
         if(this.hasSave){const s=SPECIES[this.player.kind],focus=this.world.focus(this.player);this.introFocus.copy(focus);this.camera.position.copy(focus).add(new THREE.Vector3(Math.sin(this.yaw+.2)*s.camera*1.25,s.camera*.4,Math.cos(this.yaw+.2)*s.camera*1.25));}
         else{this.camera.position.set(25+Math.sin(t*.07)*2,14,55+Math.cos(t*.07)*2);this.introFocus.set(-5,6,-15);}
-        this.camera.lookAt(this.introFocus);this.scene.userData.cameraPosition=this.camera.position;this.applyPerception();
+        this.camera.lookAt(this.introFocus);this.scene.userData.cameraPosition=this.camera.position;this.lightFollow(this.introFocus,true);this.applyPerception();
       }
       const info=this.targetInfo,size=info?.carrier?Math.max(1.5,this.camera.position.distanceTo(info.point)*.05):Math.max(SPECIES[this.target?.kind]?.radius||0,.5);
       this.world.update(dt,subject,this.target,info?.point||null,size);
       if(this.started)this.interactions.update(dt);
     }
-    if(!this.paused||this.needsRender){this.renderer.render(this.scene,this.camera);this.needsRender=false;}
+    if((!this.paused||this.needsRender)&&!NO_RENDER){this.renderer.render(this.scene,this.camera);this.needsRender=false;}
   }
 }
 
+// ?debug&render=0 runs the game without drawing it: automated checks on software rendering
+// (CI) read state, never pixels, and a dense rainforest takes seconds per frame there.
+const NO_RENDER=(()=>{const p=new URLSearchParams(location.search);return p.has('debug')&&p.get('render')==='0';})();
 async function boot(){
   try{
     const renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:true,alpha:false,powerPreference:'high-performance'});
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     await loadRuntimeConfig();
-    const assets=new AssetLibrary();await assets.prepare();game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
+    const assets=new AssetLibrary();await assets.prepare();
+    // A missing or broken heightfield keeps the procedural island (L-03).
+    try{await loadTerrainField(assets.manifest.environment);}catch(e){assets.errors.push('heightfield: '+e.message);console.warn('Heightfield unavailable; procedural terrain kept.',e);}
+    game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
+    // Compile every material while the loading screen shows, so entering does not stall.
+    try{game.world.update(0,game.player,null,null,1);if(!NO_RENDER)await renderer.compileAsync(game.scene,game.camera);}catch(e){console.warn('Shader warm-up skipped',e);}
     if(!game.hasSave)$('enter-label').textContent='进入旷野';$('enter').disabled=false;
     // Debug access is available only with ?debug; the normal product UI stays quiet.
     if(new URLSearchParams(location.search).has('debug'))window.__world=game;

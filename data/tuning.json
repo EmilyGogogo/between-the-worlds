@@ -250,6 +250,69 @@
       "rule": "P-16",
       "reviewState": "proposed",
       "note": "视点抬升的缓冲：已获得的抬升在视点低于阈值 ×(1 − 此值) 时才撤销，避免涟漪闪烁"
+    },
+    "dayLengthSec": {
+      "value": 1200,
+      "unit": "s",
+      "min": 600,
+      "max": 3600,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "一个完整昼夜的现实时长（20 分钟）；夜晚只占其中 nightShare"
+    },
+    "seasonLengthSec": {
+      "value": 4800,
+      "unit": "s",
+      "min": 2400,
+      "max": 14400,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "雨季→旱季→雨季一整轮的现实时长（80 分钟，约四个昼夜）"
+    },
+    "startTimeOfDay": {
+      "value": 0.36,
+      "unit": "phase",
+      "min": 0,
+      "max": 1,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "干净开局的时刻：0 午夜，0.25 日出，0.5 正午，0.75 日落"
+    },
+    "startSeason": {
+      "value": 0.1,
+      "unit": "phase",
+      "min": 0,
+      "max": 1,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "干净开局的季节：0 雨季最盛，0.5 旱季最盛"
+    },
+    "showerPeriodSec": {
+      "value": 150,
+      "unit": "s",
+      "min": 40,
+      "max": 600,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "雨季阵雨的大致间隔"
+    },
+    "nightShare": {
+      "value": 0.2,
+      "unit": "ratio",
+      "min": 0.1,
+      "max": 0.35,
+      "rule": "W-10",
+      "reviewState": "creator_directed",
+      "note": "夜晚（日落后到日出前）占一个昼夜的比例：20 分钟里约 4 分钟"
+    },
+    "bankTreeDistanceM": {
+      "value": 2600,
+      "unit": "m",
+      "min": 1200,
+      "max": 5000,
+      "rule": "W-10",
+      "reviewState": "creator_directed",
+      "note": "两岸布景树按 300 m 一段，离视点超过这个距离的段不画（远处靠林冠面与雾）；调小可省开销"
     }
   },
   "hardConstraints": {

@@ -63,7 +63,7 @@
       "cameraLookAhead": 0.65,
       "cameraTerrainFloor": true,
       "cameraCollision": true,
-      "fogDensity": 0.004,
+      "fogDensity": 0.0016,
       "localSun": true,
       "focusHeightRatio": 0.44,
       "possessMinPitch": null
@@ -72,7 +72,7 @@
       "cameraLookAhead": 0.45,
       "cameraTerrainFloor": true,
       "cameraCollision": true,
-      "fogDensity": 0.004,
+      "fogDensity": 0.0016,
       "localSun": true,
       "focusHeightRatio": 0.44,
       "possessMinPitch": null
@@ -81,7 +81,7 @@
       "cameraLookAhead": 0.22,
       "cameraTerrainFloor": false,
       "cameraCollision": true,
-      "fogDensity": 0.00085,
+      "fogDensity": 0.0006,
       "localSun": true,
       "focusHeightRatio": 0.35,
       "possessMinPitch": null
@@ -90,10 +90,10 @@
       "cameraLookAhead": 0.22,
       "cameraTerrainFloor": false,
       "cameraCollision": false,
-      "fogDensity": 0.00015,
+      "fogDensity": 0.0002,
       "localSun": false,
       "focusHeightRatio": 0.44,
-      "possessMinPitch": 0.52
+      "possessMinPitch": 0.34
     }
   },
   "scaleTiers": [
@@ -198,7 +198,7 @@
     },
     "broadleaf": {
       "id": "tree_broadleaf_01",
-      "name": "阔叶树",
+      "name": "雨林阔叶树",
       "category": "tree",
       "isAnimal": false,
       "soundCue": null,
@@ -206,26 +206,27 @@
       "tier": 2,
       "scaleTier": "S3",
       "mode": "ground",
-      "radius": 3.4,
-      "height": 12.0,
+      "radius": 5.0,
+      "height": 20.0,
       "wadeDepth": 0.6,
       "surface": null,
       "limbSwingRate": 0,
       "activityRegion": null,
       "speed": 14.0,
       "boost": 2.7,
-      "camera": 29.0,
+      "camera": 46.0,
       "fov": 48,
-      "reach": 150.0,
+      "reach": 180.0,
       "targets": [
         "broadleaf",
-        "pine",
+        "palm",
+        "kapok",
         "rock",
         "boulder",
         "human"
       ],
       "deny": [],
-      "place": "林间的呼吸",
+      "place": "林冠之下",
       "response": "人皆知有用之用，而莫知无用之用也。",
       "moments": {},
       "vision": {
@@ -250,18 +251,18 @@
           [
             -0.7,
             0,
-            -0.7,
+            -0.5,
             0.7,
-            7,
-            0.7
+            6.2,
+            0.9
           ],
           [
-            -4,
-            5,
-            -4,
-            4,
-            11.5,
-            4
+            -9,
+            5.8,
+            -8.5,
+            9.5,
+            20.3,
+            9.5
           ]
         ],
         "solid": true,
@@ -269,9 +270,9 @@
       },
       "verticalControl": "none"
     },
-    "pine": {
-      "id": "tree_pine_01",
-      "name": "松树",
+    "palm": {
+      "id": "tree_palm_01",
+      "name": "阿萨伊棕榈",
       "category": "tree",
       "isAnimal": false,
       "soundCue": null,
@@ -279,27 +280,28 @@
       "tier": 2,
       "scaleTier": "S3",
       "mode": "ground",
-      "radius": 3.5,
-      "height": 15.0,
+      "radius": 2.6,
+      "height": 10.0,
       "wadeDepth": 0.6,
       "surface": null,
       "limbSwingRate": 0,
       "activityRegion": null,
       "speed": 16.0,
       "boost": 2.7,
-      "camera": 34.0,
+      "camera": 24.0,
       "fov": 48,
       "reach": 150.0,
       "targets": [
         "broadleaf",
-        "pine",
+        "palm",
+        "kapok",
         "rock",
         "boulder",
         "human"
       ],
       "deny": [],
-      "place": "山风经过",
-      "response": "岁寒，然后知松柏之后凋也。",
+      "place": "林下的阴凉",
+      "response": "",
       "moments": {},
       "vision": {
         "grayscale": 0,
@@ -321,20 +323,102 @@
       "collision": {
         "boxes": [
           [
-            -0.6,
+            -1.6,
             0,
-            -0.6,
-            0.6,
-            13,
-            0.6
+            -0.9,
+            1.6,
+            3.3,
+            0.7
           ],
           [
-            -3.8,
-            3,
-            -3.8,
-            3.8,
+            -4.2,
+            3.3,
+            -2.9,
+            4.2,
+            10.2,
+            2.7
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "none"
+    },
+    "kapok": {
+      "id": "tree_kapok_01",
+      "name": "吉贝木棉",
+      "category": "tree",
+      "isAnimal": false,
+      "soundCue": null,
+      "stage": 1,
+      "tier": 2,
+      "scaleTier": "S3",
+      "mode": "ground",
+      "radius": 9.0,
+      "height": 42.0,
+      "wadeDepth": 0.6,
+      "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": null,
+      "speed": 24.0,
+      "boost": 2.7,
+      "camera": 96.0,
+      "fov": 48,
+      "reach": 300.0,
+      "targets": [
+        "broadleaf",
+        "palm",
+        "kapok",
+        "rock",
+        "boulder",
+        "human"
+      ],
+      "deny": [],
+      "place": "雨林之上",
+      "response": "",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 900,
+        "underwaterLowpassHz": 360,
+        "range": 60,
+        "waterCueGain": 0.5,
+        "windGain": 0.17,
+        "distantCueGain": 1,
+        "heightAttenuation": false
+      },
+      "collision": {
+        "boxes": [
+          [
+            -3.6,
+            0,
+            -1.2,
+            0.4,
+            25,
+            2.7
+          ],
+          [
+            -9,
+            0,
+            -6.5,
+            6.5,
+            4,
+            8
+          ],
+          [
+            -19,
+            24,
+            -15,
             14,
-            3.8
+            42.5,
+            16.5
           ]
         ],
         "solid": true,
@@ -366,7 +450,8 @@
       "targets": [
         "grass",
         "broadleaf",
-        "pine",
+        "palm",
+        "kapok",
         "rock",
         "gull",
         "silverfish",
@@ -375,7 +460,7 @@
         "dog"
       ],
       "deny": [],
-      "place": "潮汐的边缘",
+      "place": "水线的边缘",
       "response": "天下莫柔弱于水，而攻坚强者莫之能胜。",
       "moments": {},
       "vision": {
@@ -441,7 +526,8 @@
       "reach": 1000.0,
       "targets": [
         "broadleaf",
-        "pine",
+        "palm",
+        "kapok",
         "boulder",
         "island"
       ],
@@ -492,22 +578,22 @@
       "tier": 4,
       "scaleTier": "S5",
       "mode": "island",
-      "radius": 480.0,
-      "height": 85.0,
+      "radius": 560.0,
+      "height": 40.0,
       "wadeDepth": 0,
       "surface": {
         "type": "dome",
         "radii": [
-          330,
-          65,
-          260
+          560,
+          6,
+          340
         ]
       },
       "limbSwingRate": 0,
       "activityRegion": null,
       "speed": 230.0,
       "boost": 2.7,
-      "camera": 1450.0,
+      "camera": 950.0,
       "fov": 48,
       "reach": 16000.0,
       "targets": [
@@ -515,7 +601,7 @@
         "island"
       ],
       "deny": [],
-      "place": "潮汐之间",
+      "place": "大河之中",
       "response": "这些无限空间的永恒沉默使我恐惧。",
       "moments": {
         "first_possess": "人将被抹去，如同大海边沙地上的一张脸。"
@@ -540,12 +626,12 @@
       "collision": {
         "boxes": [
           [
-            -480,
-            -45,
-            -410,
-            480,
-            90,
-            410
+            -575,
+            -10,
+            -345,
+            600,
+            45,
+            350
           ]
         ],
         "solid": true,
@@ -718,7 +804,7 @@
         "dog"
       ],
       "deny": [],
-      "place": "岩礁之间",
+      "place": "河湾浅水",
       "response": "相濡以沫，不如相忘于江湖。",
       "moments": {},
       "vision": {
@@ -778,7 +864,8 @@
       "targets": [
         "grass",
         "broadleaf",
-        "pine",
+        "palm",
+        "kapok",
         "rock",
         "gull",
         "silverfish",
@@ -897,29 +984,31 @@
     "regions": {
       "main_land": {
         "id": "main_land",
-        "definition": "主岛陆地：草地、林地、岩丘、岸线"
+        "definition": "主岛陆地：岛首高地、天然堤、岛内低洼地、牛轭湖内侧沙脊、小河与沙嘴"
       },
       "lake": {
         "id": "lake",
         "shape": "ellipse",
         "center": [
-          -83,
-          -65
+          -70,
+          8
         ],
         "radii": [
-          65,
-          39
+          64,
+          120
         ],
-        "definition": "山湖，银色小鱼的水体",
+        "definition": "牛轭湖（弃置的河曲）：椭圆只框定范围，只有湖床低于湖面的地方才有水；银色小鱼的水体",
         "water": {
           "type": "enclosed",
-          "surfaceY": 5.8,
-          "opacity": 0.88,
-          "basin": {
-            "depthM": 19,
-            "falloffM": [
-              37.416574,
-              20.615528
+          "surfaceY": 0.2,
+          "opacity": 0.92,
+          "look": {
+            "deep": "#1c130b",
+            "shallow": "#4d3720",
+            "clarity": 1.1,
+            "flow": [
+              0.12,
+              0.04
             ]
           }
         }
@@ -928,18 +1017,124 @@
         "id": "lake_shore",
         "shape": "ellipse",
         "center": [
-          -83,
-          -65
+          -70,
+          8
         ],
         "radii": [
-          72,
-          46
+          74,
+          130
         ],
         "definition": "湖岸缓冲带，成片树木避开"
       },
-      "near_sea": {
-        "id": "near_sea",
-        "definition": "主岛周边浅海，蝴蝶鱼所在"
+      "pond_west": {
+        "id": "pond_west",
+        "shape": "ellipse",
+        "center": [
+          -330,
+          60
+        ],
+        "radii": [
+          60,
+          38
+        ],
+        "definition": "岛首低洼处的水塘（D-030，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为深色黑水",
+        "water": {
+          "type": "enclosed",
+          "surfaceY": 0.2,
+          "opacity": 0.92,
+          "look": {
+            "deep": "#1c130b",
+            "shallow": "#4d3720",
+            "clarity": 1.1,
+            "flow": [
+              0.12,
+              0.04
+            ]
+          }
+        }
+      },
+      "pond_south": {
+        "id": "pond_south",
+        "shape": "ellipse",
+        "center": [
+          -10,
+          -200
+        ],
+        "radii": [
+          64,
+          38
+        ],
+        "definition": "岛中部南侧的林中水塘（D-030，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为深色黑水",
+        "water": {
+          "type": "enclosed",
+          "surfaceY": 0.2,
+          "opacity": 0.92,
+          "look": {
+            "deep": "#1c130b",
+            "shallow": "#4d3720",
+            "clarity": 1.1,
+            "flow": [
+              0.12,
+              0.04
+            ]
+          }
+        }
+      },
+      "spawn_clearing": {
+        "id": "spawn_clearing",
+        "shape": "ellipse",
+        "center": [
+          6,
+          15
+        ],
+        "radii": [
+          34,
+          30
+        ],
+        "definition": "出生点林间空地：成片树木避开，保持开阔的首个视野"
+      },
+      "glade_west": {
+        "id": "glade_west",
+        "shape": "ellipse",
+        "center": [
+          -420,
+          -60
+        ],
+        "radii": [
+          73.5,
+          57.75
+        ],
+        "definition": "岛首阶地上的草地空地：地表全是草，成片树木与可魂穿的树都避开，留出开阔的探索空间（D-030）"
+      },
+      "glade_north": {
+        "id": "glade_north",
+        "shape": "ellipse",
+        "center": [
+          -200,
+          205
+        ],
+        "radii": [
+          60.900000000000006,
+          46.2
+        ],
+        "definition": "牛轭湖北面的草地空地：地表全是草，成片树木与可魂穿的树都避开，留出开阔的探索空间（D-030）"
+      },
+      "glade_east": {
+        "id": "glade_east",
+        "shape": "ellipse",
+        "center": [
+          90,
+          -90
+        ],
+        "radii": [
+          54.6,
+          39.9
+        ],
+        "definition": "岛中部的草地空地：地表全是草，成片树木与可魂穿的树都避开，留出开阔的探索空间（D-030）"
+      },
+      "river_shallows": {
+        "id": "river_shallows",
+        "definition": "主岛南岸外的浅水，蝴蝶鱼所在"
       },
       "island_airspace": {
         "id": "island_airspace",
@@ -948,27 +1143,41 @@
           0,
           0
         ],
-        "radius": 760,
+        "radius": 900,
         "minClearanceM": 0.3,
         "minY": 0,
         "maxY": 180,
-        "horizontalBoundary": "main island plus 300 m",
+        "horizontalBoundary": "main island plus about 300 m",
         "definition": "主岛空域：飞行身体的活动区（M-04）；maxY 与 tuning.json 的 flightCeilingM 一致"
       },
-      "ocean": {
-        "id": "ocean",
-        "definition": "群岛之间的海面，岛屿层身体的活动区",
+      "river": {
+        "id": "river",
+        "definition": "亚马逊式大河：两岸雨林之间的河道，岛屿层身体在其中漂移（D-025）",
         "water": {
-          "type": "sea",
+          "type": "river",
           "levelM": -0.1,
-          "minDepthM": 0.4
+          "minDepthM": 0.4,
+          "look": {
+            "deep": "#6b4a2a",
+            "shallow": "#a9855a",
+            "clarity": 1.8,
+            "flow": [
+              1,
+              0
+            ]
+          }
+        },
+        "corridor": {
+          "halfWidthM": 640,
+          "lengthM": 12000,
+          "bankClearanceM": 60
         }
       }
     },
     "instances": [
       {
         "id": "island-main",
-        "carrier": "ocean",
+        "carrier": "river",
         "position": [
           0,
           0,
@@ -1123,7 +1332,7 @@
         "kind": "boulder"
       },
       {
-        "id": "pine-boulder-0",
+        "id": "palm-boulder-0",
         "carrier": "boulder-main",
         "position": [
           -13.5,
@@ -1132,7 +1341,7 @@
         ],
         "placement": "surface",
         "anchorId": "A05",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-boulder-0",
@@ -1147,7 +1356,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-boulder-1",
+        "id": "palm-boulder-1",
         "carrier": "boulder-main",
         "position": [
           -4.5,
@@ -1156,7 +1365,7 @@
         ],
         "placement": "surface",
         "anchorId": "A05",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-boulder-1",
@@ -1171,7 +1380,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-boulder-2",
+        "id": "palm-boulder-2",
         "carrier": "boulder-main",
         "position": [
           4.5,
@@ -1180,7 +1389,7 @@
         ],
         "placement": "surface",
         "anchorId": "A05",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-boulder-2",
@@ -1195,7 +1404,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-boulder-3",
+        "id": "palm-boulder-3",
         "carrier": "boulder-main",
         "position": [
           13.5,
@@ -1204,7 +1413,7 @@
         ],
         "placement": "surface",
         "anchorId": "A05",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-boulder-3",
@@ -1235,7 +1444,7 @@
         "carrier": "island-main",
         "position": [
           12,
-          16.0,
+          26.0,
           0
         ],
         "placement": "surface",
@@ -1246,9 +1455,9 @@
         "id": "gull-4",
         "carrier": "island-main",
         "position": [
-          -45,
+          -110,
           15.0,
-          -45
+          -40
         ],
         "placement": "fixed",
         "anchorId": "A08",
@@ -1258,9 +1467,9 @@
         "id": "silverfish-0",
         "carrier": "island-main",
         "position": [
-          -76.0,
-          4.4,
-          -55
+          -109.0,
+          -0.82,
+          -103.0
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1270,9 +1479,9 @@
         "id": "silverfish-4",
         "carrier": "island-main",
         "position": [
-          -93.0,
-          3.4,
-          -66
+          -60.0,
+          -0.78,
+          27.0
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1282,9 +1491,9 @@
         "id": "butterflyfish-0",
         "carrier": "island-main",
         "position": [
-          210,
-          -4,
-          220
+          150,
+          -1.8,
+          305
         ],
         "placement": "fixed",
         "anchorId": "A06",
@@ -1295,7 +1504,7 @@
         "carrier": "island-main",
         "position": [
           14,
-          16.4,
+          26.4,
           -3
         ],
         "placement": "surface",
@@ -1306,9 +1515,9 @@
         "id": "gull-5",
         "carrier": "island-main",
         "position": [
-          -43,
+          -108,
           15.3,
-          -42
+          -37
         ],
         "placement": "fixed",
         "anchorId": "A08",
@@ -1318,9 +1527,9 @@
         "id": "silverfish-1",
         "carrier": "island-main",
         "position": [
-          -74.7,
-          4.4,
-          -56
+          -74.0,
+          -1.8,
+          -73.0
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1330,9 +1539,9 @@
         "id": "silverfish-5",
         "carrier": "island-main",
         "position": [
-          -91.7,
-          3.4,
-          -67
+          -44.0,
+          -1.46,
+          62.0
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1342,9 +1551,9 @@
         "id": "butterflyfish-1",
         "carrier": "island-main",
         "position": [
-          212,
-          -4,
-          218
+          152,
+          -1.8,
+          303
         ],
         "placement": "fixed",
         "anchorId": "A06",
@@ -1355,7 +1564,7 @@
         "carrier": "island-main",
         "position": [
           16,
-          16.8,
+          26.8,
           -6
         ],
         "placement": "surface",
@@ -1366,9 +1575,9 @@
         "id": "gull-6",
         "carrier": "island-main",
         "position": [
-          -41,
+          -106,
           15.6,
-          -39
+          -34
         ],
         "placement": "fixed",
         "anchorId": "A08",
@@ -1378,9 +1587,9 @@
         "id": "silverfish-2",
         "carrier": "island-main",
         "position": [
-          -73.4,
-          4.4,
-          -57
+          -47.0,
+          -1.73,
+          -45.0
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1390,9 +1599,9 @@
         "id": "silverfish-6",
         "carrier": "island-main",
         "position": [
-          -90.4,
-          3.4,
-          -68
+          -58.0,
+          -1.33,
+          91.0
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1402,9 +1611,9 @@
         "id": "butterflyfish-2",
         "carrier": "island-main",
         "position": [
-          214,
-          -4,
-          216
+          154,
+          -1.8,
+          301
         ],
         "placement": "fixed",
         "anchorId": "A06",
@@ -1415,7 +1624,7 @@
         "carrier": "island-main",
         "position": [
           18,
-          17.2,
+          27.2,
           -9
         ],
         "placement": "surface",
@@ -1426,9 +1635,9 @@
         "id": "gull-7",
         "carrier": "island-main",
         "position": [
-          -39,
+          -104,
           15.9,
-          -36
+          -31
         ],
         "placement": "fixed",
         "anchorId": "A08",
@@ -1438,9 +1647,9 @@
         "id": "silverfish-3",
         "carrier": "island-main",
         "position": [
-          -72.1,
-          4.4,
-          -58
+          -35.0,
+          -1.57,
+          -11.0
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1450,9 +1659,9 @@
         "id": "silverfish-7",
         "carrier": "island-main",
         "position": [
-          -89.1,
-          3.4,
-          -69
+          -108.0,
+          -0.76,
+          119.0
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1462,9 +1671,9 @@
         "id": "butterflyfish-3",
         "carrier": "island-main",
         "position": [
-          216,
-          -4,
-          214
+          156,
+          -1.8,
+          299
         ],
         "placement": "fixed",
         "anchorId": "A06",
@@ -1472,13 +1681,13 @@
       },
       {
         "id": "island-0",
-        "carrier": "ocean",
+        "carrier": "river",
         "position": [
-          1500,
+          2300,
           0,
-          -1700
+          150
         ],
-        "placement": "sea",
+        "placement": "river",
         "anchorId": "A11",
         "kind": "island"
       },
@@ -1487,14 +1696,14 @@
         "carrier": "island-0",
         "position": [
           0,
-          45,
+          -4,
           0
         ],
         "placement": "fixed",
         "kind": "boulder"
       },
       {
-        "id": "pine-island-0-0",
+        "id": "palm-island-0-0",
         "carrier": "island-0",
         "position": [
           147.37,
@@ -1502,7 +1711,7 @@
           54.52
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-0-0",
@@ -1516,7 +1725,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-0-1",
+        "id": "palm-island-0-1",
         "carrier": "island-0",
         "position": [
           -62.31,
@@ -1524,7 +1733,7 @@
           128.95
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-0-1",
@@ -1538,7 +1747,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-0-2",
+        "id": "palm-island-0-2",
         "carrier": "island-0",
         "position": [
           -147.37,
@@ -1546,7 +1755,7 @@
           -54.52
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-0-2",
@@ -1560,7 +1769,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-0-3",
+        "id": "palm-island-0-3",
         "carrier": "island-0",
         "position": [
           62.31,
@@ -1568,7 +1777,7 @@
           -128.95
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-0-3",
@@ -1583,13 +1792,13 @@
       },
       {
         "id": "island-1",
-        "carrier": "ocean",
+        "carrier": "river",
         "position": [
-          2900,
+          4000,
           0,
-          -900
+          -170
         ],
-        "placement": "sea",
+        "placement": "river",
         "anchorId": "A12",
         "kind": "island"
       },
@@ -1598,14 +1807,14 @@
         "carrier": "island-1",
         "position": [
           0,
-          45,
+          -4,
           0
         ],
         "placement": "fixed",
         "kind": "boulder"
       },
       {
-        "id": "pine-island-1-0",
+        "id": "palm-island-1-0",
         "carrier": "island-1",
         "position": [
           147.37,
@@ -1613,7 +1822,7 @@
           54.52
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-1-0",
@@ -1627,7 +1836,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-1-1",
+        "id": "palm-island-1-1",
         "carrier": "island-1",
         "position": [
           -62.31,
@@ -1635,7 +1844,7 @@
           128.95
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-1-1",
@@ -1649,7 +1858,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-1-2",
+        "id": "palm-island-1-2",
         "carrier": "island-1",
         "position": [
           -147.37,
@@ -1657,7 +1866,7 @@
           -54.52
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-1-2",
@@ -1671,7 +1880,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-1-3",
+        "id": "palm-island-1-3",
         "carrier": "island-1",
         "position": [
           62.31,
@@ -1679,7 +1888,7 @@
           -128.95
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-1-3",
@@ -1694,13 +1903,13 @@
       },
       {
         "id": "island-2",
-        "carrier": "ocean",
+        "carrier": "river",
         "position": [
-          4300,
+          -2600,
           0,
-          -100
+          -120
         ],
-        "placement": "sea",
+        "placement": "river",
         "anchorId": "A13",
         "kind": "island"
       },
@@ -1709,14 +1918,14 @@
         "carrier": "island-2",
         "position": [
           0,
-          45,
+          -4,
           0
         ],
         "placement": "fixed",
         "kind": "boulder"
       },
       {
-        "id": "pine-island-2-0",
+        "id": "palm-island-2-0",
         "carrier": "island-2",
         "position": [
           147.37,
@@ -1724,7 +1933,7 @@
           54.52
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-2-0",
@@ -1738,7 +1947,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-2-1",
+        "id": "palm-island-2-1",
         "carrier": "island-2",
         "position": [
           -62.31,
@@ -1746,7 +1955,7 @@
           128.95
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-2-1",
@@ -1760,7 +1969,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-2-2",
+        "id": "palm-island-2-2",
         "carrier": "island-2",
         "position": [
           -147.37,
@@ -1768,7 +1977,7 @@
           -54.52
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-2-2",
@@ -1782,7 +1991,7 @@
         "kind": "grass"
       },
       {
-        "id": "pine-island-2-3",
+        "id": "palm-island-2-3",
         "carrier": "island-2",
         "position": [
           62.31,
@@ -1790,7 +1999,7 @@
           -128.95
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "grass-island-2-3",
@@ -1821,6 +2030,10 @@
           ]
         },
         "placement": "surface",
+        "surfaceMin": 0.5,
+        "avoidRegions": [
+          "lake"
+        ],
         "kind": "grass"
       },
       {
@@ -1847,23 +2060,23 @@
         "seed": 1928,
         "points": [
           [
-            -25,
-            -14
+            22,
+            -26
           ],
           [
-            -36,
-            24
+            30,
+            40
           ],
           [
-            -65,
-            -17
+            -8,
+            -40
           ]
         ],
         "placement": "surface",
         "kind": "broadleaf"
       },
       {
-        "id": "grove-pine",
+        "id": "grove-palm",
         "carrier": "island-main",
         "seed": 1929,
         "points": [
@@ -1876,56 +2089,114 @@
             -74
           ],
           [
-            -32,
-            -42
+            12,
+            -58
           ]
         ],
         "placement": "surface",
-        "kind": "pine"
+        "kind": "palm"
       },
       {
         "id": "forest-broadleaf",
         "carrier": "island-main",
         "seed": 1930,
-        "count": 23,
+        "count": 35,
         "area": {
           "center": [
-            0,
-            -25
+            -10,
+            0
           ],
           "size": [
-            450,
-            420
+            1080,
+            640
           ]
         },
-        "surfaceMin": 8,
+        "surfaceMin": 0.9,
         "avoidRegions": [
-          "lake_shore"
+          "lake_shore",
+          "spawn_clearing",
+          "glade_west",
+          "glade_north",
+          "glade_east",
+          "pond_west",
+          "pond_south"
         ],
         "placement": "surface",
         "kind": "broadleaf"
       },
       {
-        "id": "forest-pine",
+        "id": "forest-palm",
         "carrier": "island-main",
         "seed": 1931,
-        "count": 12,
+        "count": 30,
         "area": {
           "center": [
-            0,
-            -25
+            -40,
+            10
           ],
           "size": [
-            450,
-            420
+            900,
+            600
           ]
         },
-        "surfaceMin": 8,
+        "surfaceMin": 0.3,
         "avoidRegions": [
-          "lake_shore"
+          "lake",
+          "spawn_clearing",
+          "glade_west",
+          "glade_north",
+          "glade_east",
+          "pond_west",
+          "pond_south"
         ],
         "placement": "surface",
-        "kind": "pine"
+        "surfaceMax": 1.6,
+        "kind": "palm"
+      },
+      {
+        "id": "forest-kapok",
+        "carrier": "island-main",
+        "seed": 1933,
+        "count": 7,
+        "area": {
+          "center": [
+            -60,
+            0
+          ],
+          "size": [
+            1000,
+            600
+          ]
+        },
+        "surfaceMin": 2.4,
+        "avoidRegions": [
+          "lake_shore",
+          "spawn_clearing",
+          "glade_west",
+          "glade_north",
+          "glade_east",
+          "pond_west",
+          "pond_south"
+        ],
+        "placement": "surface",
+        "kind": "kapok"
+      },
+      {
+        "id": "kapok-lake",
+        "carrier": "island-main",
+        "seed": 1934,
+        "points": [
+          [
+            -36,
+            -62
+          ],
+          [
+            52,
+            46
+          ]
+        ],
+        "placement": "surface",
+        "kind": "kapok"
       },
       {
         "id": "scattered-rocks",
@@ -1934,15 +2205,19 @@
         "count": 16,
         "area": {
           "center": [
-            0,
+            40,
             20
           ],
           "size": [
-            330,
-            260
+            420,
+            300
           ]
         },
         "placement": "surface",
+        "surfaceMin": 0.4,
+        "avoidRegions": [
+          "lake"
+        ],
         "kind": "rock"
       },
       {
@@ -2471,6 +2746,69 @@
       "rule": "P-16",
       "reviewState": "proposed",
       "note": "视点抬升的缓冲：已获得的抬升在视点低于阈值 ×(1 − 此值) 时才撤销，避免涟漪闪烁"
+    },
+    "dayLengthSec": {
+      "value": 1200,
+      "unit": "s",
+      "min": 600,
+      "max": 3600,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "一个完整昼夜的现实时长（20 分钟）；夜晚只占其中 nightShare"
+    },
+    "seasonLengthSec": {
+      "value": 4800,
+      "unit": "s",
+      "min": 2400,
+      "max": 14400,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "雨季→旱季→雨季一整轮的现实时长（80 分钟，约四个昼夜）"
+    },
+    "startTimeOfDay": {
+      "value": 0.36,
+      "unit": "phase",
+      "min": 0,
+      "max": 1,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "干净开局的时刻：0 午夜，0.25 日出，0.5 正午，0.75 日落"
+    },
+    "startSeason": {
+      "value": 0.1,
+      "unit": "phase",
+      "min": 0,
+      "max": 1,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "干净开局的季节：0 雨季最盛，0.5 旱季最盛"
+    },
+    "showerPeriodSec": {
+      "value": 150,
+      "unit": "s",
+      "min": 40,
+      "max": 600,
+      "rule": "W-10",
+      "reviewState": "proposed",
+      "note": "雨季阵雨的大致间隔"
+    },
+    "nightShare": {
+      "value": 0.2,
+      "unit": "ratio",
+      "min": 0.1,
+      "max": 0.35,
+      "rule": "W-10",
+      "reviewState": "creator_directed",
+      "note": "夜晚（日落后到日出前）占一个昼夜的比例：20 分钟里约 4 分钟"
+    },
+    "bankTreeDistanceM": {
+      "value": 2600,
+      "unit": "m",
+      "min": 1200,
+      "max": 5000,
+      "rule": "W-10",
+      "reviewState": "creator_directed",
+      "note": "两岸布景树按 300 m 一段，离视点超过这个距离的段不画（远处靠林冠面与雾）；调小可省开销"
     }
   }
 }
