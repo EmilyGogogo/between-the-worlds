@@ -4,7 +4,7 @@
 
 ## 2026-11-08 · 疏林、草地空地与林中水塘
 
-- 负责人：@yidi0522；关联：D-030，分支 `feat/amazon-river-island`，PR 待关联。
+- 负责人：@yidi0522；关联：D-032，分支 `feat/amazon-river-island`，PR 待关联。
 - AI：Claude（Claude Code）负责地形脚本修改与重新生成（本机 Blender 5.2.3 后台）、数据调整、截图核对、测试与文档；人工复核：创作者在会话中提出要求，尚未试玩本轮结果；完整 diff 待负责人复核。
 - 变更与原因：创作者认可 Aholo 树的样子，但要求树木至少砍半、保留探索感，并留出纯草地和纯水域。布景林约 7,200 → 3,200 棵（`env.forest` 各层 `spacingM` 放大、`clumping.clearingBelow` 0.18 → 0.34）；`anchors.json` 中 `forest-broadleaf` 70 → 35、`forest-palm` 60 → 30、`forest-kapok` 14 → 7。`project/terrain/river_island.py` 新增 `GLADES`（三块草地空地）与 `PONDS`（岛首水塘扩大加深、岛中部南侧新增水塘），重新生成 `frontend/public/terrain/`；`anchors.json` 新增 `glade_west`、`glade_north`、`glade_east` 与封闭黑水水体 `pond_west`、`pond_south`，三组可魂穿树木避开它们；`env.meadow` 新增三块空地的草叶区域，`env.understory` 50,000 → 16,000 次尝试。
 - 验证：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1811 项；`python3 project/check_all.py` 连续三次运行，第一次 1 项界面检查（未锁定指针时左键拖动转镜头）失败，后两次 140 项全部通过，判断为偶发，与本次改动无关；GPU 无头 Chrome 截图核对俯瞰、空地、水塘与林内：开局约 81 万、林内约 124 万三角面（含阴影）。
@@ -12,15 +12,15 @@
 
 ## 2026-11-08 · 雨林树木改用 Aholo 模型
 
-- 负责人：@yidi0522；关联：D-029，分支 `feat/amazon-river-island`（与下两条同一分支、未提交），PR 待关联。
+- 负责人：@yidi0522；关联：D-031，分支 `feat/amazon-river-island`（与下两条同一分支、未提交），PR 待关联。
 - AI：Claude（Claude Code）负责 Lux3D 生成（创作者确认提示词与参数后提交）、Blender 处理脚本、前端按距离分档绘制、碰撞调整、测试、数据与文档；人工复核：创作者在会话中确认了提示词与生成结果，尚未试玩本轮结果；完整 diff 待负责人复核。
-- 变更与原因：创作者试玩 D-028 后反馈扫描树晕、不高清，魂穿的树几乎走不动，走路时树会随机消失，要求改用 Aholo 文生 3D 的树，并区分装饰树与可魂穿的树。用 Lux3D 国内版 G1 文生 3D 生成吉贝木棉、林冠阔叶树、阿萨伊棕榈丛、林下灌丛 4 个模型（原件与记录在 `assets/lux3d/LUX3D-vegetation-rainforest/`）。`project/vegetation/build_vegetation.py` 改为把原件处理成同一文件内的三档网格（lod0～lod2）与 16×3 视角替身，另做一个树干拉长的林冠变体；输出 `frontend/public/models/vegetation/`（约 15 MB，旧的 Poly Haven 植被文件移除）。`frontend/src/vegetation.js` 新增 `LodField`：每棵布景树按与视点的距离只放进一档（12／30／75 m，逐株略有伸缩，视点每移动 3 m 重选），替身不再在着色器里按距离丢弃。三个树槽改为加载 Aholo 模型（`pivot: file_origin`、文件内 `lod` 节点、按新模型实测的自定义碰撞盒）；`assets.js` 支持 `lod[].node` 与 `file_origin`，移除扫描树占位。布景树干只挡 3 m 以下的身体（`blocksBodiesUpToM`），魂穿的树可穿过布景林。两岸林线改用 Aholo 替身。林下灌丛改为单一 Aholo 模型两档网格。草上露珠去掉透射：透射让整个场景在有草的画面里每帧多画一遍（同一林内视角实测从约 370 万降到约 177 万三角面）。
+- 变更与原因：创作者试玩 D-030 后反馈扫描树晕、不高清，魂穿的树几乎走不动，走路时树会随机消失，要求改用 Aholo 文生 3D 的树，并区分装饰树与可魂穿的树。用 Lux3D 国内版 G1 文生 3D 生成吉贝木棉、林冠阔叶树、阿萨伊棕榈丛、林下灌丛 4 个模型（原件与记录在 `assets/lux3d/LUX3D-vegetation-rainforest/`）。`project/vegetation/build_vegetation.py` 改为把原件处理成同一文件内的三档网格（lod0～lod2）与 16×3 视角替身，另做一个树干拉长的林冠变体；输出 `frontend/public/models/vegetation/`（约 15 MB，旧的 Poly Haven 植被文件移除）。`frontend/src/vegetation.js` 新增 `LodField`：每棵布景树按与视点的距离只放进一档（12／30／75 m，逐株略有伸缩，视点每移动 3 m 重选），替身不再在着色器里按距离丢弃。三个树槽改为加载 Aholo 模型（`pivot: file_origin`、文件内 `lod` 节点、按新模型实测的自定义碰撞盒）；`assets.js` 支持 `lod[].node` 与 `file_origin`，移除扫描树占位。布景树干只挡 3 m 以下的身体（`blocksBodiesUpToM`），魂穿的树可穿过布景林。两岸林线改用 Aholo 替身。林下灌丛改为单一 Aholo 模型两档网格。草上露珠去掉透射：透射让整个场景在有草的画面里每帧多画一遍（同一林内视角实测从约 370 万降到约 177 万三角面）。
 - 验证：macOS（Apple Silicon）、Python 3.9.6、Chrome 156、Blender 5.2.3：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1797 项；`python3 project/check_all.py` 通过文档检查与 140 项隔离 Chrome 浏览器检查（新增 5 项：Aholo 模型加载、三个树槽带三档 LOD、魂穿的树穿过布景树干、近处与大尺度时每棵布景树只画一档）；`python3 -m unittest discover -s project/tests` 14 项通过；`git diff --check` 通过。GPU 无头 Chrome 截图见 `assets/lux3d/LUX3D-vegetation-rainforest/evidence/`：开局约 170 万、林内 157–177 万三角面（含阴影），其中布景林约 54 万。
 - 未验证项 / 风险：目标设备帧率未测；没有连续行走与魂穿移动的录像，“树不再消失”由机制与检查保证，未经真人试玩确认；Lux3D 任务号未留存，积分只核对了前两个任务（各 20）；Lux3D 用户协议与活动素材条款未查阅；中、低两档减面后叶片边缘较尖，只在 12 m 外使用；能魂穿的树穿过布景林是 AI 提出的做法，待创作者确认。团队共同确认待填写。回退时成组撤销本条的源码、数据、植被文件与文档，并从 stash 或上一条的文件恢复 Poly Haven 植被。
 
 ## 2026-11-06 · 实拍扫描雨林、树木错落分布与收窄河道
 
-- 负责人：@yidi0522；关联：D-028，分支 `feat/amazon-river-island`（与下一条同一分支、未提交），PR 待关联。
+- 负责人：@yidi0522；关联：D-030，分支 `feat/amazon-river-island`（与下一条同一分支、未提交），PR 待关联。
 - AI：Claude（Claude Code）负责植被处理脚本（在本机 Blender 5.2.3 后台运行）、前端替身着色器与分布算法、两岸林线、性能与测试工具调整、数据与文档；人工复核：创作者在会话中给出两张参考图（河心岛旁的大片森林；岛内精细的林间水景），尚未试玩本轮结果；完整 diff 待负责人复核。
 - 变更与原因：创作者要求岛上树木“错落有致，类似真实雨林”，成为岛时看出是河心岛、旁边是更大的森林。新增 `project/vegetation/build_vegetation.py`：读取 8 个 Poly Haven CC0 扫描（3 种阔叶树、5 种林下植物），树干减面、去掉被叶子遮住的细枝，叶子换成从扫描本身渲染的叶簇卡片，并烘焙 8 方向 × 3 仰角的颜色与法线替身；两种树拉长主干作林冠树；输出到 `frontend/public/models/vegetation/`（约 11 MB）。新增 `frontend/src/vegetation.js`（加载、叶片透光、替身着色器、按距离交接）。`env.forest` 改为四层：噪声场成林与林窗、每层间距、小树多大树少、逐株倾斜胖瘦色差；50 m 内完整树每移动 5 m 重选，外侧替身，交接距离逐株不同；全岛替身每种树一次绘制。`env.understory` 改为扫描植物成片生长；`env.meadow` 加密、草叶更细。两岸改为替身树林线（河岸密、内陆疏、零星露生树），林冠面延伸约 2.6 km，按 300 m 分段、`bankTreeDistanceM`（2600 m）外不画。河道半宽 1150 → 640 m，三座邻岛横向坐标移入河道（150、-170、-120）。可魂穿雨林阔叶树的占位外形改用扫描林冠树，70 m 外换替身。林地落叶层降低饱和度。修正布景避让半径：碰撞盒是方的，避让圆改到盒角，否则加密后随机吉贝木棉全部在出生时被移除。浏览器检查改为 `?debug&render=0`（游戏照常运行、不绘制画面）：软件渲染下这片森林每帧需数秒，检查只读状态不读像素。
 - 验证：macOS（Apple Silicon）、Python 3.9.6、Chrome 156：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1767 项；`python3 project/check_all.py --output /tmp/btw-veg/checks` 通过文档检查与 135 项隔离 Chrome 浏览器检查；`python3 -m unittest discover -s project/tests` 14 项通过；`git diff --check` 通过。另用 GPU 无头 Chrome 截取鸟瞰、低空、林内、牛轭湖、河面与开局画面核对外观（仅本地 /tmp，未入库）；本机 GPU 开局画面约 150 万三角面、千余次绘制，其中地形约 38 万、可魂穿实体约 66 万、布景约 52 万。
@@ -28,7 +28,7 @@
 
 ## 2026-11-06 · 亚马逊河心岛、雨林三层树与昼夜季节
 
-- 负责人：@yidi0522；关联：D-025、D-026、D-027，分支 `feat/amazon-river-island`，PR 待关联；取代未合并的 PR #4（上一版海岛地形）。
+- 负责人：@yidi0522；关联：D-027、D-028、D-029，分支 `feat/amazon-river-island`，PR 待关联；取代未合并的 PR #4（上一版海岛地形）。
 - AI：Claude（Claude Code）负责地形生成脚本（在本机 Blender 5.2.3 中经 MCP for Blender 运行）、前端地形／水／天空／雨林实现、数据迁移、文档与回归检查；人工复核：创作者在会话中试玩上一轮半成品，要求删去 V 键视角切换、夜晚变亮变短、昼夜与季节放慢、去掉松树改做雨林三层树；完整 diff 与真人试玩待负责人复核。
 - 变更与原因：创作者要求主岛做成逼真的亚马逊河心岛，成为岛时看见大河与两岸雨林，而非星球与围成一圈的邻岛。主岛改由 `project/terrain/river_island.py` 程序生成 1 m 高度场与地表分层权重图（种子 20261106，含水力侵蚀；未描图、未调用付费生成），`terrain.js` 分块按距离降细节，五层 Poly Haven CC0 地表贴图按权重与明度混合；`water.js` 读取高度场画深浅、岸边泡沫与雨点涟漪；`banks.js` 生成两岸雨林；`sky.js` 实现昼夜（20 分钟、夜晚 20%、月光夜色）、雨季／旱季（80 分钟）、阵雨、河雾与萤火虫。海改为 `river` 水体与河道，邻岛沿河排列，岛只在河道内漂移；山湖改为牛轭湖（椭圆内仅湖床低于湖面处有水），鱼、鸟、林地与观察点按新地形重新摆放，海鸥抬高到林冠之上。松树改为阿萨伊棕榈，阔叶树改为 20 m 雨林阔叶树，新增 42 m 吉贝木棉；`env.forest` 布景树（树干为静态障碍）、`env.understory`、`env.reeds`、`env.fireflies` 新增为装饰槽。存档版本升到 5，避免旧海岛存档让实体悬空。验证器改为要求唯一 `river` 与河道，新增 W-09／W-10 与 QA-48～QA-50。移除松柏引文（不再适合棕榈）。新增地表贴图约 6.3 MB、高度场 2.5 MB、权重图 1.3 MB。
 - 验证：macOS（Apple Silicon）、Python 3.9、Chrome（SwiftShader 软件渲染）：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1762 项文档／数据检查；`python3 project/check_all.py` 结果见 PR 说明。另用无头 Chrome 截取开局、林地、吉贝木棉视角、岛屿视角、夜晚与雨天画面核对外观（仅本地，未入库）。

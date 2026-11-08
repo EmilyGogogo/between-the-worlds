@@ -80,7 +80,7 @@ function layerWeight(layer,x,z,w){
 // keeps its own spacing (crowns of one layer touch but rarely overlap, smaller layers grow
 // beneath), sizes skew toward young trees, and every tree leans, stretches and tints a little.
 // Scenery, not bodies: it keeps clear of the bodies on the island; its trunks block small
-// bodies only (see WorldCollision.hitsScenery, D-029). Each model is drawn by distance (LodField):
+// bodies only (see WorldCollision.hitsScenery, D-031). Each model is drawn by distance (LodField):
 // the Aholo model's mesh levels near, its impostor beyond and at large scales.
 // Value noise here spans −1…1; fbm returns 0…1.
 function fbm(x,z){return .5+.5*(noise(x,z)*.55+noise(x*2.13+17,z*2.13-9)*.3+noise(x*4.7-31,z*4.7+5)*.15);}

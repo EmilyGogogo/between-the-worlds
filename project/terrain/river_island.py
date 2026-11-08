@@ -34,7 +34,7 @@ HEAD_X, TAIL_X = -560.0, 590.0                # upstream head and spit tip
 OXBOW = dict(center=(-142.0, 8.0), radius=104.0, half_width=27.0, start_deg=278.0, end_deg=84.0,
              floor=-2.8, surface=0.2)
 SPAWN = (4.0, 14.0)                           # clearing next to the oxbow (human-first)
-# Open ground for exploring (D-030): grass glades (x, z, radius x, radius z) and the backswamp
+# Open ground for exploring (D-032): grass glades (x, z, radius x, radius z) and the backswamp
 # ponds, wide enough to read as open water (x, z, radius x, radius z, floor).
 GLADES = [(-420, -60, 70, 55), (-200, 205, 58, 44), (90, -90, 52, 38)]
 PONDS = [(150, 48, 34, 20, -.7), (-330, 60, 55, 34, -1.8), (330, 10, 26, 14, -.45), (-10, -200, 58, 34, -2.2)]

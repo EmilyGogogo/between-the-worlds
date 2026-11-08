@@ -2,7 +2,7 @@
 
 版本：0.4-review · 2026-11-01。规则：L-01～L-07。扩展方法汇总见 [数据与扩展指南](../data/README.md)。资产台账：[asset-ledger.csv](../data/asset-ledger.csv)。
 
-**当前事实：雨林的三个树槽（`slot.kapok`、`slot.broadleaf`、`slot.palm`）与布景植被（`env.forest`、`env.understory`、两岸林线）已导入 Lux3D 产物（D-029，状态 `integrated`，未验收），其余资产槽仍是程序化占位。** 下文是替换合同。
+**当前事实：雨林的三个树槽（`slot.kapok`、`slot.broadleaf`、`slot.palm`）与布景植被（`env.forest`、`env.understory`、两岸林线）已导入 Lux3D 产物（D-031，状态 `integrated`，未验收），其余资产槽仍是程序化占位。** 下文是替换合同。
 
 ## 思路
 

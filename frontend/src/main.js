@@ -8,7 +8,7 @@ import { WorldCollision } from './collision.js';
 import { Ambience } from './audio.js';
 
 const $=id=>document.getElementById(id);
-// River-island save (D-025); saves from the sea archipelago or earlier prototypes are
+// River-island save (D-027); saves from the sea archipelago or earlier prototypes are
 // ignored, since their positions belong to another terrain (W-04).
 const STORAGE='between-all-things.save.v5';
 const SAVE_VERSION=5;
@@ -39,7 +39,7 @@ class Game {
     this.camera.position.set(25,14,55);this.camera.lookAt(-5,6,-15);
     this.hemi=new THREE.HemisphereLight('#dfe8d9','#75804e',1.8);this.scene.add(this.hemi);
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
-    // Day, night, seasons and rain (D-026) light the world and its water.
+    // Day, night, seasons and rain (D-028) light the world and its water.
     this.atmosphere=new Atmosphere(this.scene,{sun:this.sun,hemi:this.hemi,renderer});
     this.world=new World(this.scene,assets,this.atmosphere);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
@@ -322,7 +322,7 @@ class Game {
     if(s.mode==='swim'){const w=this.world.water(p.x,p.z);if(w)p.y=clamp(p.y,w.floor+s.height*.3,Math.max(w.floor+s.height*.3,w.surface-s.height*.7));}
     if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion];p.y=clamp(p.y,this.world.height(p.x,p.z)+air.minClearanceM,tune('flightCeilingM',air.maxY));}
   }
-  // Islands drift along the river between its forested banks (M-04, D-025).
+  // Islands drift along the river between its forested banks (M-04, D-027).
   moveIsland(e,local){
     const p=e.root.position;p.add(local);
     const corridor=this.world.river.corridor,s=SPECIES[e.kind],side=corridor.halfWidthM-s.surface?.radii?.[2]*1.15-corridor.bankClearanceM,end=corridor.lengthM/2-s.radius*1.2;

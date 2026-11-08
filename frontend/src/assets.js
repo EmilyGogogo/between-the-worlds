@@ -187,7 +187,7 @@ function dome(s){
   const root=new THREE.Group();mesh(new THREE.SphereGeometry(1,32,20),standard('#819364',{roughness:1}),root,0,0,0,rx,h,rz);return root;
 }
 
-// --- Rainforest trees (D-028): three layers. Emergent kapok above the canopy, canopy broadleaf,
+// --- Rainforest trees (D-030): three layers. Emergent kapok above the canopy, canopy broadleaf,
 // açaí palm clumps in the understory. Bark merges into one draw, leaves are one instanced draw.
 function canvasTexture(w,h,draw,color=true){
   const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'));

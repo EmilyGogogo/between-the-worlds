@@ -214,7 +214,7 @@ let placed=0;decor.traverse(o=>{if(o.isInstancedMesh)placed+=o.count;});
 assert('decoration slots render GLB instances',placed===10);
 assert('every decoration slot is built from data (meadow, pebbles, reeds, forest, understory, fireflies)',W.decor.length===W.assets.manifest.decor.length&&W.decor.every(d=>d.object.parent));
 // Water bodies come from regions with a `water` block, not from code (M-04).
-assert('the oxbow lake and the river are both data regions (D-025)',W.water(-60,27)?.id==='lake'&&WATERS.some(r=>r.water.type==='river'));
+assert('the oxbow lake and the river are both data regions (D-027)',W.water(-60,27)?.id==='lake'&&WATERS.some(r=>r.water.type==='river'));
 assert('the oxbow keeps its inner bank dry',!W.water(-142,8));
 const enclosed=WATERS.filter(r=>r.water.type==='enclosed');
 assert('each enclosed water body gets a surface mesh at its level',W.waterBodies.length===enclosed.length&&enclosed.every((r,i)=>W.waterBodies[i].position.y===r.water.surfaceY&&W.waterBodies[i].parent===W.islandRoot));
@@ -234,19 +234,19 @@ assert('world layout comes from data/anchors.json (W-08)',W.entities.some(e=>e.i
 const oldTerrain=W.terrain,main=W.byId.get(LAYOUT.mainIsland);
 W.assets.manifest.environment={url:fixture,useAsTerrain:true,scale:20};
 await W.loadEnvironment();step(3);
-// Rainforest layers, scenery trunks and the atmosphere (D-025, D-026, D-027, D-029).
+// Rainforest layers, scenery trunks and the atmosphere (D-027, D-028, D-029, D-031).
 assert('three rainforest tree layers stand on the island',['kapok','broadleaf','palm'].every(k=>W.entities.some(e=>e.kind===k&&e.root.parent===W.islandRoot)));
 assert('pines are gone from the rainforest',!SPECIES.pine);
 const trunk=W.obstacles.find(o=>Math.hypot(o.x-h0.root.position.x,o.z-h0.root.position.z)>40);
 assert('scenery trunks are registered as obstacles',W.obstacles.length>500&&!!trunk);
 const hp=h0.root.position.clone();h0.root.position.set(trunk.x,W.height(trunk.x,trunk.z),trunk.z);g.collision.refresh();
 assert('a human cannot stand inside a scenery trunk (M-01)',g.collision.collides(h0,W.position(h0)));h0.root.position.copy(hp);g.collision.refresh();
-// Aholo rainforest models (D-029): bodies and scenery, drawn at exactly one level each.
+// Aholo rainforest models (D-031): bodies and scenery, drawn at exactly one level each.
 assert('the Aholo vegetation models load',['kapok','canopy','canopy_tall','acai','understory'].every(k=>W.assets.vegetation?.models[k]?.levels.length>=2));
 assert('the trees one can become wear the Aholo models with their LOD levels',['kapok','broadleaf','palm'].every(k=>{const e=W.entities.find(x=>x.kind===k);let lod=null;e.visual.traverse(o=>{if(o.isLOD)lod=o;});return e.visual.userData.external&&lod?.levels.length===3;}));
 const palmBody=W.entities.find(e=>e.kind==='palm'&&e.root.parent===W.islandRoot),pp=palmBody.root.position.clone();
 palmBody.root.position.set(trunk.x,W.height(trunk.x,trunk.z),trunk.z);palmBody.root.updateMatrixWorld(true);
-assert('a tree one can become passes through the scenery forest (D-029)',!g.collision.hitsScenery(palmBody,g.collision.frameBox(palmBody,W.position(palmBody))));
+assert('a tree one can become passes through the scenery forest (D-031)',!g.collision.hitsScenery(palmBody,g.collision.frameBox(palmBody,W.position(palmBody))));
 palmBody.root.position.copy(pp);palmBody.root.updateMatrixWorld(true);g.collision.refresh();
 const F=W.decor.find(d=>d.slot.slotId==='env.forest').object,inForest=F.children[1].items[0],eyeAt=new h0.root.position.constructor(inForest.x+2,inForest.y,inForest.z);
 const drawnOnce=f=>f.levels.reduce((a,l)=>a+l[0].count,0)+(f.impostor?f.impostor[0].count:0)===f.items.length;

@@ -219,7 +219,7 @@ def main():
     unique(layout['instances'], 'id', 'instance ID')
     unique(layout['scatter'], 'id', 'scatter group ID')
     regions = {r['id'] for r in layout['regions']}
-    # Water bodies (M-04): data-driven; exactly one river (D-025), enclosed bodies need a shape and surface.
+    # Water bodies (M-04): data-driven; exactly one river (D-027), enclosed bodies need a shape and surface.
     num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
     waters = [r for r in layout['regions'] if r.get('water')]
     rivers = [r for r in waters if r['water'].get('type') == 'river']
