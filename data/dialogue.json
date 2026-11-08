@@ -171,7 +171,7 @@
       "reviewState": "creator_requested_quote"
     },
     {
-      "id": "TXT-FISH-BUTTERFLY",
+      "id": "TXT-FISH-DISCUS",
       "text": "相濡以沫，不如相忘于江湖。",
       "sourceType": "quoted",
       "author": "庄子",
@@ -181,7 +181,7 @@
       "textStatus": "classical",
       "sourceNote": "先秦典籍原文，据通行本；定稿时按团队选定的版本逐字核对",
       "fit": "万物在更大的水里相连",
-      "entityType": "fish_butterfly_01",
+      "entityType": "fish_discus_01",
       "trigger": "target_focus",
       "triggerAnchor": null,
       "cooldownGroup": "world_response",

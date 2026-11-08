@@ -1,0 +1,7 @@
+{
+  "service": "Lux3D 国内版网页 https://lux3d.aholo3d.cn（由生成人在网页操作）",
+  "generatedBy": "zora-alt111",
+  "request": {"mode": "待补：图片生成 3D／文字生成 3D", "input": "待补", "prompt": "待补（若使用文字）", "version": "待补", "style": "待补（产物为卡通风格）", "faceCount": "待补（产物实测 137378 三角面）"},
+  "task": {"taskId": "待补", "status": "成功（已下载产物）", "date": "2026-11-08（依据：本机下载文件时间 2026-11-08 09:37；任务记录待补）", "consumedCredits": "待补", "attempts": "待补"},
+  "files": {"textured.glb": "网页下载的 GLB 原件（下载名「海鸥ffv.glb」），10745524 字节，SHA-256 5e71b900ab39d6b45c1f19b7e571e50cde9df71e003f01c6d8d0ed9359d05bb0；生成器字段 pygltflib@v1.16.5；1 个网格、137378 三角面、2 张贴图，无骨骼、无动画；双翅高举成 V 形（约 31.5°），双脚下垂", "raw-preview.png": "原件四视图渲染（Blender 4.5.15，未修改）"}
+}

@@ -73,9 +73,11 @@ def generate():
     to_kind = lambda item: {**{k: v for k, v in item.items() if k != 'type'}, 'kind': kinds[item['type']]}
     world_layout = {
         'mainIsland': layout['mainIsland'], 'initialInstance': layout['initialInstance'],
+        'savePlayerAliases': layout.get('savePlayerAliases', {}),
         'regions': {r['id']: r for r in layout['regions']},
         'instances': [to_kind(i) for i in layout['instances']],
         'scatter': [to_kind(s) for s in layout['scatter']],
+        'ambient': layout.get('ambient', []),
     }
     rules = [{k: v for k, v in x.items() if k not in ('description', 'rules', 'reviewState')} for x in interactions['interactions']]
     return {

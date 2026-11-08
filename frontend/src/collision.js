@@ -25,6 +25,12 @@ export class WorldCollision {
       for(const local of this.localBoxes(entity))this.records.push({entity,parent:entity.root.parent,box:local.clone().applyMatrix4(entity.root.matrixWorld),frameBox:local.applyMatrix4(entity.root.matrix)});
     }
   }
+  // Ambient bodies move one at a time; later bodies must see each earlier body's new box.
+  refreshEntity(entity){
+    entity.root.updateWorldMatrix(true,true);this.records=this.records.filter(r=>r.entity!==entity);
+    if(!SPECIES[entity.kind].collision.solid)return;
+    for(const local of this.localBoxes(entity))this.records.push({entity,parent:entity.root.parent,box:local.clone().applyMatrix4(entity.root.matrixWorld),frameBox:local.applyMatrix4(entity.root.matrix)});
+  }
   actorBox(entity,position){
     const box=this.localBoxes(entity).reduce((all,b)=>all.union(b),new THREE.Box3()).applyMatrix4(entity.root.matrixWorld);
     return box.translate(position.clone().sub(this.world.position(entity))).expandByScalar(-TUNING.collisionSkinM.value);
