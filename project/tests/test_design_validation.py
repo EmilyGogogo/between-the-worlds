@@ -34,6 +34,23 @@ class LadderValidation(unittest.TestCase):
             self.assertTrue(any(f'{island}: ladder broken' in e for e in validate_docs.errors))
 
 
+class SavePlayerAliases(unittest.TestCase):
+    def test_aliases_cannot_override_live_bodies_or_target_missing_bodies(self):
+        original_read = validate_docs.read_json
+        generated = {p: json.loads((validate_docs.ROOT / p).read_text(encoding='utf-8'))
+                     for p in sync_runtime.generate()}
+        for aliases, error in [({'human-first': 'gull-0'}, 'save alias must name a retired body'),
+                               ({'retired': 'missing'}, 'save alias target missing does not exist')]:
+            with self.subTest(aliases=aliases):
+                layout = copy.deepcopy(original_read('anchors.json'))
+                layout['savePlayerAliases'] = aliases
+                with patch.object(validate_docs, 'read_json', side_effect=lambda n: layout if n == 'anchors.json' else original_read(n)), \
+                        patch.object(validate_docs, 'errors', []), patch.object(validate_docs, 'checks', 0), \
+                        patch.object(sync_runtime, 'generate', return_value=generated), contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(validate_docs.main(), 1)
+                    self.assertTrue(any(error in e for e in validate_docs.errors))
+
+
 class ScaleRelations(unittest.TestCase):
     def test_empty_tiers_and_explicit_allow_deny(self):
         source = {'scaleTiers': [{'id': t} for t in ['small', 'reserved', 'medium', 'large']],

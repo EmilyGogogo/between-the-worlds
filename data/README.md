@@ -22,6 +22,7 @@
 ## 字段原则
 
 - 稳定 ID 不随中文名或模型版本改变。`entities[].id` 是种类，`anchors.instances[].id` 是个体，`asset.slotId` 是资产槽。
+- 确需替换／删除已发布的个体时，在 `anchors.json` 的 `savePlayerAliases` 把旧当前身体 ID 映射到现有身体。它只迁移控制权，旧个体的位置不套到替代身体（例如近海蝴蝶鱼换为山湖七彩神仙鱼）；其他仍存在的个体照常恢复。没有映射的已移除当前身体退到 `initialInstance`，保留其余会话进度。
 - `stage` 是渲染尺度层（0 近地、1 身体、2 地貌、3 岛屿），只管镜头、雾、光照和细节隐藏。每层的具体设置在 `scaleLayers`（镜头前视比例、是否贴地与避障、雾浓度、太阳与阴影、焦点高度、进入时的最小俯角），字段含义写在 `scaleLayerFields`；运行时代码不按层号写死数值，新增一层只加数据。目标遮挡检查按 P-02 对所有尺度强制执行，不属于可关闭的渲染设置。
 - `body.limbSwingRate`：有四肢的占位模型（人、狗）走动时的摆动速率（弧度／秒）；没有时不摆动。
 - `activityRegion`：飞行身体所在的空域，指向 `anchors.json` 中带 `center`、`radius`、`maxY`、`minClearanceM` 的区域；高度上限与 `tuning.json` 的 `flightCeilingM` 一致。新增会飞的种类只需指向一个空域。

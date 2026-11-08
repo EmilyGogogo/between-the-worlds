@@ -59,7 +59,7 @@ export class AmbientMotion{
     const bounds=e.visual?.userData.localBounds,size=bounds?bounds.getSize(scratch):null;
     const r=size?Math.hypot(size.x,size.z)/2:SPECIES[e.kind].radius,h=size?size.y:SPECIES[e.kind].height,parent=e.root.parent;
     for(let pass=0;pass<2;pass++)for(const rec of records){
-      if(rec.parent!==parent||rec.entity===e||this.state.has(rec.entity))continue;
+      if(rec.parent!==parent||rec.entity===e)continue;
       const b=rec.frameBox;
       if(x+r<b.min.x||x-r>b.max.x||z+r<b.min.z||z-r>b.max.z)continue;
       if(y<b.max.y+.3&&y+h>b.min.y)y=b.max.y+.3;
@@ -76,14 +76,18 @@ export class AmbientMotion{
       if(st.held){st.held=false;st.resumeAt=t+(g.resumeAfterSec??4);e.moving=false;}
       if(e.flee||t<st.resumeAt)continue;
       const goal=this.goal(g,st.index,t,e);if(!goal){e.moving=false;continue;}
-      const p=e.root.position;v.set(goal.x-p.x,goal.y-p.y,goal.z-p.z);
+      const p=e.root.position,before=p.clone(),h=e.heading||0;v.set(goal.x-p.x,goal.y-p.y,goal.z-p.z);
       const max=(g.maxSpeedMS??10)*dt,dist=v.length();if(dist>max)v.multiplyScalar(max/dist);
-      p.add(v);
-      // The body itself, not only its goal, must stay clear while it catches up (M-01).
-      if(g.vertical?.mode==='aboveGround')p.y=this.clear(e,p.x,p.y,p.z);
       const hx=Math.abs(v.x)+Math.abs(v.z)>1e-4?v.x:goal.ux,hz=Math.abs(v.x)+Math.abs(v.z)>1e-4?v.z:goal.uz;
-      const yaw=Math.atan2(-hx,-hz),h=e.heading||0;
+      const yaw=Math.atan2(-hx,-hz);
+      // Use the same swept collision, terrain and activity limits as player movement,
+      // including the entire trip back from a body the player left far from its route.
+      this.world.moveBody(e,v,dt);
       e.heading=h+Math.atan2(Math.sin(yaw-h),Math.cos(yaw-h))*Math.min(1,dt*3);e.root.rotation.y=e.heading;
+      const collision=this.world.collision;
+      // Clamping height or turning must not create an overlap after the swept move.
+      if(collision.collides(e,this.world.position(e))){p.copy(before);e.heading=h;e.root.rotation.y=h;}
+      collision.refreshEntity(e);v.copy(p).sub(before);
       // Birds flap while climbing and glide otherwise; fish use the role the route names.
       e.moving=g.animation==='climb'?v.y/dt>.4:g.animation==='move';
     }

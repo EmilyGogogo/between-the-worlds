@@ -41,6 +41,18 @@
   },
   "mainIsland": "island-main",
   "initialInstance": "human-first",
+  "savePlayerAliases": {
+    "butterflyfish-0": "discus-0",
+    "butterflyfish-1": "discus-1",
+    "butterflyfish-2": "discus-2",
+    "butterflyfish-3": "discus-3",
+    "butterflyfish-4": "discus-4",
+    "butterflyfish-5": "discus-5",
+    "gull-4": "gull-0",
+    "gull-5": "gull-1",
+    "gull-6": "gull-2",
+    "gull-7": "gull-3"
+  },
   "initialLookAtAnchor": "A02",
   "regions": [
     {

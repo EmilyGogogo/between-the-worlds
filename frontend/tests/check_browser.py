@@ -311,6 +311,12 @@ assert('the played body is not moved by its route',bird.root.position.distanceTo
 take('human-first');const left=bird.root.position.clone();step(60);const rest=bird.root.position.distanceTo(left);step(180);
 assert('a released body rests, then rejoins its route',rest<.01&&bird.root.position.distanceTo(left)>2,rest.toFixed(3));
 """)
+# Review regressions: removed save players, terrain on rejoining, and played-body collision.
+load()
+passed += run(r"""
+const {checkSaveMigration,checkAmbientCollision}=await import('./tests/ambient-regressions.js');
+checkSaveMigration(g,assert);checkAmbientCollision(g,assert);
+""")
 # Sound: starts with the first click and stays reachable while paused (A-02).
 load()
 def click_at(x, y):

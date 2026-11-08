@@ -2,6 +2,14 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-08 · 修复 PR #7 的存档迁移与自主移动穿模
+
+- 负责人：@EmilyGogogo；关联：PR #7，修复分支 `codex/fix-pr7-motion-save`。
+- AI：Codex 参与 review、复现、代码与数据修复、回归测试及文档；人工复核待负责人完成。
+- 变更与原因：旧当前主体被删除会使整个 v4 存档失效并被新进度覆盖；新增布局数据 `savePlayerAliases` 转移旧蝴蝶鱼与已移除海鸥的控制权，保留仍存在的身体、提示与回应状态，未知已移除主体退到初始身体。已移除身体的旧坐标不应用到替代身体，避免把山湖鱼放回近海。环境移动复用玩家的地形、碰撞和活动区处理，逐体更新碰撞记录，转向或贴地造成重叠时恢复上一位置；修复海鸥归队钻入山坡、鸟鱼穿过玩家的问题。同步运行配置、数据指南、D-027、QA-30／QA-48 与实现审计。
+- 验证（Windows 11、Python 3.13.9、Chrome 157.0.8103.38、Node 22.23.3）：修复前在隔离 Chrome 中复现旧主体存档被丢弃、归队海鸥进入地表下约 20.5 米、自主鸟鱼穿过玩家；修复后同场景均未复现。永久回归已接入 `frontend/tests/check_browser.py`，单次加载独立运行 36 项通过。`python project/sync_runtime.py` 已同步两份生成文件；`python project/validate_docs.py` 1747 项通过；`python project/check_repository.py --javascript` 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。`python project/check_all.py` 在新增回归通过后仍于真实键盘移动检查超时（与修复前相同断言）；随后 `python project/check_all.py --no-pointer-lock --output .work/pr7-gameplay-checks` 的 138 项部分浏览器检查通过，真实鼠标锁定及后续检查未计入部分通过。原始结果仅保留于本地 `.work/collaboration-checks/`、`.work/pr7-gameplay-checks/`，不作为远端 CI 或真人验收证据。
+- 未验证项／风险：本次完整真实输入回归未通过，远端 CI 待本次提交运行；正式真人 QA、目标设备性能及模型来源许可未验证，不使用历史 CI 代替本次结果。
+
 ## 2026-11-07～11-08 · 鱼和鸟：七彩神仙鱼、银斧鱼、海鸥 v003 与鸟鱼环境移动（D-027）
 
 - 负责人：zora-alt111；分支 `asset/fish-birds-v001`（已合并 `origin/main` 197f216，04／06／11／CHANGELOG 的文字冲突已解决，两边内容都保留），PR 见分支；同一任务的连续调整合并为本条记录。
