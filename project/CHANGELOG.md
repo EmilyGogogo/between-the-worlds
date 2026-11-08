@@ -18,6 +18,21 @@
 - 验证：macOS（Apple Silicon）、Python 3.9.6、Chrome 156、Blender 5.2.3：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1797 项；`python3 project/check_all.py` 通过文档检查与 140 项隔离 Chrome 浏览器检查（新增 5 项：Aholo 模型加载、三个树槽带三档 LOD、魂穿的树穿过布景树干、近处与大尺度时每棵布景树只画一档）；`python3 -m unittest discover -s project/tests` 14 项通过；`git diff --check` 通过。GPU 无头 Chrome 截图见 `assets/lux3d/LUX3D-vegetation-rainforest/evidence/`：开局约 170 万、林内 157–177 万三角面（含阴影），其中布景林约 54 万。
 - 未验证项 / 风险：目标设备帧率未测；没有连续行走与魂穿移动的录像，“树不再消失”由机制与检查保证，未经真人试玩确认；Lux3D 任务号未留存，积分只核对了前两个任务（各 20）；Lux3D 用户协议与活动素材条款未查阅；中、低两档减面后叶片边缘较尖，只在 12 m 外使用；能魂穿的树穿过布景林是 AI 提出的做法，待创作者确认。团队共同确认待填写。回退时成组撤销本条的源码、数据、植被文件与文档，并从 stash 或上一条的文件恢复 Poly Haven 植被。
 
+## 2026-11-07 · 接入人物模型
+
+- 负责人：@EmilyGogogo；关联：分支 `codex/character-a-standard-v001`，PR 待关联。
+- AI：Codex 负责检查资产、接入、文档与验证；人工复核待负责人完成。
+- 游泳追加（D-026）：接入用户提供的游泳 GLB；人物进入游戏识别的水域时切换游泳并保持水面附近，出水恢复陆地动作。同步规则、资产说明和 QA；游泳动作、岸边过渡、目标机性能与真人试玩待验收，游泳素材来源及公开发布授权待核实。
+- 游泳验证：`python project/sync_runtime.py`、`python project/check_all.py --no-pointer-lock --output .work/character-swim-safe`（1663 项文档数据检查、95 项部分浏览器检查）、`python project/check_repository.py --javascript`（67 个文件）及 `git diff --check` 通过；浏览器以模拟水域验证入水、静止游泳、出水与动作轨道，真实鼠标锁定及其后回归未运行，实际湖海岸边与画面未试玩。游泳和步行的 23 条骨骼轨道名称匹配。
+- 变更与原因：将用户提供的静态、步行 A 及冲刺 GLB 接入人槽，保留原文件和程序占位回退。静止显示静态模型，移动和 Shift 移动分别播放步行与冲刺动作；人物模型旋转 180 度，纠正面部朝向。用户确认资产可用于本游戏；生成来源及公开发布授权待核实，不宣称 Lux3D 证据链完成。
+- 行走体验追加调整：克隆步行和冲刺动作并固定骨盆水平轨道，保留垂直起伏，避免动作自身与游戏位移叠加；根据碰撞后的实际移动控制人物动作及速度，受阻时停止播放。新增可跳过真实指针锁定的部分浏览器检查模式，不将其视为完整回归。
+- 转向追加调整（D-025）：按创作者要求，人使用左右键原地转向，第三人称镜头随之转动，前后键沿当前视线移动；其他身体保留原操作。同步游戏提示、规则、决策与验收要求。骨盆中心实测距离旋转轴约 0.05 米；转向响应采用原有朝向追随系数作为初值，手感待试玩确认。
+- 转向验证：`python project/check_all.py --no-pointer-lock --output .work/character-turn-safe` 通过 1662 项文档数据检查和 89 项部分浏览器检查，包含左右原地转向与镜头方向同步；真实指针锁定及其后检查未运行。`python project/check_repository.py --javascript` 通过 65 个文件，`git diff --check` 通过；实际镜头观感、转向速度及真人试玩未验证。
+- 资产目录整理：用户将人物源文件移入 `assets/lux3d/character/` 并重命名静态与冲刺文件；更新台账路径及源文件与运行时副本的对应说明。SHA-256 核对确认三个源文件与现有运行时副本分别一致，无需替换游戏文件或变更运行时路径；运行 `python project/sync_runtime.py`、`python project/validate_docs.py`（1662 项）、`python project/check_repository.py --javascript`（65 个文件）及 `git diff --check` 均通过。本次未进行真人试玩或完整浏览器回归。
+- 追加验证：`python project/check_all.py --no-pointer-lock --output .work/character-motion-safe` 通过 1662 项文档数据检查及 87 项部分浏览器检查，覆盖动作水平轨道、受阻停止与部分位移；跳过真实指针锁定及其后的检查。`python project/check_repository.py --javascript` 通过 65 个文件；工具单元测试 14 项通过。首次沙箱运行因临时目录权限失败，随后在沙箱外完成。未进行真人试玩或目标设备帧率测量。
+- 验证：冲刺及朝向调整后 `python project/sync_runtime.py`、文档数据校验（1662 项）、`python project/check_repository.py --javascript`（65 个文件、0 错误）及工具单元测试（14 项）通过；静态检查确认步行与冲刺文件骨骼和动作轨道名称一致。此前 `python project/check_all.py` 两次未完成：第一次在多次加载后等待页面超时，第二次在真实按键移动的 5 秒等待处超时。本轮为避免再次限制用户鼠标，未运行会真实请求指针锁定的隔离浏览器回归；新增冲刺断言尚未执行，不能宣称浏览器验收通过。
+- 未验证项 / 风险：模型 217488 三角面，高于 L1 动物 30000 预算；动作切换、轴向、碰撞、真人试玩、目标机性能及 QA-31～34 待验收；回退可撤销本任务提交并恢复人槽占位。
+
 ## 2026-11-06 · 实拍扫描雨林、树木错落分布与收窄河道
 
 - 负责人：@yidi0522；关联：D-030，分支 `feat/amazon-river-island`（与下一条同一分支、未提交），PR 待关联。

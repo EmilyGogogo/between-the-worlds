@@ -53,6 +53,7 @@ def find_chrome(explicit):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--chrome', help='Path to Chrome executable')
+    parser.add_argument('--no-pointer-lock', action='store_true', help='Run partial browser checks without requesting pointer lock')
     parser.add_argument('--only', choices=('all', 'docs', 'browser'), default='all',
                         help='Run one CI module or the complete local check')
     parser.add_argument('--output', type=Path, default=ROOT / '.work/collaboration-checks')
@@ -134,16 +135,19 @@ def main():
                 finally:
                     client.socket.close()
                 with (args.output / 'browser.log').open('w', encoding='utf-8') as log:
-                    check = subprocess.run([
+                    command = [
                         sys.executable, str(ROOT / 'frontend/tests/check_browser.py'),
                         '--port', str(debug_port), '--url', url,
-                    ], cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)  # software rendering compiles the river-island shaders on every reload
+                    ]
+                    if args.no_pointer_lock:
+                        command.append('--no-pointer-lock')
+                    check = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)  # software rendering compiles the river-island shaders on every reload
                 print((args.output / 'browser.log').read_text(encoding='utf-8'), flush=True)
                 if check.returncode:
                     result['browser'] = 'failed'
                     raise RuntimeError('Browser checks failed; see browser.log')
-                result['browser'] = 'passed'
-                result['status'] = 'passed'
+                result['browser'] = 'partial' if args.no_pointer_lock else 'passed'
+                result['status'] = 'partial' if args.no_pointer_lock else 'passed'
             finally:
                 for process in reversed(processes):
                     if process.poll() is None:

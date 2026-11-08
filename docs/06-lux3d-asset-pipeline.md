@@ -2,7 +2,7 @@
 
 版本：0.4-review · 2026-11-01。规则：L-01～L-07。扩展方法汇总见 [数据与扩展指南](../data/README.md)。资产台账：[asset-ledger.csv](../data/asset-ledger.csv)。
 
-**当前事实：雨林的三个树槽（`slot.kapok`、`slot.broadleaf`、`slot.palm`）与布景植被（`env.forest`、`env.understory`、两岸林线）已导入 Lux3D 产物（D-031，状态 `integrated`，未验收），其余资产槽仍是程序化占位。** 下文是替换合同。
+**当前事实：人槽已接入用户提供的绑骨 GLB，来源和授权待核实；雨林的三个树槽（`slot.kapok`、`slot.broadleaf`、`slot.palm`）与布景植被（`env.forest`、`env.understory`、两岸林线）已导入 Lux3D 产物（D-031，状态 `integrated`，未验收）；其余资产槽仍为程序化占位。** 下文是替换合同，不代表资产已经验收。
 
 ## 思路
 
@@ -36,6 +36,9 @@ Lux3D 生成（文字／图片）→ 下载原始文件 → Blender 修整：比
 | `slotId` | 稳定的槽 ID，不随文件版本变化 | `slot.gull` |
 | `status` | `placeholder` → `generated` → `edited` → `integrated` → `accepted` | `placeholder` |
 | `url` | 运行时加载的 GLB；`null` 时使用占位 | `./public/models/gull-v1.glb` |
+| `idleUrl` | 可选静态待机 GLB；移动时切换回主模型，加载失败时整个变体回退 | `./public/models/human_01-static-v001.glb` |
+| `runUrl` | 可选冲刺动画 GLB，动作按名称绑定到主模型骨架；骨骼名称须兼容 | `./public/models/human_01-run-v001.glb` |
+| `swimUrl` | 可选游泳动画 GLB，动作按名称绑定到主模型骨架；骨骼名称须兼容 | `./public/models/human_01-swim-v001.glb` |
 | `variants` | 更多模型：路径，或可覆盖 `height`／`rotation`／`animations`／`collisionBoxes`／`lod`／`weight` 的对象；按个体 ID 固定分配 | `["./public/models/gull-b.glb"]` |
 | `height` | 目标高度（米）；导入器按此等比缩放 | `0.65` |
 | `rotation` | 轴向纠正，XYZ 弧度 | `[0, 0, 0]` |
@@ -109,6 +112,8 @@ assets/lux3d/<asset_id>/
   export/v001/ 导出模型、碰撞说明、动作名称
   evidence/    游戏内截图、运行片段、版本对应说明
 ```
+
+人模型原始文件目前保留在 `assets/lux3d/character/`：`character-原始.glb`、`animation-步行A.glb`、`animation-冲刺.glb`、`animation-游泳.glb` 分别对应运行时的静态、步行、冲刺和游泳模型。游戏读取 `frontend/public/models/` 中的副本；调整源文件后需核对并同步副本。具体生成过程、授权和证据链待补齐。
 
 现有实例：`assets/lux3d/LUX3D-vegetation-rainforest/`（input、raw、evidence；Blender 处理是可重跑的脚本 `project/vegetation/build_vegetation.py`，没有单独的 edit 目录）。台账中没有证据的字段留空，不填写虚构的日期、任务 ID 或 `lux3d_used=true`。
 

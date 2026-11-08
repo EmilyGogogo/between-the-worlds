@@ -448,7 +448,10 @@ export class World {
       if(v.userData.limbs)for(let i=0;i<v.userData.limbs.length;i++)v.userData.limbs[i].rotation.x=e.moving?Math.sin(t*s.limbSwingRate+i*Math.PI)*.38:0;
       if(v.userData.dogTail)v.userData.dogTail.rotation.z=Math.sin(t*4)*.2;
       if(v.userData.fish)v.userData.tail.rotation.y=Math.sin(t*(e.moving?10:4)+e.seed)*.35;
-      v.userData.moving=e.moving;
+      v.userData.moving=e===player?(e.animationMoving??e.moving):e.moving;
+      v.userData.boosting=e.moving&&e.boosting;
+      v.userData.movementRatio=e===player?e.movementRatio:1;
+      v.userData.swimming=e.swimming;
     }
     this.assets.update(dt);
     if(target){

@@ -179,7 +179,7 @@ def main():
         if sources:
             check(a['status'] in SLOT_STATES[3:], f'{eid}: model set but slot not integrated')
             check(set(a['requiredAnimationRoles']) <= set(a['animations']), f'{eid}: missing animation mapping')
-            for url in sources + [l['url'] for l in a['lod'] if l.get('url')]:
+            for url in sources + [l['url'] for l in a['lod'] if l.get('url')] + [a[key] for key in ('idleUrl', 'runUrl', 'swimUrl') if a.get(key)]:
                 if url and not url.startswith('http'):
                     check((ROOT / 'frontend' / url.removeprefix('./')).exists(), f'{eid}: asset file missing: {url}')
         else:

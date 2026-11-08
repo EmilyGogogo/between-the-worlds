@@ -1430,19 +1430,22 @@
       },
       "asset": {
         "slotId": "slot.human",
-        "status": "placeholder",
-        "url": null,
+        "status": "integrated",
+        "url": "./public/models/human_01-v001.glb",
+        "idleUrl": "./public/models/human_01-static-v001.glb",
+        "runUrl": "./public/models/human_01-run-v001.glb",
+        "swimUrl": "./public/models/human_01-swim-v001.glb",
         "variants": [],
         "height": 1.75,
         "rotation": [
           0,
-          0,
+          3.141592653589793,
           0
         ],
         "pivot": "bottom_center",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
-        "animations": {},
+        "animations": {"idle": "model-action", "move": "model-action", "run": "model-action", "swim": "model-action"},
         "requiredAnimationRoles": [
           "idle",
           "move"
