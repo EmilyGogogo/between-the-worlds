@@ -208,16 +208,7 @@ if TARGET_DIHEDRAL is not None:
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.context.view_layer.objects.active = mesh_obj
     bpy.ops.object.modifier_apply(modifier=am.name)
-    # Relax the shoulder band so the levelled wing meets the body in a curve, not a crease.
-    zone = mesh_obj.vertex_groups.new(name='shoulder_zone')
-    vz = verts(mesh_obj); axz = np.abs(vz[:, 0])
-    band = smooth(shoulder_x * 0.35, shoulder_x * 0.8, axz) * (1 - smooth(shoulder_x * 1.15, shoulder_x * 1.7, axz))
-    for i in np.nonzero(band > 0.01)[0]:
-        zone.add([int(i)], float(band[i]), 'REPLACE')
-    sm = mesh_obj.modifiers.new('relax', 'SMOOTH'); sm.factor = 0.6; sm.iterations = 6; sm.vertex_group = 'shoulder_zone'
-    bpy.ops.object.modifier_apply(modifier=sm.name)
-    bpy.ops.object.shade_smooth()
-    report['shoulder_relax'] = {'vertices': int((band > 0.01).sum()), 'factor': 0.6, 'iterations': 6}
+    bpy.ops.object.shade_smooth()   # normals only: vertices stay put, so layered feathers never cross
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode='POSE'); bpy.ops.pose.select_all(action='SELECT'); bpy.ops.pose.armature_apply(selected=False)
     bpy.ops.object.mode_set(mode='OBJECT')
