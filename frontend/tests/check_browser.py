@@ -109,7 +109,9 @@ const bad=W.entities.filter(e=>SPECIES[e.kind].collision.solid&&SPECIES[e.kind].
 assert('no solid bodies overlap at spawn (M-01)',bad.length===0,bad.map(e=>e.id).join());
 assert('first R hint appears with a target (U-01)',!!g.target&&document.getElementById('first-hint').textContent.startsWith('R'));
 // Ground bodies cannot look up, so the human -> bird route needs a gull that dips into level view (G-07, D-027).
-let lowPass=false;for(let k=0;k<120&&!lowPass;k++){step(10);const p=W.byId.get('gull-0').root.position;if(p.y-W.height(p.x,p.z)<4.5){W.ambient.paused=true;lowPass=seek('gull-0');W.ambient.paused=false;}}
+// The human checks above leave the body at the origin; stand it back on its spawn point first.
+{const h0=W.byId.get('human-first'),spawn=LAYOUT.instances.find(i=>i.id==='human-first').position;h0.root.position.set(spawn[0],0,spawn[2]);h0.root.position.y=g.groundHeight(h0);take('human-first');}
+let lowPass=false;for(let k=0;k<120&&!lowPass;k++){step(10);const p=W.byId.get('gull-0').root.position;if(p.y-W.height(p.x,p.z)<3){W.ambient.paused=true;lowPass=seek('gull-0');W.ambient.paused=false;}}
 assert('during its low pass the human at the start can select gull-0 (G-07, D-027)',lowPass);
 const p0=W.position(g.player).clone();g.yaw=.35;g.pitch=.27;key('KeyW');step(30);key('KeyW','keyup');
 assert('WASD moves the current body',W.position(g.player).distanceTo(p0)>1);
@@ -190,6 +192,9 @@ assert('a solid blocker hides the viewed island surface (P-02)',!g.evaluate(isla
 g.collision.refresh();
 g.camera.lookAt(g.camera.position.clone().add(new eye.constructor(0,100,0)));
 assert('R rejects a cached island target after looking at the sky (P-06)',!g.possess()&&g.player.kind==='gull'&&!g.target);
+// Earlier seeks may focus a low-flying bird or fish and start the 90 s response cooldown (D-027);
+// clear it so this checks only that the first island response is not tied to the source body.
+g.lastResponse=-1e9;
 assert('high gull -> island',go('island-main'));
 assert('first island response also triggers from a gull',g.shown.has('island:first_possess'));
 """)
