@@ -107,6 +107,8 @@ assert('a played hatchetfish leaves the school motion to the player',by('silverf
         ('01-gull-low-pass-from-start.jpg', "take('human-first');const t=W.byId.get('gull-0');let k=0;while(k++<200){step(5);const p=t.root.position;if(p.y-W.height(p.x,p.z)<4)break;}g.yaw=.39;g.pitch=.06;step(2);"),
         ('02-gull-flying-high.jpg', "take('gull-1');W.ambient.paused=true;const p=g.player.root.position;p.y=W.height(p.x,p.z)+28;g.pitch=.3;g.yaw=1.4;step(40);g.actions.add('move_forward');step(10);g.actions.delete('move_forward');W.ambient.paused=false;"),
         ('03-hatchetfish-school.jpg', "take('silverfish-0');g.pitch=.05;g.yaw=0;step(30);let best=0;for(let i=0;i<24;i++){g.yaw=i/24*6.283;step(2);}g.yaw=Math.atan2(-(W.byId.get('silverfish-6').root.position.x-g.player.root.position.x),-(W.byId.get('silverfish-6').root.position.z-g.player.root.position.z));step(8);"),
+        ('05-gull-size-next-to-human.jpg', "take('human-first');W.ambient.paused=true;const h=g.player.root.position,t=W.byId.get('gull-0');t.root.position.set(h.x-3.5,h.y+1.6,h.z-7);t.heading=1.2;t.root.rotation.y=1.2;g.yaw=.35;g.pitch=.06;step(20);"),
+        ('06-gull-third-person.jpg', "W.ambient.paused=false;take('gull-2');const p=g.player.root.position;p.y=W.height(p.x,p.z)+14;g.pitch=.12;g.yaw=2.0;step(40);"),
         ('04-discus.jpg', "take('discus-4');const o=W.byId.get('discus-1');g.pitch=.1;step(10);g.yaw=Math.atan2(-(o.root.position.x-g.player.root.position.x),-(o.root.position.z-g.player.root.position.z));step(10);"),
     ]
     for name, body in poses:

@@ -865,24 +865,24 @@
       },
       "camera": {
         "mode": "third_person",
-        "distance": 5.0,
-        "height": 0.28600000000000003,
+        "distance": 3.5,
+        "height": 0.1408,
         "fovDeg": 52
       },
       "body": {
-        "height": 0.65,
-        "collisionRadius": 0.65,
+        "height": 0.32,
+        "collisionRadius": 0.5,
         "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
           [
-            -1.4,
-            0,
-            -0.7,
-            1.4,
-            0.65,
-            0.8
+            -0.69,
+            0.0,
+            -0.34,
+            0.69,
+            0.32,
+            0.39
           ]
         ],
         "solid": true,
@@ -893,7 +893,7 @@
         "status": "integrated",
         "url": "./public/models/bird_gull_01-v002.glb",
         "variants": [],
-        "height": 0.65,
+        "height": 0.32,
         "rotation": [
           0,
           0,

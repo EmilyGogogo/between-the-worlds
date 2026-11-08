@@ -1,5 +1,5 @@
 {
- "load_seconds": 10.6,
+ "load_seconds": 10.9,
  "checks": [
   {
    "name": "counts: 4 gulls, 12 silver hatchetfish, 6 discus",
@@ -69,7 +69,7 @@
   {
    "name": "a released gull rests about 4 s, then rejoins its route",
    "ok": true,
-   "detail": "rest 0.000 then 53.8"
+   "detail": "rest 0.000 then 53.7"
   },
   {
    "name": "a played hatchetfish leaves the school motion to the player",
@@ -81,6 +81,8 @@
   "01-gull-low-pass-from-start.jpg",
   "02-gull-flying-high.jpg",
   "03-hatchetfish-school.jpg",
+  "05-gull-size-next-to-human.jpg",
+  "06-gull-third-person.jpg",
   "04-discus.jpg"
  ]
 }

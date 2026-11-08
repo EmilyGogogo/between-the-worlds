@@ -563,15 +563,15 @@
       "tier": 0,
       "scaleTier": "S1",
       "mode": "fly",
-      "radius": 0.65,
-      "height": 0.65,
+      "radius": 0.5,
+      "height": 0.32,
       "wadeDepth": 0,
       "surface": null,
       "limbSwingRate": 0,
       "activityRegion": "island_airspace",
       "speed": 18.0,
       "boost": 2.7,
-      "camera": 5.0,
+      "camera": 3.5,
       "fov": 52,
       "reach": 130.0,
       "targets": [
@@ -607,12 +607,12 @@
       "collision": {
         "boxes": [
           [
-            -1.4,
-            0,
-            -0.7,
-            1.4,
-            0.65,
-            0.8
+            -0.69,
+            0.0,
+            -0.34,
+            0.69,
+            0.32,
+            0.39
           ]
         ],
         "solid": true,
