@@ -2,6 +2,15 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-08～11-09 · 修复完整浏览器回归的恢复状态与操作栏宽度
+
+- 负责人：@EmilyGogogo；关联：PR #6 合入后的 CI 第 11 次运行及 PR #7 浏览器回归；修复分支 `codex/fix-browser-regression`，PR 待关联。
+- AI：Codex 负责定位、CSS 与测试修复、文档与验证；人工复核：待负责人复核。
+- 变更与原因：当前分支中补齐失焦测试后显式点击 resume、等待解除暂停及指针锁定，再检查真实移动／转向／同向多键。HUD 测量发现人的拖动环视文案使操作栏宽约 308.9 px，超过既有 300 px 限制；为 `.control-guide` 加 300 px 最大宽度，保留视口约束并允许自然换行。五种视口分别检查真实锁定与未锁定状态，断言栏体可见、无横向溢出且不遮挡其他提示，防止隐藏元素的零尺寸被当作通过。
+- 检查执行：诊断中记录到软件渲染响应约 9 秒、反复加载真实模型触及 300 秒总时限；测试设备像素比设为 0.25，保留 CSS 视口、真实模型、指针锁定与移动断言，降低光栅化开销。`check_all.py` 完整浏览器子进程预算改为 600 秒，单项等待条件和阈值保持原样；HTTP 缓存仍禁用。临时缓存对比没有单独解决问题，未纳入交付。
+- 验证（2026-11-09，Windows 11、Python 3.13.9、Chrome 157.0.8103.38、Node 22.23.3）：`python project/check_all.py --output .work/ci-hud-regression/complete` 标准完整入口退出 0，1747 项文档／数据检查、195 项浏览器检查通过；结果 JSON 的 docs/browser/status 均为 passed，日志仅在本地 `.work/ci-hud-regression/complete/`。`python project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。早期重载等待超时与 300 秒总时限失败如实保留于本地诊断记录，20 次连续空场景重载未复现；最终标准运行未发生这些失败。
+- 未验证项／风险：远端 CI、真人画面、正常像素密度下的视觉质量与目标设备性能尚未验证；本地完整回归通过不作为正式 QA 或性能验收。按用户要求提交修复 PR，人工审核与合并待负责人完成。
+
 ## 2026-11-08 · 修复 PR #7 的存档迁移与自主移动穿模
 
 - 负责人：@EmilyGogogo；关联：PR #7，修复分支 `codex/fix-pr7-motion-save`。

@@ -31,7 +31,10 @@ c = CDP(args.port)
 for method in ['Runtime.enable', 'Page.enable', 'Network.enable']:
     c.call(method)
 c.call('Network.setCacheDisabled', {'cacheDisabled': True})
-c.call('Emulation.setDeviceMetricsOverride', {'width': 1280, 'height': 800, 'deviceScaleFactor': 1, 'mobile': False})
+# Software rendering of the full asset scenes can stall real input for seconds.
+# Keep CSS viewport geometry intact while reducing raster work; this is not an FPS test.
+DEVICE_SCALE = .25
+c.call('Emulation.setDeviceMetricsOverride', {'width': 1280, 'height': 800, 'deviceScaleFactor': DEVICE_SCALE, 'mobile': False})
 
 
 def load():
@@ -378,6 +381,24 @@ yaw_before = c.evaluate('window.__world.yaw')
 c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 640, 'y': 400})
 c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 680, 'y': 400})
 browser_assert('real locked pointer movement changes the camera', f'window.__world.yaw!=={yaw_before}')
+key_event('Escape')
+key_event('Escape', 'keyUp')
+c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+browser_assert('Escape pauses, releases pointer, and replaces compact guide with full menu',
+               "!document.getElementById('pause').hidden&&document.getElementById('control-guide').hidden")
+key_event('Escape', repeat=True)
+browser_assert('holding Escape does not toggle pause repeatedly', 'window.__world.paused')
+click_at(*center('resume'))
+c.wait_for('!window.__world.paused&&!!document.pointerLockElement', 10)
+passed.append('real resume click restores exploration and pointer lock')
+c.evaluate("window.dispatchEvent(new Event('blur'));true")
+c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+browser_assert('focus loss pauses with an explanation and clears all input',
+               "document.getElementById('pause-reason').textContent.includes('离开画面')&&window.__world.actions.size===0&&window.__world.pressedCodes.size===0")
+c.evaluate("window.dispatchEvent(new Event('focus'));true")
+browser_assert('returning focus does not automatically resume', 'window.__world.paused&&!document.pointerLockElement')
+click_at(*center('resume'))
+c.wait_for('!window.__world.paused && !!document.pointerLockElement', 10)
 # Human forward/backward movement and left/right turning use real key events.
 origin = c.evaluate('window.__world.player.root.position.toArray()')
 for code in ('KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'):
@@ -398,22 +419,8 @@ key_event('KeyW', 'keyUp')
 browser_assert('releasing W preserves held ArrowUp', "window.__world.actions.has('move_forward')")
 key_event('ArrowUp', 'keyUp')
 browser_assert('releasing both aliases stops movement', 'window.__world.actions.size===0')
-key_event('Escape')
-key_event('Escape', 'keyUp')
+c.evaluate('window.__world.pause();true')
 c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
-browser_assert('Escape pauses, releases pointer, and replaces compact guide with full menu',
-               "!document.getElementById('pause').hidden&&document.getElementById('control-guide').hidden")
-key_event('Escape', repeat=True)
-browser_assert('holding Escape does not toggle pause repeatedly', 'window.__world.paused')
-click_at(*center('resume'))
-c.wait_for('!window.__world.paused&&!!document.pointerLockElement', 10)
-passed.append('real resume click restores exploration and pointer lock')
-c.evaluate("window.dispatchEvent(new Event('blur'));true")
-c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
-browser_assert('focus loss pauses with an explanation and clears all input',
-               "document.getElementById('pause-reason').textContent.includes('离开画面')&&window.__world.actions.size===0&&window.__world.pressedCodes.size===0")
-c.evaluate("window.dispatchEvent(new Event('focus'));true")
-browser_assert('returning focus does not automatically resume', 'window.__world.paused&&!document.pointerLockElement')
 # Deliberate browser rejection exercises the real request/catch path, not a no-op lockMouse.
 c.evaluate("document.getElementById('world').requestPointerLock=()=>Promise.reject(new DOMException('Test denial','NotAllowedError'));true")
 click_at(*center('resume'))
@@ -472,17 +479,25 @@ browser_assert('continued save completes the normal opening camera transition', 
 browser_assert('continued save retains compact controls', "!document.getElementById('control-guide').hidden")
 # Check geometry without screenshot exports, including the compactness requested by the creator.
 for width, height in ((1280, 720), (1366, 768), (1920, 1080), (800, 600), (640, 600)):
-    c.call('Emulation.setDeviceMetricsOverride', {'width': width, 'height': height, 'deviceScaleFactor': 1, 'mobile': False})
-    browser_assert(f'compact HUD fits and avoids presence, R hint and response at {width}x{height}', r"""(()=>{
-const g=document.getElementById('control-guide').getBoundingClientRect(),p=document.getElementById('presence').getBoundingClientRect(),h=document.getElementById('first-hint').getBoundingClientRect(),r=document.getElementById('response');
-const old=r.textContent;r.textContent='世界仍在这里';const q=r.getBoundingClientRect();r.textContent=old;
-const apart=(a,b)=>a.right<=b.left||b.right<=a.left||a.bottom<=b.top||b.bottom<=a.top;
-return g.width<=300&&g.height<=130&&g.right<=innerWidth&&g.bottom<=innerHeight&&g.left>=0&&apart(g,p)&&apart(g,h)&&apart(g,q);
-})()""")
+    c.call('Emulation.setDeviceMetricsOverride', {'width': width, 'height': height, 'deviceScaleFactor': DEVICE_SCALE, 'mobile': False})
+    c.wait_for(f'innerWidth==={width}&&innerHeight==={height}', 10)
     c.evaluate('window.__world.pause();true')
+    c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
     browser_assert(f'pause menu remains within viewport at {width}x{height}', r"""(()=>{
 const r=document.querySelector('.pause-card').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;
 })()""")
-    c.evaluate('window.__world.resume(false);true')
+    click_at(*center('resume'))
+    c.wait_for('!window.__world.paused&&!!document.pointerLockElement', 10)
+    for look_mode in ('locked', 'drag'):
+        browser_assert(f'{look_mode} compact HUD fits and avoids presence, R hint and response at {width}x{height}', r"""(()=>{
+const guide=document.getElementById('control-guide'),bounds=guide.getBoundingClientRect(),presence=document.getElementById('presence').getBoundingClientRect(),hint=document.getElementById('first-hint').getBoundingClientRect(),response=document.getElementById('response');
+const previousText=response.textContent;response.textContent='世界仍在这里';const responseBounds=response.getBoundingClientRect();response.textContent=previousText;
+const apart=(first,second)=>first.right<=second.left||second.right<=first.left||first.bottom<=second.top||second.bottom<=first.top;
+return !guide.hidden&&bounds.width>0&&bounds.width<=300&&bounds.height>0&&bounds.height<=130&&bounds.right<=innerWidth&&bounds.bottom<=innerHeight&&bounds.left>=0&&bounds.top>=0&&guide.scrollWidth<=guide.clientWidth&&apart(bounds,presence)&&apart(bounds,hint)&&apart(bounds,responseBounds);
+})()""")
+        if look_mode == 'locked':
+            c.evaluate('window.__world.pause();true')
+            c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+            c.evaluate('window.__world.resume(false);true')
 print('\n'.join('PASS ' + name for name in passed))
 print(f'{len(passed)} browser checks passed (0.4 baseline). Not a substitute for QA-01..QA-47 playtests.')
