@@ -141,7 +141,9 @@ def main():
                     ]
                     if args.no_pointer_lock:
                         command.append('--no-pointer-lock')
-                    check = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=300)
+                    # Full real-asset reloads plus input/layout regressions exceed five
+                    # minutes under software rendering. Keep individual assertion limits.
+                    check = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)
                 print((args.output / 'browser.log').read_text(encoding='utf-8'), flush=True)
                 if check.returncode:
                     result['browser'] = 'failed'
