@@ -92,10 +92,68 @@ g.moveBody=(e,delta)=>e.root.position.addScaledVector(delta,.5);g.move(.1);
 assert('partial movement slows the human animation',g.player.animationMoving&&Math.abs(g.player.movementRatio-.5)<.001);
 g.moveBody=originalMoveBody;g.unstick=originalUnstick;g.actions.clear();
 W.restore(W.serialize());g.player.root.position.y=g.groundHeight(g.player);
-const turnStart=g.player.root.position.clone(),yawStart=g.yaw;g.actions.add('move_left');g.move(.1);g.actions.clear();
-assert('human turns in place and camera follows left',g.player.root.position.distanceTo(turnStart)<.001&&g.yaw>yawStart&&Math.abs(Math.sin((g.player.heading-g.yaw)/2))<.001,JSON.stringify([g.player.root.position.distanceTo(turnStart),g.yaw,g.player.heading]));
-const rightStart=g.yaw;g.actions.add('move_right');g.move(.1);g.actions.clear();
-assert('human turns in place and camera follows right',g.player.root.position.distanceTo(turnStart)<.001&&g.yaw<rightStart&&Math.abs(Math.sin((g.player.heading-g.yaw)/2))<.001);
+// D-029: the camera follows body turns without steering a held direction into a circle.
+const movementSnapshot=W.serialize(),originalAllowed=g.allowed,originalCollisionMoveForMovement=g.collision.move;
+g.allowed=()=>true;g.collision.move=(e,delta)=>{e.root.position.add(delta);return W.position(e);};g.unstick=()=>{};
+// A short press must rotate the displayed view during the turn, not only after settling.
+// Block translation to check camera rotation independently of walking or obstacles.
+g.moveBody=()=>{};
+for(const kind of kinds)for(const [code,sign] of [['KeyA',1],['KeyD',-1],['ArrowLeft',1],['ArrowRight',-1]]){
+  W.restore(movementSnapshot);g.clearInput();g.player=W.entities.find(e=>e.kind===kind);g.yaw=.7;g.pitch=.3;
+  const inv=g.player.root.parent.getWorldQuaternion(new g.camera.quaternion.constructor()).invert();
+  const forward=g.player.root.position.clone().set(-Math.sin(g.yaw),0,-Math.cos(g.yaw)).applyQuaternion(inv);
+  g.player.heading=Math.atan2(-forward.x,-forward.z);
+  if(SPECIES[kind].mode!=='island')g.player.root.rotation.y=g.player.heading;
+  g.snapCamera=true;g.updateCamera(0);
+  const viewYaw=()=>{const d=g.camera.getWorldDirection(g.camera.position.clone());return Math.atan2(-d.x,-d.z);};
+  const angle=a=>Math.atan2(Math.sin(a),Math.cos(a));
+  const startYaw=g.yaw,startView=viewYaw();key(code);
+  for(let i=0;i<3;i++){g.move(1/60);g.updateCamera(1/60);}
+  const turn=angle(g.yaw-startYaw),orbit=g.camera.position.clone().sub(W.focus(g.player));
+  assert(`${kind}: short ${code} immediately rotates the camera orbit with the body`,turn*sign>.1&&Math.abs(angle(Math.atan2(orbit.x,orbit.z)-g.yaw))<.01);
+  assert(`${kind}: short ${code} immediately turns the displayed look direction`,Math.abs(angle(viewYaw()-startView-turn))<.01);
+  key(code,'keyup');const releasedView=viewYaw();
+  for(let i=0;i<12;i++){g.move(1/60);g.updateCamera(1/60);}
+  assert(`${kind}: releasing ${code} leaves no delayed camera turn`,Math.abs(angle(viewYaw()-releasedView))<.01);
+}
+W.restore(movementSnapshot);g.clearInput();g.player=W.byId.get('human-first');g.yaw=.7;g.pitch=.3;
+g.player.heading=g.yaw;g.player.root.rotation.y=g.yaw;g.collision.refresh();g.snapCamera=true;g.updateCamera(0);
+const turnFocus=W.focus(g.player),turnOrbit=g.camera.position.clone().sub(turnFocus),turnYaw=g.yaw;
+key('KeyA');g.move(.1);turnOrbit.applyAxisAngle({x:0,y:1,z:0},g.yaw-turnYaw);
+const blockerCenter=turnFocus.clone().addScaledVector(turnOrbit,.7),blockerBox=g.collision.records[0].box.clone().setFromCenterAndSize(blockerCenter,turnOrbit.clone().set(.3,.3,.3));
+g.collision.records.push({entity:W.byId.get('tree-first'),box:blockerBox});g.updateCamera(.1);
+assert('the live camera stays in front of a solid blocker during immediate body follow',g.camera.position.distanceTo(turnFocus)<blockerCenter.distanceTo(turnFocus)-.15&&!blockerBox.containsPoint(g.camera.position));
+key('KeyA','keyup');g.collision.refresh();
+g.moveBody=originalMoveBody;
+for(const kind of kinds)for(const [action,relative] of [['move_back',Math.PI],['move_left',Math.PI/2],['move_right',-Math.PI/2]]){
+  W.restore(movementSnapshot);g.clearInput();
+  const e=W.entities.find(e=>e.kind===kind);g.player=e;g.yaw=.7;g.pitch=.3;g.snapCamera=true;g.updateCamera(0);
+  const inv=e.root.parent.getWorldQuaternion(new g.camera.quaternion.constructor()).invert();
+  const forward=e.root.position.clone().set(-Math.sin(g.yaw),0,-Math.cos(g.yaw)).applyQuaternion(inv);
+  e.heading=Math.atan2(-forward.x,-forward.z);
+  if(SPECIES[kind].mode!=='island')e.root.rotation.y=e.heading;
+  const start=e.heading,position=W.position(e).clone();g.actions.add(action);g.move(.1);g.updateCamera(.1);
+  const turn=e.heading-start,cameraTurn=Math.atan2(Math.sin(g.yaw-.7),Math.cos(g.yaw-.7));
+  assert(`${kind}: ${action} starts a bounded turn and camera follow`,Math.abs(turn)<=SPECIES[kind].turnSpeed*Math.PI/180*.1+1e-8&&Math.abs(cameraTurn-turn)<1e-6&&Math.abs(turn)>.01);
+  if(action==='move_back')assert(`${kind}: back does not backpedal at turn start`,W.position(e).distanceTo(position)<1e-7);
+  for(let i=0;i<24;i++){g.move(1/20);g.updateCamera(1/20);}
+  assert(`${kind}: ${action} body and camera reach the requested direction`,Math.cos(e.heading-start-relative)>.999&&Math.cos(g.yaw-.7-relative)>.999&&W.position(e).distanceTo(position)>.01);
+  const settledYaw=g.yaw,settledHeading=e.heading;
+  for(let i=0;i<20;i++){g.move(1/20);g.updateCamera(1/20);}
+  assert(`${kind}: holding ${action} does not accumulate another turn`,Math.abs(g.yaw-settledYaw)<1e-6&&Math.abs(e.heading-settledHeading)<1e-6);
+  const orbit=g.camera.position.clone().sub(W.focus(e));
+  assert(`${kind}: ${action} rotates the actual camera orbit`,Math.cos(Math.atan2(orbit.x,orbit.z)-g.yaw)>.99);
+  g.clearInput();
+}
+W.restore(movementSnapshot);g.player=W.byId.get('human-first');g.allowed=originalAllowed;g.collision.move=originalCollisionMoveForMovement;g.unstick=originalUnstick;
+// Mouse orbit updates the held movement reference; releasing/repressing uses the new view.
+g.player.heading=g.yaw;g.player.root.rotation.y=g.yaw;g.actions.add('move_left');g.move(.1);
+g.paused=false;g.dragging=true;const mouseYaw=g.yaw,movementYaw=g.movementInput.yaw;
+document.dispatchEvent(new MouseEvent('mousemove',{movementX:40,movementY:0,bubbles:true}));g.dragging=false;g.paused=true;
+assert('mouse orbit remains usable while the camera follows a turn',Math.abs(g.yaw-mouseYaw+40*TUNING.mouseSensitivityRadPerPixel.value)<1e-8&&Math.abs(g.movementInput.yaw-movementYaw-(g.yaw-mouseYaw))<1e-8);
+g.actions.clear();g.move(0);const releasedYaw=g.yaw;g.actions.add('move_left');g.move(0);
+assert('a fresh direction press uses the current camera as its reference',g.movementInput.yaw===releasedYaw);
+g.clearInput();const idleYaw=g.yaw;g.move(.1);assert('idle does not turn the camera back after mouse orbit',g.yaw===idleYaw);
 const originalWater=W.water,originalHeight=W.height,originalCollisionMove=g.collision.move;
 W.water=(x,z)=>x>1?{id:'test-water',surface:2,floor:-3}:null;W.height=()=>0;g.collision.move=(e,delta)=>e.root.position.add(delta);
 g.player.root.position.set(2,0,0);g.moveBody(g.player,g.player.root.position.clone().set(0,0,0),.1);
@@ -160,7 +218,7 @@ try{
 load()
 passed += run(r"""
 assert('human -> dog',go('dog-first'));
-assert('dog sees in monochrome (B-04)',g.renderer.domElement.style.filter.startsWith('grayscale(1)'));
+assert('third-person dog stays in colour (D-029)',g.view.grayscale===0&&g.view.saturation===1&&!g.view.tint);
 assert('dog -> human',go('human-first'));
 assert('perception returns to colour',g.renderer.domElement.style.filter.startsWith('grayscale(0)'));
 assert('human -> tree, one tier up (G-07)',go('tree-first'));
@@ -174,6 +232,51 @@ assert('island -> boulder',go('boulder-island-0'));
 assert('boulder -> pine',go('pine-island-0-1'));
 assert('pine -> rock, one tier down (W-05, D-021)',go('rocks-island-0-1'));
 assert('rock -> grass, back to the smallest scale (W-05)',go('grass-island-0-1'));
+""")
+load()
+passed += run(r"""
+// Exercise both modes for every configured body, including terrain carriers.
+const kinds=Object.keys(SPECIES),toggle=()=>{g.paused=false;const changed=g.toggleView();g.paused=true;return changed;};
+for(const kind of kinds){
+  const e=W.entities.find(e=>e.kind===kind);take(e.id);step(45);
+  assert(`${kind}: third-person uses human colour and FOV`,g.view.grayscale===0&&g.view.saturation===1&&g.view.contrast===1&&g.view.fov===48&&!g.view.tint);
+  assert(`${kind}: V enters first-person`,toggle()&&g.cameraMode==='first_person');step(45);
+  const vision=SPECIES[kind].vision;
+  assert(`${kind}: first-person applies its own visual profile`,g.view.grayscale===vision.grayscale&&g.view.fov===SPECIES[kind].fov&&g.view.saturation===vision.saturation&&g.view.tint===vision.tint);
+  assert(`${kind}: first-person camera follows configured eye`,g.camera.position.distanceTo(g.firstPersonEye(e))<.001);
+  assert(`${kind}: own mesh visibility is correct`,e.visual.visible===!SPECIES[kind].firstPerson.hideBody);
+  const look=g.camera.getWorldDirection(g.camera.position.clone()),forward=g.camera.position.clone().set(-Math.sin(g.yaw)*Math.cos(g.pitch),-Math.sin(g.pitch),-Math.cos(g.yaw)*Math.cos(g.pitch));
+  assert(`${kind}: first-person look follows mouse angles`,look.dot(forward)>.999);
+  if(kind==='dog')assert('first-person dog is monochrome (B-04)',g.view.grayscale===1&&g.renderer.domElement.style.filter.startsWith('grayscale(1)'));
+  if(SPECIES[kind].category==='fish')assert(`${kind}: first-person tint visible`,Number(document.getElementById('perception-tint').style.opacity)>.3);
+  assert(`${kind}: V returns to third-person`,toggle());step(45);
+  assert(`${kind}: third-person restores own mesh and removes tint`,e.visual.visible&&g.view.grayscale===0&&Number(document.getElementById('perception-tint').style.opacity)===0);
+}
+// Eye clearance must use the actual carrier, including curved-sea island frames.
+for(const id of ['island-main','island-0','boulder-island-0','grass-boulder-0','grass-island-0-1']){
+  const e=W.byId.get(id);take(id);toggle();step(45);
+  for(let carrier=SPECIES[e.kind].firstPerson.hideBody?W.carrierOf(e):e;carrier;carrier=W.carrierOf(carrier)){
+    const eye=carrier.root.worldToLocal(g.camera.position.clone());
+    assert(`${id}: first-person clears ${carrier.id} surface`,eye.y>=W.surfaceOf(carrier,eye.x,eye.z)+TUNING.cameraCollisionPaddingM.value-1e-6);
+  }
+  if(e.kind==='island')assert(`${id}: first-person preserves island residents`,W.entities.filter(body=>body.root.parent===e.root).some(body=>body.visual.visible));
+  toggle();step(45);
+}
+take('human-first');toggle();step(45);
+const firstYaw=g.yaw,firstPosition=W.position(g.player).clone(),firstLocal=g.player.root.position.clone();g.actions.add('move_right');step(15);g.clearInput();
+assert('first-person strafing keeps the look direction fixed',g.yaw===firstYaw&&W.position(g.player).distanceTo(firstPosition)>.1);
+g.player.root.position.copy(firstLocal);g.collision.refresh();
+g.yaw=.5;g.pitch=-.6;step(2);assert('ground first-person can look up',g.camera.getWorldDirection(g.camera.position.clone()).y>0);
+const before=W.position(g.player).clone();g.actions.add('move_forward');step(15);g.actions.clear();
+assert('looking up does not lift a ground body',Math.abs(g.player.root.position.y-g.groundHeight(g.player))<.001&&W.position(g.player).distanceTo(before)>0);
+g.save();assert('save records the selected perspective',JSON.parse(localStorage.getItem('between-all-things.save.v4')).cameraMode==='first_person');
+g.cameraMode='third_person';g.restore();assert('restore retains first-person mode and look pitch',g.cameraMode==='first_person'&&g.pitch===-.6);
+g.paused=false;g.transition={opening:true,from:g.player,to:g.player};assert('view switching is ignored during transitions',!g.toggleView());g.transition=null;g.paused=true;
+assert('view switching is ignored while paused',!g.toggleView());
+toggle();step(45);
+take('gull-0');toggle();step(45);const y=g.player.root.position.y;g.pitch=-.4;g.actions.add('move_forward');step(30);g.actions.clear();
+assert('first-person bird climbs along its look direction',g.player.root.position.y>y+2);
+toggle();step(45);
 """)
 load()
 passed += run(r"""
@@ -228,9 +331,10 @@ assert('gull stays under the flight ceiling (M-04)',b.root.position.y<=ceiling+.
 take('silverfish-0');const f=g.player;g.pitch=-.45;g.actions.add('move_forward');g.actions.add('boost');let above=-1e9;
 for(let k=0;k<40;k++){g.yaw=k*.6;step(15);const p=f.root.position,w=W.water(p.x,p.z);above=Math.max(above,w?p.y-w.surface:99);}g.actions.clear();
 assert('silverfish never leaves the lake (M-04)',above<0,above);
-take('dog-first');const hu=W.byId.get('human-first');g.target=hu;g.evaluate=()=>({entity:hu});g.possess();step(36);
+take('dog-first');g.paused=false;g.toggleView();g.paused=true;step(45);
+const hu=W.byId.get('human-first');g.target=hu;g.evaluate=()=>({entity:hu});g.possess();step(36);
 assert('perception blends mid-transition (P-14)',g.renderer.domElement.style.filter.startsWith('grayscale(0.5'));
-step(60);
+step(60);g.paused=false;g.toggleView();g.paused=true;step(45);
 const isl=W.byId.get('island-main'),grass=W.byId.get('grass-start'),before=W.position(grass).clone(),local=grass.root.position.clone();
 g.player=isl;g.transition=null;g.pitch=.6;g.yaw=0;g.updateCamera(1);g.actions.add('move_forward');for(let i=0;i<120;i++)g.move(1/30);g.actions.clear();
 assert('a drifting island carries its grass (W-06)',W.position(grass).distanceTo(before)>100&&grass.root.position.equals(local));
@@ -352,7 +456,7 @@ def key_event(code, kind='keyDown', repeat=False):
     names = {'Escape': ('Escape', 27), 'KeyW': ('w', 87), 'KeyS': ('s', 83),
              'KeyA': ('a', 65), 'KeyD': ('d', 68), 'ArrowUp': ('ArrowUp', 38),
              'ArrowDown': ('ArrowDown', 40), 'ArrowLeft': ('ArrowLeft', 37),
-             'ArrowRight': ('ArrowRight', 39)}
+             'ArrowRight': ('ArrowRight', 39), 'KeyV': ('v', 86)}
     key_name, virtual = names[code]
     c.call('Input.dispatchKeyEvent', {'type': kind, 'code': code, 'key': key_name,
                                      'windowsVirtualKeyCode': virtual, 'autoRepeat': repeat})
@@ -399,20 +503,31 @@ c.evaluate("window.dispatchEvent(new Event('focus'));true")
 browser_assert('returning focus does not automatically resume', 'window.__world.paused&&!document.pointerLockElement')
 click_at(*center('resume'))
 c.wait_for('!window.__world.paused && !!document.pointerLockElement', 10)
-# Human forward/backward movement and left/right turning use real key events.
+# Turn timing and follow are checked with game-time steps above. Start each real
+# binding facing its travel direction so software rendering cannot spend the wait turning.
 origin = c.evaluate('window.__world.player.root.position.toArray()')
-for code in ('KeyW', 'KeyS', 'ArrowUp', 'ArrowDown'):
-    c.evaluate(f'window.__world.player.root.position.fromArray({json.dumps(origin)});window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
+for code in ('KeyW', 'KeyS', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'):
+    relative_heading = {'KeyW': 0, 'ArrowUp': 0, 'KeyS': 3.141592653589793, 'ArrowDown': 3.141592653589793,
+                        'KeyA': 1.5707963267948966, 'ArrowLeft': 1.5707963267948966,
+                        'KeyD': -1.5707963267948966, 'ArrowRight': -1.5707963267948966}[code]
+    c.evaluate(f'window.__world.clearInput();window.__world.player.root.position.fromArray({json.dumps(origin)});window.__world.player.heading=window.__world.yaw+{relative_heading};window.__world.player.root.rotation.y=window.__world.player.heading;window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
     key_event(code)
-    c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
+    try:
+        c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
+    except TimeoutError as error:
+        state = c.evaluate('({paused:window.__world.paused,actions:[...window.__world.actions],heading:window.__world.player.heading,yaw:window.__world.yaw,elapsed:window.__world.elapsed})')
+        raise AssertionError(f'{code} did not move: {state}') from error
     key_event(code, 'keyUp')
     passed.append(f'{code} moves during actual exploration')
-for code in ('KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'):
-    yaw_before = c.evaluate('window.__world.yaw')
-    key_event(code)
-    c.wait_for(f'Math.abs(window.__world.yaw-({yaw_before}))>.1', 10)
-    key_event(code, 'keyUp')
-    passed.append(f'{code} turns during actual exploration')
+key_event('KeyV')
+c.wait_for("window.__world.cameraMode==='first_person'", 10)
+key_event('KeyV', repeat=True)
+browser_assert('holding V does not repeatedly switch perspective', "window.__world.cameraMode==='first_person'")
+key_event('KeyV', 'keyUp')
+key_event('KeyV')
+c.wait_for("window.__world.cameraMode==='third_person'", 10)
+key_event('KeyV', 'keyUp')
+passed.append('real V key switches between first and third person')
 key_event('KeyW')
 key_event('ArrowUp')
 key_event('KeyW', 'keyUp')
@@ -510,4 +625,4 @@ return !guide.hidden&&bounds.width>0&&bounds.width<=300&&bounds.height>0&&bounds
             c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
             c.evaluate('window.__world.resume(false);true')
 print('\n'.join('PASS ' + name for name in passed))
-print(f'{len(passed)} browser checks passed (0.4 baseline). Not a substitute for QA-01..QA-47 playtests.')
+print(f'{len(passed)} browser checks passed (0.4 baseline). Not a substitute for QA-01..QA-49 playtests.')

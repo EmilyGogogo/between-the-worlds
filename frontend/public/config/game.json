@@ -58,6 +58,28 @@
       "release": "0.3"
     }
   },
+  "cameraModes": {
+    "default": "third_person",
+    "decision": "D-029",
+    "third_person": {
+      "movement": "camera_relative_face_travel",
+      "followBodyTurn": true,
+      "fovDeg": 48,
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      }
+    },
+    "first_person": {
+      "movement": "camera_relative_look_heading",
+      "vision": "current_body",
+      "hearing": "current_body"
+    }
+  },
   "scaleLayers": {
     "0": {
       "cameraLookAhead": 0.65,
@@ -147,8 +169,17 @@
       "activityRegion": null,
       "speed": 2.8,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 3.5,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.42,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 17.0,
       "targets": [
         "grass",
@@ -214,8 +245,17 @@
       "activityRegion": null,
       "speed": 14.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 29.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          10.8,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 150.0,
       "targets": [
         "broadleaf",
@@ -287,8 +327,17 @@
       "activityRegion": null,
       "speed": 16.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 34.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          13.5,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 150.0,
       "targets": [
         "broadleaf",
@@ -360,8 +409,17 @@
       "activityRegion": null,
       "speed": 9.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 8.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          1.6,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 100.0,
       "targets": [
         "grass",
@@ -436,8 +494,17 @@
       "activityRegion": null,
       "speed": 75.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 230.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          56.0,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 1000.0,
       "targets": [
         "broadleaf",
@@ -507,8 +574,17 @@
       "activityRegion": null,
       "speed": 230.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 1450.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          80.75,
+          0
+        ],
+        "hideBody": false
+      },
       "reach": 16000.0,
       "targets": [
         "boulder",
@@ -571,8 +647,17 @@
       "activityRegion": "island_airspace",
       "speed": 18.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 3.5,
       "fov": 52,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.24,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 130.0,
       "targets": [
         "grass",
@@ -638,8 +723,17 @@
       "activityRegion": null,
       "speed": 9.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 3.5,
       "fov": 58,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.208,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 100.0,
       "targets": [
         "grass",
@@ -705,8 +799,17 @@
       "activityRegion": null,
       "speed": 7.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 3.5,
       "fov": 58,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.2925,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 100.0,
       "targets": [
         "grass",
@@ -772,8 +875,17 @@
       "activityRegion": null,
       "speed": 6,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 5,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          1.6275,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 65,
       "targets": [
         "grass",
@@ -841,8 +953,17 @@
       "activityRegion": null,
       "speed": 7.5,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 4,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.64,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 60,
       "targets": [
         "grass",
@@ -2542,6 +2663,14 @@
         "enabledWhen": "legal_target"
       },
       {
+        "action": "toggle_view",
+        "codes": [
+          "KeyV"
+        ],
+        "label": "第一／第三人称",
+        "enabledWhen": "exploring"
+      },
+      {
         "action": "pause",
         "codes": [
           "Escape"
@@ -2766,8 +2895,8 @@
       "reviewState": "proposed"
     },
     "perceptionCrossfadeSec": {
-      "runtimeBinding": "not_integrated",
-      "note": "尚未接入；当前视觉感知混合使用整个 possessionDurationSec 过渡。",
+      "runtimeBinding": "integrated",
+      "note": "D-029：第一／第三人称切换的视觉淡化；魂穿仍在整个 possessionDurationSec 内混合。",
       "value": 1.2,
       "unit": "s",
       "min": 0.5,

@@ -203,13 +203,26 @@ def main():
     check('env.world' in env_slots, 'Missing env.world slot')
     decor_slots = [slot for slot in entity_doc['environmentSlots'] if slot.get('scatter')]
 
-    # Input (D-007)
+    # D-029: both camera modes are configured for every body; islands retain terrain.
+    modes = entity_doc['cameraModes']
+    check(modes['default'] == 'third_person' and modes['decision'] == 'D-029', 'Camera defaults must follow D-029')
+    check(modes['third_person']['vision'] == {'grayscale': 0, 'saturation': 1, 'contrast': 1, 'brightness': 1, 'fogMultiplier': 1, 'tint': None}, 'Third-person vision must be full colour (D-029)')
+    check(modes['third_person']['followBodyTurn'] is True, 'Third-person camera must follow body turns (D-029)')
+    for e in entity_list:
+        first = e['camera']['firstPerson']
+        offset = first['eyeOffset']
+        check(len(offset) == 3 and all(isinstance(v, (int, float)) and math.isfinite(v) for v in offset), f'{e["id"]}: invalid first-person eye')
+        check(0 < offset[1] <= e['body']['height'], f'{e["id"]}: eye must lie within body height')
+        check(first['hideBody'] == (e['category'] != 'island'), f'{e["id"]}: first-person visibility must preserve island terrain')
+
+    # Input (D-007, D-029)
     inputs = read_json('input-map.json')
     codes = [code for b in inputs['bindings'] for code in b['codes']]
     check(len(codes) == len(set(codes)), 'Duplicate active key binding')
     for code in ['KeyE', 'Space', 'ControlLeft', 'ControlRight']:
         check(code not in codes, f'{code} must stay unbound (I-02/I-03)')
     check(next(b for b in inputs['bindings'] if b['action'] == 'possess')['codes'] == ['KeyR'], 'R must be exclusive')
+    check(next(b for b in inputs['bindings'] if b['action'] == 'toggle_view')['codes'] == ['KeyV'], 'V toggles camera mode (D-029)')
 
     # Layout (W-08): named instances and scatter groups, read at runtime.
     layout = read_json('anchors.json')

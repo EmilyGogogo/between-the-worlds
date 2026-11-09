@@ -12,6 +12,28 @@
     "time": "s",
     "angles": "deg"
   },
+  "cameraModes": {
+    "default": "third_person",
+    "decision": "D-029",
+    "third_person": {
+      "movement": "camera_relative_face_travel",
+      "followBodyTurn": true,
+      "fovDeg": 48,
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      }
+    },
+    "first_person": {
+      "movement": "camera_relative_look_heading",
+      "vision": "current_body",
+      "hearing": "current_body"
+    }
+  },
   "scaleLayers": [
     {
       "stage": 0,
@@ -189,7 +211,15 @@
         "mode": "third_person",
         "distance": 3.5,
         "height": 0.308,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.42,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.7,
@@ -297,7 +327,15 @@
         "mode": "third_person",
         "distance": 29.0,
         "height": 5.28,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            10.8,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 12.0,
@@ -412,7 +450,15 @@
         "mode": "third_person",
         "distance": 34.0,
         "height": 6.6,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            13.5,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 15.0,
@@ -527,7 +573,15 @@
         "mode": "third_person",
         "distance": 8.0,
         "height": 0.88,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            1.6,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 2.0,
@@ -634,7 +688,15 @@
         "mode": "third_person",
         "distance": 230.0,
         "height": 30.8,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            56.0,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 70.0,
@@ -749,7 +811,15 @@
         "mode": "third_person",
         "distance": 1450.0,
         "height": 37.4,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            80.75,
+            0
+          ],
+          "hideBody": false
+        }
       },
       "body": {
         "height": 85.0,
@@ -867,7 +937,15 @@
         "mode": "third_person",
         "distance": 3.5,
         "height": 0.1408,
-        "fovDeg": 52
+        "fovDeg": 52,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.24,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.32,
@@ -981,7 +1059,15 @@
         "mode": "third_person",
         "distance": 3.5,
         "height": 0.1408,
-        "fovDeg": 58
+        "fovDeg": 58,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.208,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.32,
@@ -1095,7 +1181,15 @@
         "mode": "third_person",
         "distance": 3.5,
         "height": 0.198,
-        "fovDeg": 58
+        "fovDeg": 58,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.2925,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.45,
@@ -1209,7 +1303,15 @@
         "mode": "third_person",
         "distance": 5,
         "height": 0.77,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            1.6275,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 1.75,
@@ -1324,7 +1426,15 @@
         "mode": "third_person",
         "distance": 4,
         "height": 0.35200000000000004,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.64,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.8,
