@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { SPECIES, TUNING, LAYOUT, WATERS, inRegion, mulberry32, layerOf } from './species.js';
 import { makeRock } from './assets.js';
+import { createButterflies } from './butterfly.js';
 
 export const PLANET_RADIUS=7500;
 const UP=new THREE.Vector3(0,1,0);
@@ -74,7 +75,7 @@ float breeze=sin(position.x*.15+position.z*.21+windTime*.85)*.11;transformed.x+=
 }
 
 export class World {
-  constructor(scene,assets){
+  constructor(scene,assets,playableButterfly){
     this.scene=scene;this.assets=assets;this.entities=[];this.byId=new Map();this.byRoot=new Map();this.decor=[];this.time=0;this.externalTerrain=null;this.surfaceRay=new THREE.Raycaster();
     this.planetRoot=new THREE.Group();this.planetRoot.position.y=-PLANET_RADIUS;scene.add(this.planetRoot);
     // The ocean coordinate frame is inert; no playable planets in this version.
@@ -94,6 +95,7 @@ export class World {
     });
     this.populate();this.createDecor();this.createSky();this.createRipples();
     this.ready=this.loadEnvironment();scene.updateMatrixWorld(true);
+    if(playableButterfly)this.updateButterfly=createButterflies(this,playableButterfly,true);
   }
   addBody(id,kind,root,visual){
     if(this.byId.has(id))throw new Error(`Duplicate body id: ${id}`);
@@ -263,8 +265,9 @@ export class World {
     target.y+=s.height*layerOf(entity.kind).focusHeightRatio;
     return target;
   }
-  update(dt,player,target,targetPoint=null,targetSize=1){
+  update(dt,player,target,targetPoint=null,targetSize=1,transition=null){
     this.time+=dt;const t=this.time,stage=SPECIES[player.kind].stage;
+    this.updateButterfly?.(t,stage<=1,player,transition);
     this.waterMat.uniforms.time.value=t;for(const w of this.waterBodies)w.material.uniforms.time.value=t;
     for(const d of this.decor){
       d.object.visible=stage<=(d.slot.visibleUpToStage??1)&&!(d.procedural&&this.externalTerrain);

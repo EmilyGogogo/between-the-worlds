@@ -26,3 +26,4 @@ PH-env.meadow,,environment_placeholder,,project_procedural,procedural:createMead
 PH-env.pebbles,,environment_placeholder,,project_procedural,procedural:makeRock,false,,,,,,,,Codex,项目原创；未单独声明发布许可,湖底卵石（装饰）,frontend/src/world.js,prototype-v1,placeholder,
 PH-env.sky_water,,environment_placeholder,,project_shader,shader:world.js,false,,,,,,,,Codex,项目原创；未单独声明发布许可,天空与水面,frontend/src/world.js,prototype-v1,placeholder,
 PH-AMBIENCE,,audio_placeholder,,project_synthesized_audio,frontend/src/audio.js,false,,,,,,,,Codex,项目合成音频；无外部录音文件,临时环境声与魂穿提示,frontend/src/audio.js,prototype-v1,placeholder,
+PREVIEW-blue-morpho,,local_preview,blue-morpho-flight-v002.glb,Hyper3D Rodin,https://hyper3d.ai/workspace/rodin/526e42f1-509d-40d9-bd6e-7c8f91a6cda2,false,,用户提供的蓝闪蝶展开视图,2026-11-07,,,,,Codex,团队公开发布前确认素材许可,草地 6 只蓝闪蝶飞行预览,frontend/public/models/blue-morpho-flight-v002.glb,v002,preview,

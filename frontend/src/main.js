@@ -1,3 +1,4 @@
+import { preparePlayableButterfly } from './butterfly.js';
 import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
 import { World, terrainHeight, PLANET_RADIUS } from './world.js';
@@ -8,7 +9,9 @@ import { Ambience } from './audio.js';
 
 const $=id=>document.getElementById(id);
 // 0.3 baseline save; earlier prototype saves (planets, companions) are ignored (W-04).
-const STORAGE='between-all-things.save.v4';
+const MORPHO_NEAR_REACH=8;
+const MORPHO_PREVIEW=new URLSearchParams(location.search).has('morpho');
+const STORAGE=MORPHO_PREVIEW?'between-all-things.save.v4.morpho':'between-all-things.save.v4';
 const SOUND='between-all-things.sound';
 const UP=new THREE.Vector3(0,1,0);
 const v1=new THREE.Vector3(),v2=new THREE.Vector3(),v3=new THREE.Vector3();
@@ -29,14 +32,14 @@ function blendView(a,b,f){
 }
 
 class Game {
-  constructor(renderer,assets){
+  constructor(renderer,assets,playableButterfly){
     this.renderer=renderer;this.assets=assets;this.scene=new THREE.Scene();
     this.scene.fog=new THREE.FogExp2('#bac9b5',.004);
     this.camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.025,400000);
     this.camera.position.set(25,14,55);this.camera.lookAt(-5,6,-15);
     this.scene.add(new THREE.HemisphereLight('#dfe8d9','#75804e',1.8));
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
-    this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
+    this.world=new World(this.scene,assets,playableButterfly);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
     this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
     this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;
@@ -208,8 +211,15 @@ class Game {
     }
     const to=point.clone().sub(eye),len=to.length();if(len<1e-6)return null;
     const angle=Math.acos(clamp(to.normalize().dot(direction),-1,1)),angular=Math.atan2(o.radius,len);
-    if(angle>Math.min(.9,(o.stage<s.stage?.29:.16)+angular))return null;
-    if(2*angular<tune('targetMinAngularSizeRad',.008))return null;   // too small to recognise
+    const nearMorpho=e.kind==='blueMorpho'&&surface<=MORPHO_NEAR_REACH;
+    if(nearMorpho){
+      const screen=point.clone().project(this.camera);
+      if(angle>=Math.PI/2||Math.abs(screen.x)>1||Math.abs(screen.y)>1||Math.abs(screen.z)>1)return null;
+    }else{
+      const aimTolerance=o.stage<s.stage?.29:.16;
+      if(angle>Math.min(.9,aimTolerance+angular))return null;
+      if(2*angular<tune('targetMinAngularSizeRad',.008))return null;
+    }
     if(this.world.occludes(eye,point,Math.max(o.radius,o.height*.35))||this.collision.obscures(eye,point,p,e))return null;
     return {entity:e,angle,distance:surface,carrier:false,own,point:null};
   }
@@ -245,15 +255,18 @@ class Game {
   selectTarget(dt){
     const eye=this.camera.position,direction=this.camera.getWorldDirection(v2);this.updateLift();
     const list=[];for(const e of this.world.entities){const c=this.evaluate(e,eye,direction);if(c)list.push(c);}
-    let best=this.rankCandidates(list)[0]||null;
+    // In the butterfly preview, nearby visible butterflies take priority over other bodies.
+    const nearbyMorphos=list.filter(c=>c.entity.kind==='blueMorpho'&&c.distance<=MORPHO_NEAR_REACH);
+    const eligible=nearbyMorphos.length?nearbyMorphos:list;
+    let best=this.rankCandidates(eligible)[0]||null;
     if(best&&this.candidate&&best.entity!==this.candidate){
-      const previous=list.find(c=>c.entity===this.candidate);
+      const previous=eligible.find(c=>c.entity===this.candidate);
       if(previous&&previous.carrier===best.carrier&&Boolean(previous.own)===Boolean(best.own)&&Math.abs(previous.angle-best.angle)<=THREE.MathUtils.degToRad(tune('angleTieToleranceDeg',1.5)))best=previous;
     }
     const next=best?.entity||null;
     if(next!==this.candidate){this.candidate=next;this.candidateTime=0;}else this.candidateTime+=dt;
     // Ripple after a short settle; an illegal target clears immediately (P-05, P-11).
-    this.target=next&&(next===this.target||this.candidateTime>=tune('targetStableSec',.12))?next:null;
+    this.target=next&&(nearbyMorphos.length||next===this.target||this.candidateTime>=tune('targetStableSec',.12))?next:null;
     this.targetInfo=this.target?best:null;
   }
 
@@ -288,9 +301,10 @@ class Game {
   move(dt){
     const e=this.player,s=SPECIES[e.kind],a=this.actions;
     const x=Number(a.has('move_right'))-Number(a.has('move_left')),z=Number(a.has('move_back'))-Number(a.has('move_forward'));
-    const human=s.category==='human';
+    const human=s.category==='human',steering=s.backCameraHeight!=null;
     if(human&&x)this.yaw-=x*dt*5;
-    const dir=new THREE.Vector3(human?0:x,0,z);if(dir.lengthSq())dir.normalize();dir.applyAxisAngle(UP,this.yaw);
+    if(steering)this.yaw-=x*2.2*dt;
+    const dir=new THREE.Vector3(human||steering?0:x,0,z);if(dir.lengthSq())dir.normalize();dir.applyAxisAngle(UP,this.yaw);
     if(s.verticalControl==='view_direction'&&z)dir.y=-z*this.climb();
     if(dir.lengthSq()>1)dir.normalize();
     e.moving=dir.lengthSq()>0;e.boosting=e.moving&&a.has('boost');
@@ -307,8 +321,13 @@ class Game {
   // carrier's frame: soft activity areas first, then solid collision (M-01～M-08).
   moveBody(e,local,dt,keepHeading=false){
     const s=SPECIES[e.kind];
-    if((local.x||local.z)&&!keepHeading){const angle=Math.atan2(-local.x,-local.z);e.heading+=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading))*Math.min(1,dt*5);if(s.mode!=='island')e.root.rotation.y=e.heading;}
-    if(keepHeading&&(local.x||local.z)){const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert());e.heading=Math.atan2(-facing.x,-facing.z);e.root.rotation.y=e.heading;}
+    if(s.backCameraHeight!=null){
+      e.heading=this.yaw;
+      e.root.rotation.y=e.heading;
+    }else{
+      if((local.x||local.z)&&!keepHeading){const angle=Math.atan2(-local.x,-local.z);e.heading+=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading))*Math.min(1,dt*5);if(s.mode!=='island')e.root.rotation.y=e.heading;}
+      if(keepHeading&&(local.x||local.z)){const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert());e.heading=Math.atan2(-facing.x,-facing.z);e.root.rotation.y=e.heading;}
+    }
     if(s.mode==='island'){this.moveIsland(e,local);return;}
     if(s.mode==='ground')local.y=0;
     const p=e.root.position;
@@ -330,7 +349,11 @@ class Game {
     const p=e.root.position;
     if(e.root.parent!==this.world.islandRoot){p.y=Math.max(p.y,this.groundHeight(e)+.2);return;}
     if(s.mode==='swim'){const w=this.world.water(p.x,p.z);if(w)p.y=clamp(p.y,w.floor+s.height*.3,Math.max(w.floor+s.height*.3,w.surface-s.height*.7));}
-    if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion];p.y=clamp(p.y,this.world.height(p.x,p.z)+air.minClearanceM,tune('flightCeilingM',air.maxY));}
+    if(s.mode==='fly'){
+      const air=LAYOUT.regions[s.activityRegion],ground=this.world.height(p.x,p.z);
+      const floor=ground+air.minClearanceM,ceiling=tune('flightCeilingM',air.maxY);
+      p.y=clamp(p.y,floor,s.flightHeight==null?ceiling:Math.max(floor,Math.min(ceiling,ground+s.flightHeight)));
+    }
   }
   moveIsland(e,local){
     const p=e.root.position;p.add(local);
@@ -367,19 +390,33 @@ class Game {
     const ahead=dist*layer.cameraLookAhead;
     const aim=focus.clone().add(new THREE.Vector3(-Math.sin(this.yaw)*ahead,0,-Math.cos(this.yaw)*ahead));
     aim.y+=dist*(.35-this.pitch)*.6;
+    if(s.backCameraHeight!=null){
+      // Follow the butterfly's body axis instead of orbiting around it with the mouse.
+      desired.copy(focus).add(new THREE.Vector3(0,s.backCameraHeight,dist).applyAxisAngle(UP,subject.heading));
+    }
     if(layer.cameraTerrainFloor&&subject.root.parent===this.world.islandRoot){
       const local=this.world.islandRoot.worldToLocal(desired.clone()),floor=this.world.height(local.x,local.z)+.25;
       if(local.y<floor){local.y=floor;desired.copy(this.world.islandRoot.localToWorld(local));}
     }
     if(layer.cameraCollision)desired.copy(this.collision.cameraPosition(focus,desired,subject,tune('cameraCollisionPaddingM',.1)));
-    const bound=Math.hypot(s.radius,s.height*.5);
-    const viewDistance=desired.distanceTo(focus),maxAimAngle=Math.max(.025,THREE.MathUtils.degToRad(this.camera.fov)*.5-Math.asin(Math.min(.95,bound/viewDistance))-.035);
-    const offset=aim.clone().sub(focus),angle=focus.clone().sub(desired).angleTo(aim.clone().sub(desired));
-    if(angle>maxAimAngle)aim.copy(focus).addScaledVector(offset,maxAimAngle/angle*.94);
+    if(s.backCameraHeight!=null){
+      const lookYaw=subject.heading;
+      const lookPitch=clamp(this.pitch*.55+.04,-.24,.60);
+      aim.copy(desired).add(new THREE.Vector3(
+        -Math.sin(lookYaw)*Math.cos(lookPitch),-Math.sin(lookPitch),-Math.cos(lookYaw)*Math.cos(lookPitch)
+      ));
+    }else{
+      const bound=Math.hypot(s.radius,s.height*.5);
+      const viewDistance=desired.distanceTo(focus),maxAimAngle=Math.max(.025,THREE.MathUtils.degToRad(this.camera.fov)*.5-Math.asin(Math.min(.95,bound/viewDistance))-.035);
+      const offset=aim.clone().sub(focus),angle=focus.clone().sub(desired).angleTo(aim.clone().sub(desired));
+      if(angle>maxAimAngle)aim.copy(focus).addScaledVector(offset,maxAimAngle/angle*.94);
+    }
     let f=1;
     if(tr){
       tr.elapsed+=dt;const t=clamp(tr.elapsed/tr.duration,0,1);f=smooth(t);
       this.camera.position.lerpVectors(tr.start,desired,f);this.focusGoal.lerpVectors(tr.startFocus,aim,f);
+    }else if(s.backCameraHeight!=null){
+      this.camera.position.copy(desired);this.focusGoal.copy(aim);
     }else{this.camera.position.lerp(desired,1-Math.exp(-dt*7));this.focusGoal.lerp(aim,1-Math.exp(-dt*9));}
     // Perception blends continuously during the hand-over, never at commit.
     this.view=tr?blendView(viewOf(tr.from.kind),viewOf(tr.to.kind),f):viewOf(this.player.kind);
@@ -484,7 +521,7 @@ class Game {
         this.camera.lookAt(this.introFocus);this.scene.userData.cameraPosition=this.camera.position;this.applyPerception();
       }
       const info=this.targetInfo,size=info?.carrier?Math.max(1.5,this.camera.position.distanceTo(info.point)*.05):Math.max(SPECIES[this.target?.kind]?.radius||0,.5);
-      this.world.update(dt,subject,this.target,info?.point||null,size);
+      this.world.update(dt,subject,this.target,info?.point||null,size,this.transition);
       if(this.started)this.interactions.update(dt);
     }
     if(!this.paused||this.needsRender){this.renderer.render(this.scene,this.camera);this.needsRender=false;}
@@ -496,7 +533,11 @@ async function boot(){
     const renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:true,alpha:false,powerPreference:'high-performance'});
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     await loadRuntimeConfig();
-    const assets=new AssetLibrary();await assets.prepare();game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
+    const assets=new AssetLibrary();await assets.prepare();
+    const playableButterfly=MORPHO_PREVIEW?await preparePlayableButterfly(assets).catch(error=>{
+      assets.errors.push('butterfly: '+error.message);console.warn('Playable butterfly unavailable.',error);return null;
+    }):null;
+    game=new Game(renderer,assets,playableButterfly);await game.world.ready;game.collision.refresh();
     if(!game.hasSave)$('enter-label').textContent='进入旷野';$('enter').disabled=false;
     // Debug access is available only with ?debug; the normal product UI stays quiet.
     if(new URLSearchParams(location.search).has('debug'))window.__world=game;
