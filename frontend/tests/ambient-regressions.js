@@ -20,6 +20,16 @@ export function checkSaveMigration(g,assert){
     g.save();const saved=JSON.parse(localStorage.getItem(storage));
     assert(`resaving ${oldId} keeps the migrated player and world`,saved.player===newId&&saved.entities.find(e=>e.id===marker.id).position[0]===x);
   }
+  // A patch can retire the played body and move the surviving layout at the same time.
+  const records=JSON.parse(JSON.stringify(original)),layout=JSON.parse(JSON.stringify(W.serializeLayout()));
+  records.find(e=>e.id===marker.id).position[0]=x;
+  layout.find(e=>e.id===marker.id).position[0]-=7;
+  records.push({id:'gull-4',kind:'retired',position:[210,-4,220]});
+  localStorage.setItem(storage,JSON.stringify({version:4,player:'gull-4',entities:records,layout,shown:['island:first_possess']}));
+  assert('retired player migration also applies patched layout offsets',g.restore()&&g.player.id==='gull-0'&&Math.abs(W.byId.get(marker.id).root.position.x-(x+7))<1e-6&&g.shown.has('island:first_possess'));
+  assert('retired transforms do not overwrite the replacement body with a layout baseline',g.player.root.position.toArray().every((value,index)=>Math.abs(value-original.find(e=>e.id==='gull-0').position[index])<1e-6));
+  g.save();W.restore(original);
+  assert('resaving a combined player and layout migration does not apply offsets twice',g.restore()&&g.player.id==='gull-0'&&Math.abs(W.byId.get(marker.id).root.position.x-(x+7))<1e-6);
   W.restore(original);g.player=W.byId.get(LAYOUT.initialInstance);
 }
 
