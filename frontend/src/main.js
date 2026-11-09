@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
 import { World, terrainHeight, PLANET_RADIUS } from './world.js';
-import { SPECIES,SCALE_TIERS,TUNING,LAYOUT,loadRuntimeConfig,actionForCode,canEmbody,layerOf } from './species.js';
+import { SPECIES,SCALE_TIERS,TUNING,LAYOUT,CAMERA_MODES,loadRuntimeConfig,actionForCode,canEmbody,layerOf } from './species.js';
 import { InteractionSystem } from './interactions.js';
 import { WorldCollision } from './collision.js';
 import { Ambience } from './audio.js';
@@ -19,12 +19,15 @@ const tune=(key,fallback)=>TUNING[key]?.value??fallback;
 const LEVEL_PITCH=.3;
 let game;
 
-function viewOf(kind){const s=SPECIES[kind];return {...s.vision,fov:s.fov,hearing:s.hearing};}
+function viewOf(kind,mode){
+  const s=SPECIES[kind],first=mode==='first_person';
+  return {...(first?s.vision:CAMERA_MODES.third_person.vision),fov:first?s.fov:CAMERA_MODES.third_person.fovDeg,hearing:s.hearing,tintAmount:first&&s.vision.tint?1:0};
+}
 function blendView(a,b,f){
   const out={hearing:{}};
   for(const key of ['grayscale','saturation','contrast','brightness','fogMultiplier','fov'])out[key]=lerp(a[key],b[key],f);
   for(const key of Object.keys(b.hearing))out.hearing[key]=typeof b.hearing[key]==='number'?lerp(a.hearing[key],b.hearing[key],f):(f<.5?a.hearing[key]:b.hearing[key]);
-  out.tint=b.tint||a.tint;out.tintAmount=(a.tint?1-f:0)+(b.tint?f:0);
+  out.tint=b.tint||a.tint;out.tintAmount=lerp(a.tintAmount,b.tintAmount,f);
   return out;
 }
 
@@ -39,11 +42,11 @@ class Game {
     this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.world.collision=this.collision;
     this.world.moveBody=(entity,delta,dt)=>this.moveBody(entity,delta,dt);this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
-    this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
+    this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;this.cameraMode=CAMERA_MODES.default;this.cameraBodyTurn=0;
     this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;
     this.hints={};this.pointerHintTime=0;this.lastResponse=-90;this.responseTimer=0;this.shown=new Set();this.pendingMoment=null;
     this.stuck={time:0,anchor:null};this.audio=new Ambience();this.filter='';
-    this.hasSave=this.restore();this.view=viewOf(this.player.kind);
+    this.hasSave=this.restore();this.view=viewOf(this.player.kind,this.cameraMode);
     this.focusGoal=new THREE.Vector3();this.introFocus=new THREE.Vector3(-5,6,-15);
     if(this.hasSave)this.updatePresence();
     this.bind();this.resize();this.loop();
@@ -63,10 +66,11 @@ class Game {
       if(!this.started||this.paused||!action)return;
       // Ignore transition inputs completely: a held repeat must not move the new body.
       if(this.transition||event.repeat)return;
+      if(action==='toggle_view'){this.toggleView();return;}
       this.pressedCodes.add(event.code);this.actions.add(action);
       if(action==='possess')this.possess();
     });
-    window.addEventListener('keyup',event=>{const action=actionForCode(event.code);this.pressedCodes.delete(event.code);if(action&&![...this.pressedCodes].some(code=>actionForCode(code)===action))this.actions.delete(action);});
+    window.addEventListener('keyup',event=>{const action=actionForCode(event.code);this.pressedCodes.delete(event.code);if(action&&![...this.pressedCodes].some(code=>actionForCode(code)===action)){this.actions.delete(action);if(action.startsWith('move_'))this.movementInput=null;}});
     window.addEventListener('blur',()=>{this.clearInput();if(this.started&&!this.paused)this.pause('离开画面，已为你暂停');});
     document.addEventListener('visibilitychange',()=>{if(document.hidden&&this.started)this.pause('离开画面，已为你暂停');});
     const canvas=this.renderer.domElement;
@@ -84,9 +88,10 @@ class Game {
     document.addEventListener('mousemove',e=>{
       if(!this.started||this.paused||(document.pointerLockElement!==canvas&&!this.dragging))return;
       const sensitivity=tune('mouseSensitivityRadPerPixel',.0025);
-      this.yaw-=e.movementX*sensitivity;this.pitch=clamp(this.pitch+e.movementY*sensitivity*.8,this.pitchMin(),1.16);
+      const turn=-e.movementX*sensitivity;this.yaw+=turn;if(this.movementInput)this.movementInput.yaw+=turn;
+      this.pitch=clamp(this.pitch+e.movementY*sensitivity*.8,this.pitchMin(),this.pitchMax());
     });
-    canvas.addEventListener('wheel',e=>{if(!this.started||this.paused)return;e.preventDefault();this.zoom=clamp(this.zoom+e.deltaY*.0006,.85,1.5);},{passive:false});
+    canvas.addEventListener('wheel',e=>{if(!this.started||this.paused||this.cameraMode==='first_person')return;e.preventDefault();this.zoom=clamp(this.zoom+e.deltaY*.0006,.85,1.5);},{passive:false});
     window.addEventListener('pagehide',()=>this.save());
     canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.pause();$('loading-notice').hidden=false;$('loading-notice').textContent='画面暂时停留，正在等待恢复。';});
     canvas.addEventListener('webglcontextrestored',()=>location.reload());
@@ -109,7 +114,7 @@ class Game {
     this.transition={opening:true,from:this.player,to:this.player,start:this.camera.position.clone(),startFocus:this.introFocus.clone(),elapsed:0,duration:tune('possessionDurationSec',2.4)};
     this.focusGoal.copy(this.world.focus(this.player));this.setSound(this.soundPreference());this.renderer.domElement.focus();this.lockMouse();this.updateControlGuide();this.save();
   }
-  clearInput(){this.actions.clear();this.pressedCodes.clear();this.dragging=false;}
+  clearInput(){this.actions.clear();this.pressedCodes.clear();this.dragging=false;this.movementInput=null;this.cameraBodyTurn=0;}
   pause(reason='停留片刻'){
     if(!this.started||this.paused)return;this.paused=true;this.needsRender=true;this.clearInput();this.save();$('pause-reason').textContent=reason;$('pause').hidden=false;document.body.classList.add('paused');this.updateControlGuide();document.exitPointerLock?.();$('resume').focus();
   }
@@ -120,13 +125,14 @@ class Game {
   updateControlGuide(){
     const active=this.started&&!this.paused,locked=document.pointerLockElement===this.renderer.domElement;
     const target=active&&!this.transition?this.target:null;
-    const state=[active,locked,this.transition?.opening?2:this.transition?1:0,this.pointerHintTime>0,this.player.kind,target?.id].join('|');
+    const state=[active,locked,this.transition?.opening?2:this.transition?1:0,this.pointerHintTime>0,this.player.kind,this.cameraMode,target?.id].join('|');
     // Keep stable hints out of the render loop's DOM/aria-live updates.
     if(state===this.controlGuideState)return;this.controlGuideState=state;
     $('control-guide').hidden=!active;
     $('look-guide').textContent=locked?'鼠标环视':'左键拖动环视';
-    $('movement-label').textContent=SPECIES[this.player.kind].category==='human'?'前后移动 · 左右转向':'移动';
-    $('pause-movement-label').textContent=SPECIES[this.player.kind].category==='human'?'前后移动 / 左右转向':'前 / 后 / 左 / 右';
+    $('movement-label').textContent='移动';
+    $('pause-movement-label').textContent='前 / 后 / 左 / 右';
+    $('view-label').textContent=this.cameraMode==='first_person'?'第一人称':'第三人称';
     $('move-guide').classList.toggle('unavailable',Boolean(this.transition));
     $('possess-guide').classList.toggle('unavailable',Boolean(this.transition));
     $('vertical-guide').hidden=SPECIES[this.player.kind].verticalControl!=='view_direction';
@@ -139,16 +145,26 @@ class Game {
     }else if(!target){hint.replaceChildren();delete hint.dataset.target;}
   }
   updatePresence(){const s=SPECIES[this.player.kind];$('body-name').textContent=s.name;$('body-place').textContent=s.place;}
-  pitchMin(){return SPECIES[this.player.kind].verticalControl==='view_direction'?-.45:.06;}
+  pitchMin(){return this.cameraMode==='first_person'?-1.35:SPECIES[this.player.kind].verticalControl==='view_direction'?-.45:.06;}
+  pitchMax(){return this.cameraMode==='first_person'?1.35:1.16;}
+  toggleView(){
+    if(!this.started||this.paused||this.transition)return false;
+    const first=this.cameraMode!=='first_person';
+    this.cameraMode=first?'first_person':'third_person';
+    // Keep the look direction approximately level when changing camera conventions.
+    this.pitch=clamp(first?(this.pitch-LEVEL_PITCH)*1.6:this.pitch/1.6+LEVEL_PITCH,this.pitchMin(),this.pitchMax());
+    this.zoom=1;this.target=null;this.candidate=null;this.targetInfo=null;this.clearInput();
+    this.viewBlend={from:this.view,elapsed:0};this.snapCamera=true;this.updateCamera(0);this.updateControlGuide();this.save();return true;
+  }
   // Looking up while moving forward rises, looking down dives (I-02).
-  climb(){return -Math.sin((this.pitch-LEVEL_PITCH)*1.6);}
+  climb(){return -Math.sin(this.cameraMode==='first_person'?this.pitch:(this.pitch-LEVEL_PITCH)*1.6);}
 
   // --- Possession: re-validate on R, commit only when the camera arrives (P-06～P-08).
   possess(){
     if(this.transition||!this.target)return false;
     const target=this.target;this.collision.refresh();this.updateLift();
     if(!this.evaluate(target,this.camera.position,this.camera.getWorldDirection(v2))){this.target=null;this.candidate=null;return false;}
-    const minPitch=layerOf(target.kind).possessMinPitch;if(minPitch!=null)this.pitch=Math.max(this.pitch,minPitch);
+    const minPitch=layerOf(target.kind).possessMinPitch;if(this.cameraMode==='third_person'&&minPitch!=null)this.pitch=Math.max(this.pitch,minPitch);
     this.transition={from:this.player,to:target,start:this.camera.position.clone(),startFocus:this.focusGoal.clone(),elapsed:0,duration:tune('possessionDurationSec',2.4)};
     this.player.moving=false;this.target=null;this.candidate=null;this.zoom=1;this.clearInput();
     document.body.classList.add('transitioning');this.updateControlGuide();this.audio.chime();return true;
@@ -161,7 +177,7 @@ class Game {
       this.transition={opening:true,from:tr.from,to:tr.from,start:this.camera.position.clone(),startFocus:this.focusGoal.clone(),elapsed:0,duration:tune('rollbackDurationSec',.8)};return;
     }
     this.player=tr.to;this.collision.refresh();this.collision.repair(this.player);
-    this.pitch=clamp(this.pitch,this.pitchMin(),1.16);this.stuck={time:0,anchor:null};
+    this.pitch=clamp(this.pitch,this.pitchMin(),this.pitchMax());this.stuck={time:0,anchor:null};
     const moment=SPECIES[this.player.kind].moments?.first_possess,key=this.player.kind+':first_possess';
     this.pendingMoment=moment&&!this.shown.has(key)?{key,text:moment,kind:this.player.kind}:null;
     this.interactions.onPossess(this.player);this.updatePresence();this.save();
@@ -289,27 +305,48 @@ class Game {
   move(dt){
     const e=this.player,s=SPECIES[e.kind],a=this.actions;
     const x=Number(a.has('move_right'))-Number(a.has('move_left')),z=Number(a.has('move_back'))-Number(a.has('move_forward'));
-    const human=s.category==='human';
-    if(human&&x)this.yaw-=x*dt*5;
-    const dir=new THREE.Vector3(human?0:x,0,z);if(dir.lengthSq())dir.normalize();dir.applyAxisAngle(UP,this.yaw);
+    const first=this.cameraMode==='first_person';
+    // Camera follow must not feed its own rotation back into a held direction.
+    if(first||!(x||z))this.movementInput=null;
+    else if(!this.movementInput||this.movementInput.x!==x||this.movementInput.z!==z)this.movementInput={x,z,yaw:this.yaw};
+    const dir=new THREE.Vector3(x,0,z);if(dir.lengthSq())dir.normalize();dir.applyAxisAngle(UP,this.movementInput?.yaw??this.yaw);
     if(s.verticalControl==='view_direction'&&z)dir.y=-z*this.climb();
     if(dir.lengthSq()>1)dir.normalize();
     e.moving=dir.lengthSq()>0;e.boosting=e.moving&&a.has('boost');
     const speed=s.speed*(a.has('boost')?s.boost:1),parentQ=e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
     const before=e.root.position.clone();
-    if(human&&x){const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ);e.heading=Math.atan2(-facing.x,-facing.z);e.root.rotation.y=e.heading;}
-    this.moveBody(e,dir.applyQuaternion(parentQ).multiplyScalar(speed*dt),dt,human);
+    const local=dir.applyQuaternion(parentQ),headingBefore=e.heading;
+    const facing=first?new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ):local;
+    if(first||local.lengthSq())this.faceDirection(e,facing,dt);
+    if(!first&&CAMERA_MODES.third_person.followBodyTurn){
+      const frame=parentQ.clone().invert(),worldHeading=heading=>{
+        const forward=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,heading).applyQuaternion(frame);
+        return Math.atan2(-forward.x,-forward.z);
+      };
+      const difference=worldHeading(e.heading)-worldHeading(headingBefore),turn=Math.atan2(Math.sin(difference),Math.cos(difference));
+      this.yaw+=turn;this.cameraBodyTurn+=turn;
+    }
+    // A third-person body turns towards its destination before walking away from it.
+    const alignment=first||!local.lengthSq()?1:Math.max(0,Math.cos(Math.atan2(-local.x,-local.z)-e.heading));
+    this.moveBody(e,local.multiplyScalar(speed*dt*alignment),dt,true);
     if(s.mode!=='island')this.unstick(e,dt);
     const distance=e.root.position.distanceTo(before);
     e.movementRatio=e.moving&&dt>0?Math.min(1,distance/(speed*dt)):0;
     e.animationMoving=e.movementRatio>.01;
   }
+  faceDirection(e,local,dt){
+    if(!local.x&&!local.z)return;
+    const s=SPECIES[e.kind],angle=Math.atan2(-local.x,-local.z),difference=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading));
+    const limit=THREE.MathUtils.degToRad(s.turnSpeed)*dt;
+    e.heading+=clamp(difference,-limit,limit);
+    // Rotating an island's root would also rotate all its inhabitants and terrain.
+    if(s.mode!=='island')e.root.rotation.y=e.heading;
+  }
   // Moves any body (the player's, or one answering an interaction) by a delta in its
   // carrier's frame: soft activity areas first, then solid collision (M-01～M-08).
   moveBody(e,local,dt,keepHeading=false){
     const s=SPECIES[e.kind];
-    if((local.x||local.z)&&!keepHeading){const angle=Math.atan2(-local.x,-local.z);e.heading+=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading))*Math.min(1,dt*5);if(s.mode!=='island')e.root.rotation.y=e.heading;}
-    if(keepHeading&&(local.x||local.z)){const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert());e.heading=Math.atan2(-facing.x,-facing.z);e.root.rotation.y=e.heading;}
+    if(!keepHeading)this.faceDirection(e,local,dt);
     if(s.mode==='island'){this.moveIsland(e,local);return;}
     if(s.mode==='ground')local.y=0;
     const p=e.root.position;
@@ -361,31 +398,47 @@ class Game {
 
   // --- Camera, scale and perception (C-01～C-06, B-04, P-14).
   updateCamera(dt){
-    const tr=this.transition,subject=tr?tr.to:this.player,s=SPECIES[subject.kind],layer=layerOf(subject.kind),focus=this.world.focus(subject);
+    const tr=this.transition,subject=tr?tr.to:this.player,s=SPECIES[subject.kind],layer=layerOf(subject.kind),focus=this.world.focus(subject),first=this.cameraMode==='first_person';
+    const bodyTurn=this.cameraBodyTurn;this.cameraBodyTurn=0;
     const dist=s.camera*this.zoom,orbit=new THREE.Vector3(Math.sin(this.yaw)*Math.cos(this.pitch),Math.sin(this.pitch),Math.cos(this.yaw)*Math.cos(this.pitch)).multiplyScalar(dist);
     const desired=focus.clone().add(orbit);
     // Look ahead of the body, keeping it in the lower third, so the view can find targets.
     const ahead=dist*layer.cameraLookAhead;
     const aim=focus.clone().add(new THREE.Vector3(-Math.sin(this.yaw)*ahead,0,-Math.cos(this.yaw)*ahead));
     aim.y+=dist*(.35-this.pitch)*.6;
-    if(layer.cameraTerrainFloor&&subject.root.parent===this.world.islandRoot){
-      const local=this.world.islandRoot.worldToLocal(desired.clone()),floor=this.world.height(local.x,local.z)+.25;
-      if(local.y<floor){local.y=floor;desired.copy(this.world.islandRoot.localToWorld(local));}
-    }
-    if(layer.cameraCollision)desired.copy(this.collision.cameraPosition(focus,desired,subject,tune('cameraCollisionPaddingM',.1)));
+    this.constrainThirdPersonCamera(subject,focus,desired);
     const bound=Math.hypot(s.radius,s.height*.5);
     const viewDistance=desired.distanceTo(focus),maxAimAngle=Math.max(.025,THREE.MathUtils.degToRad(this.camera.fov)*.5-Math.asin(Math.min(.95,bound/viewDistance))-.035);
     const offset=aim.clone().sub(focus),angle=focus.clone().sub(desired).angleTo(aim.clone().sub(desired));
     if(angle>maxAimAngle)aim.copy(focus).addScaledVector(offset,maxAimAngle/angle*.94);
+    if(first){
+      desired.copy(this.firstPersonEye(subject));
+      aim.copy(desired).add(new THREE.Vector3(-Math.sin(this.yaw)*Math.cos(this.pitch),-Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch)));
+    }
     let f=1;
     if(tr){
       tr.elapsed+=dt;const t=clamp(tr.elapsed/tr.duration,0,1);f=smooth(t);
       this.camera.position.lerpVectors(tr.start,desired,f);this.focusGoal.lerpVectors(tr.startFocus,aim,f);
-    }else{this.camera.position.lerp(desired,1-Math.exp(-dt*7));this.focusGoal.lerp(aim,1-Math.exp(-dt*9));}
+    }else if(first||this.snapCamera){this.camera.position.copy(desired);this.focusGoal.copy(aim);}
+    else{
+      // Body turns already have a speed limit. Apply that same turn to the live
+      // orbit and aim before smoothing translation, so short taps turn the view now.
+      if(bodyTurn){
+        this.camera.position.sub(focus).applyAxisAngle(UP,bodyTurn).add(focus);
+        this.focusGoal.sub(focus).applyAxisAngle(UP,bodyTurn).add(focus);
+      }
+      this.camera.position.lerp(desired,1-Math.exp(-dt*7));this.focusGoal.lerp(aim,1-Math.exp(-dt*9));
+      this.constrainThirdPersonCamera(subject,focus,this.camera.position);
+    }
+    this.snapCamera=false;
     // Perception blends continuously during the hand-over, never at commit.
-    this.view=tr?blendView(viewOf(tr.from.kind),viewOf(tr.to.kind),f):viewOf(this.player.kind);
+    this.view=tr?blendView(viewOf(tr.from.kind,this.cameraMode),viewOf(tr.to.kind,this.cameraMode),f):viewOf(this.player.kind,this.cameraMode);
+    if(this.viewBlend){
+      this.viewBlend.elapsed+=dt;const mix=clamp(this.viewBlend.elapsed/tune('perceptionCrossfadeSec',1.2),0,1);
+      this.view=blendView(this.viewBlend.from,this.view,smooth(mix));if(mix===1)this.viewBlend=null;
+    }
     this.camera.fov=this.view.fov;
-    this.camera.near=Math.max(.025,this.camera.position.distanceTo(this.focusGoal)/6000);this.camera.updateProjectionMatrix();this.camera.lookAt(this.focusGoal);
+    this.camera.near=first?Math.min(.025,s.height*.03):Math.max(.025,this.camera.position.distanceTo(this.focusGoal)/6000);this.camera.updateProjectionMatrix();this.camera.lookAt(this.focusGoal);
     const localEye=this.world.islandRoot.worldToLocal(this.camera.position.clone());
     const pool=this.world.water(localEye.x,localEye.z);
     const underwater=(pool?.type==='enclosed'&&localEye.y<pool.surface)||this.world.planetRoot.worldToLocal(this.camera.position.clone()).length()<PLANET_RADIUS+this.world.seaLevel-.1;
@@ -400,7 +453,28 @@ class Game {
     else{this.sun.castShadow=false;this.sun.position.copy(center).add(new THREE.Vector3(-15000,25000,8000));this.sun.target.position.copy(center);}
     this.applyPerception();
     if(tr&&tr.elapsed>=tr.duration)this.finishTransition();
+    // Hide only this body's visual, preserving carried entities, terrain and collisions.
+    this.world.firstPersonBodies=first?(tr?[tr.from,tr.to]:[this.player]):[];
     return f;
+  }
+  constrainThirdPersonCamera(subject,focus,position){
+    const layer=layerOf(subject.kind);
+    if(layer.cameraTerrainFloor&&subject.root.parent===this.world.islandRoot){
+      const local=this.world.islandRoot.worldToLocal(position.clone()),floor=this.world.height(local.x,local.z)+.25;
+      if(local.y<floor){local.y=floor;position.copy(this.world.islandRoot.localToWorld(local));}
+    }
+    if(layer.cameraCollision)position.copy(this.collision.cameraPosition(focus,position,subject,tune('cameraCollisionPaddingM',.1)));
+  }
+  firstPersonEye(subject){
+    const s=SPECIES[subject.kind],eye=subject.root.localToWorld(new THREE.Vector3(...s.firstPerson.eyeOffset));
+    // Check each carrying surface in its own frame, including a tilted neighbour island.
+    // An island keeps its own terrain visible, so its eye must also clear that surface.
+    for(let carrier=s.firstPerson.hideBody?this.world.carrierOf(subject):subject;carrier;carrier=this.world.carrierOf(carrier)){
+      const local=carrier.root.worldToLocal(eye.clone());
+      local.y=Math.max(local.y,this.world.surfaceOf(carrier,local.x,local.z)+tune('cameraCollisionPaddingM',.1));
+      eye.copy(carrier.root.localToWorld(local));
+    }
+    return eye;
   }
   applyPerception(){
     const v=this.view,filter=`grayscale(${v.grayscale.toFixed(3)}) saturate(${v.saturation.toFixed(3)}) contrast(${v.contrast.toFixed(3)}) brightness(${v.brightness.toFixed(3)})`;
@@ -456,7 +530,7 @@ class Game {
   }
   save(){
     if(!this.started||this.resetting||(this.transition&&!this.transition.opening))return;
-    try{localStorage.setItem(STORAGE,JSON.stringify({version:4,player:this.player.id,entities:this.world.serialize(),layout:this.world.serializeLayout(),yaw:this.yaw,pitch:this.pitch,hints:this.hints,shown:[...this.shown]}));$('save-status').textContent='足迹已留在这台设备上';}
+    try{localStorage.setItem(STORAGE,JSON.stringify({version:4,player:this.player.id,entities:this.world.serialize(),layout:this.world.serializeLayout(),yaw:this.yaw,pitch:this.pitch,cameraMode:this.cameraMode,hints:this.hints,shown:[...this.shown]}));$('save-status').textContent='足迹已留在这台设备上';}
     catch{$('save-status').textContent='暂时无法保存足迹';}
   }
   restore(){
@@ -466,7 +540,8 @@ class Game {
       const id=this.world.byId.has(saved.player)?saved.player:LAYOUT.savePlayerAliases?.[saved.player];
       const player=this.world.byId.get(id)||this.world.byId.get(LAYOUT.initialInstance);if(!player)return false;
       this.world.restore(saved.entities,saved.layout);this.player=player;
-      this.yaw=Number.isFinite(saved.yaw)?saved.yaw:.35;this.pitch=clamp(Number.isFinite(saved.pitch)?saved.pitch:.27,this.pitchMin(),1.16);
+      this.cameraMode=saved.cameraMode==='first_person'?'first_person':CAMERA_MODES.default;
+      this.yaw=Number.isFinite(saved.yaw)?saved.yaw:.35;this.pitch=clamp(Number.isFinite(saved.pitch)?saved.pitch:.27,this.pitchMin(),this.pitchMax());
       this.hints={...this.hints,...saved.hints};this.shown=new Set(Array.isArray(saved.shown)?saved.shown:[]);$('enter-label').textContent='继续漫游';return true;
     }catch{return false;}
   }

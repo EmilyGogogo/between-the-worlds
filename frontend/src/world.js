@@ -295,6 +295,7 @@ export class World {
       v.userData.swimming=e.swimming;
     }
     this.assets.update(dt);
+    for(const first of this.firstPersonBodies||[])if(first.visual&&SPECIES[first.kind].firstPerson.hideBody)first.visual.visible=false;
     if(target){
       this.ripple.visible=true;const s=SPECIES[target.kind];
       if(targetPoint)this.ripple.position.copy(targetPoint).y+=.06;

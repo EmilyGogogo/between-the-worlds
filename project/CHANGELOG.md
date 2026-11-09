@@ -2,6 +2,20 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-09 · 统一第三人称转身移动并新增实体第一人称
+
+- 负责人：@EmilyGogogo；关联：D-029，分支 `codex/perspective-movement`，PR 待关联。
+- AI：Codex 参与规则梳理、代码与数据、文档、回归测试及验证；人工复核：待负责人复核。
+- 变更与原因：修正第三人称后键直接倒退，所有身体改为相对镜头转向行进，后键转身约 180°，左右移动并转身；接入已有 180°/s 转速，岛漂移不旋转整座地形。第三人称统一人类全彩与基准 FOV；新增 V 第一人称，使用身体眼位、视觉与 FOV（狗黑白、鸟增强远景、鱼青绿宽视野），隐藏自身视觉模型并保留碰撞、承载物与岛的地形。第一人称眼位逐层检查承载面，避免进入斜岛或多层承载物的内部。两种视角听觉均随身体，魂穿和 v4 存档保留视角、旧存档默认第三人称。`perceptionCrossfadeSec` 原值 1.2 秒不变，接入 V 视觉混合。同步输入提示、数据与生成器、规范、决策、QA-49、审计与浏览器回归。
+- 验证（2026-11-09，Windows 11、Python 3.13.9、Chrome 157.0.8103.38、Node 22.23.3）：`python project/sync_runtime.py` 生成运行配置；`python project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`python project/check_all.py --output .work/perspective-20261109/complete-fixed` 标准完整入口退出 0，1789 项文档／数据检查及 331 项隔离浏览器检查通过，结果 JSON 的 docs/browser/status 均为 passed；`git diff --check` 通过。浏览器覆盖全部 11 种身体的后键转身、转速限制与起步不倒退、双视角视觉／FOV／眼位／模型恢复、相邻斜岛与多层承载眼位、魂穿视觉过渡、视角存档，以及真实 WASD／方向键／V 输入与五种视口 HUD。
+- 回归诊断：首次完整运行在真实后键位移等待处超时；软件渲染下 10 秒墙钟仅推进约 0.3 秒游戏时间，身体仍在按规则转身。真实按键检查改为每个方向先面向行进方向，保留实际按键、位移阈值与原等待时限；转身时序另用固定步长验证，未修改游戏来迎合超时。重跑完整入口通过；原始诊断与最终日志仅保留于本地 `.work/perspective-20261109/`。
+- 同日追加：按创作者反馈补齐第三人称左右及后键转身时的镜头跟随，所有身体统一使用实际转角驱动镜头，沿用原有平滑与转速；同次方向输入固定移动参考，避免镜头跟转让长按变成持续绕圈，鼠标环视仍能改变方向。岛仅跟随漂移朝向，不额外旋转地形及居民；第一人称平移与视线保持原行为。同步 D-029、规则、QA、实现审计与配置。
+- 跟随追加验证（同日、同上环境）：重新运行 `python project/sync_runtime.py`；`python project/check_repository.py --javascript` 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`python project/check_all.py --output .work/perspective-20261109/follow-camera-fixed` 完整入口退出 0，1790 项文档／数据检查及 456 项隔离浏览器检查通过，结果 JSON 的 docs/browser/status 均为 passed；`git diff --check` 通过。覆盖全部 11 种身体左右及后键的转速、实际相机环绕、长按转角收敛、鼠标环视、重按参考及第一人称平移不改变视线。首次新增第一人称平移检查改变位置后干扰了后续地面移动检查，恢复场景位置后完整重跑通过；沙箱临时目录权限失败后在沙箱外完成工具及浏览器检查。原始失败与通过日志仅留于本地 `.work/perspective-20261109/follow-camera*`，镜头跟随手感与真人画面尚未验收。
+- 同日短按跟转修复：创作者再次反馈左右转身时画面也要动。新回归复现旧实现的短按跟转延迟：0.05 秒内身体已转身，实际镜头仍落后；此前长按到位检查没有覆盖这一时段。将受转速限制的身体转角同帧应用到实际镜头环绕与注视方向，位移、鼠标环视保留缓动，实际相机位置再次执行地形与实体避障。新增全部 11 种身体的 A/D、左右方向键短按与松键回归，同步 D-029、镜头规范、QA-49、数据说明和审计；未改调参数值。
+- 短按修复验证（同日、同上环境）：修复前 `python project/check_all.py --output .work/perspective-20261109/immediate-turn-before` 在新增短按实际镜头断言处失败，日志留于本地；沙箱临时目录拒绝访问后在沙箱外复现。修复后首次完整运行通过新增短按检查，后续在双视角检查前的页面重载等待处超时；未放宽加载时限。重跑 `python project/check_all.py --output .work/perspective-20261109/immediate-turn-complete` 退出 0，1790 项文档／数据检查、589 项隔离浏览器检查全部通过，结果 JSON 的 docs/browser/status 均为 passed；新增覆盖全部 11 种身体的四个左右键短按实际环绕与注视方向、松键无追转及即时跟转时的实际相机避障。`python project/check_repository.py --javascript` 154 个文件、0 错误；`python project/validate_docs.py` 与 `git diff --check` 通过。失败与通过日志仅留本地 `.work/perspective-20261109/immediate-turn*`；真人画面与手感仍待验收。
+- 推送前复验（2026-11-09）：Codex 按创作者要求提交并推送本分支；`python project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`python project/validate_docs.py` 1790 项通过；`python project/check_all.py --output .work/perspective-20261109/pre-push` 退出 0，1790 项文档／数据检查与 589 项隔离浏览器检查通过；日志仅留本地，人工复核仍待负责人完成。
+- 未验证项 / 风险：真人移动与转向手感、双视角眼位和画面、正常像素密度下的视觉质量、目标设备性能及远端 CI 待验证；正式 QA 未验收。回退时成组撤销本任务代码、数据、生成文件与规范修改。
+
 ## 2026-11-09 · PR #5 与最新 main 的冲突处理
 
 - 负责人：@EmilyGogogo；关联：[PR #5](https://github.com/EmilyGogogo/between-the-worlds/pull/5)，分支 `codex/save-layout-patch-compat`。

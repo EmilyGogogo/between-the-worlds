@@ -72,6 +72,14 @@
       "enabledWhen": "legal_target"
     },
     {
+      "action": "toggle_view",
+      "codes": [
+        "KeyV"
+      ],
+      "label": "第一／第三人称",
+      "enabledWhen": "exploring"
+    },
+    {
       "action": "pause",
       "codes": [
         "Escape"
