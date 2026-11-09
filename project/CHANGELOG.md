@@ -9,6 +9,46 @@
 - 验证：1664 项文档与数据检查、69 个文件的仓库检查通过；隔离 Chrome 实际加载主线人类 GLB，并验证六只蝴蝶、R 魂穿和背后转向。完整浏览器回归未运行。
 - 范围：只移植蝴蝶，保留主线的人类操控、动作与地形。
 
+## 2026-11-08 · 修复 PR #7 的存档迁移与自主移动穿模
+
+- 负责人：@EmilyGogogo；关联：PR #7，修复分支 `codex/fix-pr7-motion-save`。
+- AI：Codex 参与 review、复现、代码与数据修复、回归测试及文档；人工复核待负责人完成。
+- 变更与原因：旧当前主体被删除会使整个 v4 存档失效并被新进度覆盖；新增布局数据 `savePlayerAliases` 转移旧蝴蝶鱼与已移除海鸥的控制权，保留仍存在的身体、提示与回应状态，未知已移除主体退到初始身体。已移除身体的旧坐标不应用到替代身体，避免把山湖鱼放回近海。环境移动复用玩家的地形、碰撞和活动区处理，逐体更新碰撞记录，转向或贴地造成重叠时恢复上一位置；修复海鸥归队钻入山坡、鸟鱼穿过玩家的问题。同步运行配置、数据指南、D-027、QA-30／QA-48 与实现审计。
+- 验证（Windows 11、Python 3.13.9、Chrome 157.0.8103.38、Node 22.23.3）：修复前在隔离 Chrome 中复现旧主体存档被丢弃、归队海鸥进入地表下约 20.5 米、自主鸟鱼穿过玩家；修复后同场景均未复现。永久回归已接入 `frontend/tests/check_browser.py`，单次加载独立运行 36 项通过。`python project/sync_runtime.py` 已同步两份生成文件；`python project/validate_docs.py` 1747 项通过；`python project/check_repository.py --javascript` 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。`python project/check_all.py` 在新增回归通过后仍于真实键盘移动检查超时（与修复前相同断言）；随后 `python project/check_all.py --no-pointer-lock --output .work/pr7-gameplay-checks` 的 138 项部分浏览器检查通过，真实鼠标锁定及后续检查未计入部分通过。原始结果仅保留于本地 `.work/collaboration-checks/`、`.work/pr7-gameplay-checks/`，不作为远端 CI 或真人验收证据。
+- 未验证项／风险：本次完整真实输入回归未通过，远端 CI 待本次提交运行；正式真人 QA、目标设备性能及模型来源许可未验证，不使用历史 CI 代替本次结果。
+
+## 2026-11-07～11-08 · 鱼和鸟：七彩神仙鱼、银斧鱼、海鸥 v003 与鸟鱼环境移动（D-027）
+
+- 负责人：zora-alt111；分支 `asset/fish-birds-v001`（已合并 `origin/main` 197f216，04／06／11／CHANGELOG 的文字冲突已解决，两边内容都保留），PR 见分支；同一任务的连续调整合并为本条记录。
+- AI：Claude Code（Claude Opus 5.5）负责选种参考、Blender 脚本化修整／绑骨／动作、数据与代码、文档、检查与游戏内核对；人工：负责人在 Lux3D 国内版网页生成全部模型，确定种类、数量、山湖位置、卡通风格与归队方式，并在游戏内试玩后提出体型、扇翅与斑块三项修改。
+- 种类与数量（D-027，会话授权，待团队确认）：七彩神仙鱼 `fish_discus_01`（`slot.discus`）取代蝴蝶鱼 `fish_butterfly_01`，引文 ID 改为 `TXT-FISH-DISCUS`（内容不变）；`fish_silver_01` 定为银斧鱼。两种鱼都放在山湖，近海暂无鱼。海鸥 8 → 4 只，银斧鱼 8 → 12 条（一群），七彩神仙鱼 6 条。能力与感知未改。
+- 资产：三件 Lux3D GLB 用 Blender 4.5.15 脚本处理，包括自动转向、放平、减面、定标、绑骨，以及 idle／move 动作，JPEG 内嵌、无 Draco。
+  - 海鸥 v003：137,378 → 30,000 面；原件双翅高举成 V 形，在肩部压平后设为静止姿态；动作 `Glide`／`Flap` 为连续曲线，关节过渡加宽，避免“折翅”。
+  - 银斧鱼：8,000 面；七彩神仙鱼：29,000 面。面数更低时贴图出现白斑，两种鱼都是按游戏内近景对比选定。动作均为 `Swim`／`SwimFast`。
+  - 迭代过程：写实版 v001（参考图为 Commons 照片，PierreSelim，CC BY 3.0）未采用，只保留原件与记录，运行时文件与 `.blend` 已移除；卡通版 v002 保留作回退。海鸥 v003 曾在“翅膀平滑”中对肩部做顶点放松，导致层叠羽毛互相穿插、游戏中出现斑块，已去掉该步骤并改为平滑着色。
+  - 来源链在 `assets/lux3d/LUX3D-bird_gull_01`（raw／edit／export 分 v001～v003）、`LUX3D-fish_silver_01`、`LUX3D-fish_discus_01`；台账新增对应行，v001、v002 标为 `superseded`。
+- 环境移动（D-027）：新增 `frontend/src/ambient.js`，按 `anchors.json` 新增的 `ambient` 航线驱动未被占据的海鸥与鱼。航线是按时间重复的环线或“8”字形；海鸥在低飞段减速，并按模型实际尺寸抬过实心身体；鱼不离开所属水体；银斧鱼保持队形。玩家占据或正在进入的身体不受航线驱动，离开后先停约 4 秒再归队；惊飞／四散期间交给互动。`world.js`、`main.js` 小改，`sync_runtime.py` 输出 `ambient`。
+- 开局可选中海鸥：原有问题是地面身体不能仰视，海鸥又都在 15～17 米高空，从人出生点选不中任何海鸥（干净的 main 同样复现）。现在 `gull-0` 约每 32 秒在人出生点前方减速低飞经过（锚点 A14），人平视即可选中。
+- TUNABLE（试玩反馈“从某些角度看非常大”）：海鸥 `body.height`／`asset.height` 0.65 → 0.32、`collisionRadius` 0.65 → 0.5、占位碰撞盒等比缩小、镜头距离 5.0 → 3.5。v003 在游戏内翼展约 0.89 m。
+- 测试与文档：`check_browser.py` 改为“低飞时可选中 gull-0”，惊飞测试期间暂停航线，并新增环境移动回归（数量来自数据）。同步 01、03、04、05、06、07、08（QA-15、QA-18、新增 QA-48）、09（D-027）、10、11、GLOSSARY、CONTRIBUTING、README、数据指南、THIRD_PARTY、LICENSES。
+- 验证（macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80、Blender 4.5.15）：
+  - `python3 project/sync_runtime.py`；`python3 project/validate_docs.py` PASS（1726 项）。
+  - `python3 project/check_repository.py` 0 错误（本机无 Node.js，未运行 `--javascript`；新 JS 已在游戏中执行）；`python3 -m unittest discover -s project/tests` OK；`git diff --check` 通过。
+  - 游戏内单次加载核对 15 项全部通过：模型加载、全部移动、60 秒鱼不出水、鱼群不散、海鸥不穿实心体、低飞时人可选中并成为海鸥、占据与释放。`check_browser.py` 新增与修改的片段单独运行 9 项通过。
+  - 海鸥大小、扇翅、斑块问题都做了游戏内近景对照与逐帧渲染；截图在各资产的 `evidence/` 与 `edit/*/previews/`。
+- 未完成的检查：完整的 `check_all.py --only browser` 在本机 Chrome 156 下重新加载会停住（高频轮询所致，干净的 main 同样），以 PR 的 Actions 结果为准。
+- PR #7 的 CI 修复（2026-11-08）：PR 的 game-checks 在浏览器检查步骤失败。main（197f216）在同一步骤也失败，日志需要管理员权限，本机无法查看。本机把 `check_browser.py` 的各段测试分别在新页面上运行（慢轮询）：干净的 main 各段全部通过，本分支有 2 处真实失败，均已修复：
+  - 出生时 5 条银斧鱼互相重叠：队形间距 0.8 m 加上漂移 0.3 m，相邻两条最近只有 0.2 m，小于鱼长 0.47 m。改为间距 1.0 m、漂移 0.15 m，出生点按新队形重算。
+  - “从海鸥成为岛也触发首次回应”失败：前面的测试在搜索目标时可能注视到低飞的海鸥，触发其聚焦回应，进入 90 秒冷却；游戏行为本身符合 D-019。测试在成为岛前清空冷却，只检查回应与来源身体无关。
+  - 另外，“低飞时人在出生点可选中 gull-0”这条回归受前面人物游泳测试影响：人被留在原点，离海鸥太近而触发惊飞。改为先把人放回出生点，并在海鸥接近最低点（离地 3 m 以下）时再选，避免下降途中被身后的树抢走目标。
+  - 修复后各段在本机通过（第 0 段 35 项、第 1～7 段均通过；个别段遇到本机加载卡住后重跑通过）。依赖鼠标锁定、点击与 DOM 几何的 Python 段本机未运行，main 的 CI 失败可能就在这部分，待 Actions 结果。
+- 未验证项／风险：
+  - 三件 GLB 的生成方式、任务 ID、版本与积分待生成人补充（台账与 `task.json` 已标“待补”）；Lux3D 用户协议未查阅。
+  - D-027 与 DF-03 的关系待团队确认。
+  - 旧存档中的 `gull-4`～`gull-7` 会被跳过（可能与 PR #5 相关）。
+  - 海鸥翅根在扇翅时有轻微鼓起、双脚下垂；新手能否发现低飞海鸥、目标设备帧率、QA-31～QA-34、QA-48 待真人验收。
+- 回退：删除 `ambient` 段即恢复静止的鸟鱼；槽 `url` 改回 v002 或 `null` 并重跑同步即回退模型；种类与数量按本条恢复，或直接 revert 本 PR。
+
 ## 2026-11-07 · 接入人物模型
 
 - 负责人：@EmilyGogogo；关联：分支 `codex/character-a-standard-v001`，PR 待关联。

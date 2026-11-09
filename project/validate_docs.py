@@ -248,6 +248,9 @@ def main():
         known.add(i['id'])
     check(sum(i['placement'] == 'main' for i in layout['instances']) == 1 and instances.get(layout['mainIsland'], {}).get('placement') == 'main', 'Exactly one main island')
     check(layout['initialInstance'] in instances, 'Unknown initial body')
+    for old_id, new_id in layout.get('savePlayerAliases', {}).items():
+        check(isinstance(old_id, str) and old_id not in instances, f'{old_id}: save alias must name a retired body')
+        check(isinstance(new_id, str) and new_id in instances, f'{old_id}: save alias target {new_id} does not exist')
     check(instances.get(layout['initialInstance'], {}).get('type') == 'human_01', 'A new journey must start as a human (D-017)')
     for g in layout['scatter']:
         check(g['type'] in entities and g['carrier'] in instances, f'Broken scatter group: {g["id"]}')
