@@ -865,24 +865,24 @@
       },
       "camera": {
         "mode": "third_person",
-        "distance": 5.0,
-        "height": 0.28600000000000003,
+        "distance": 3.5,
+        "height": 0.1408,
         "fovDeg": 52
       },
       "body": {
-        "height": 0.65,
-        "collisionRadius": 0.65,
+        "height": 0.32,
+        "collisionRadius": 0.5,
         "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
           [
-            -1.4,
-            0,
-            -0.7,
-            1.4,
-            0.65,
-            0.8
+            -0.69,
+            0.0,
+            -0.34,
+            0.69,
+            0.32,
+            0.39
           ]
         ],
         "solid": true,
@@ -890,10 +890,10 @@
       },
       "asset": {
         "slotId": "slot.gull",
-        "status": "placeholder",
-        "url": null,
+        "status": "integrated",
+        "url": "./public/models/bird_gull_01-v003.glb",
         "variants": [],
-        "height": 0.65,
+        "height": 0.32,
         "rotation": [
           0,
           0,
@@ -902,21 +902,24 @@
         "pivot": "bottom_center",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
-        "animations": {},
+        "animations": {
+          "idle": "Glide",
+          "move": "Flap"
+        },
         "requiredAnimationRoles": [
           "idle",
           "move"
         ],
-        "rigSource": null,
+        "rigSource": "blender",
         "colliderMode": "auto_bounds",
         "collisionBoxes": null,
         "lod": [],
         "placeholder": "procedural:bird",
         "placeholderStyle": "gull",
         "finalSource": "Aholo Lux3D",
-        "lux3dUsed": false,
-        "plannedModelPath": "frontend/public/models/gull-v1.glb",
-        "ledgerId": "PLAN-bird_gull_01",
+        "lux3dUsed": true,
+        "plannedModelPath": "frontend/public/models/bird_gull_01-v003.glb",
+        "ledgerId": "LUX3D-bird_gull_01-v003",
         "fallbackLedgerId": "PH-bird_gull_01"
       },
       "place": "风的路径",
@@ -930,7 +933,7 @@
     },
     {
       "id": "fish_silver_01",
-      "name": "银色小鱼",
+      "name": "银斧鱼",
       "category": "fish",
       "runtimeKind": "silverfish",
       "stage": 1,
@@ -1001,8 +1004,8 @@
       },
       "asset": {
         "slotId": "slot.silverfish",
-        "status": "placeholder",
-        "url": null,
+        "status": "integrated",
+        "url": "./public/models/fish_silver_01-v001.glb",
         "variants": [],
         "height": 0.32,
         "rotation": [
@@ -1013,24 +1016,27 @@
         "pivot": "bottom_center",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
-        "animations": {},
+        "animations": {
+          "idle": "Swim",
+          "move": "SwimFast"
+        },
         "requiredAnimationRoles": [
           "idle",
           "move"
         ],
-        "rigSource": null,
+        "rigSource": "blender",
         "colliderMode": "auto_bounds",
         "collisionBoxes": null,
         "lod": [],
         "placeholder": "procedural:fish",
         "placeholderStyle": "silver",
         "finalSource": "Aholo Lux3D",
-        "lux3dUsed": false,
-        "plannedModelPath": "frontend/public/models/silverfish-v1.glb",
-        "ledgerId": "PLAN-fish_silver_01",
+        "lux3dUsed": true,
+        "plannedModelPath": "frontend/public/models/fish_silver_01-v001.glb",
+        "ledgerId": "LUX3D-fish_silver_01",
         "fallbackLedgerId": "PH-fish_silver_01"
       },
-      "place": "水下的光",
+      "place": "水面下的群",
       "safeAnchors": [],
       "acceptanceIds": [
         "QA-17",
@@ -1040,12 +1046,12 @@
       ]
     },
     {
-      "id": "fish_butterfly_01",
-      "name": "蝴蝶鱼",
+      "id": "fish_discus_01",
+      "name": "七彩神仙鱼",
       "category": "fish",
-      "runtimeKind": "butterflyfish",
+      "runtimeKind": "discus",
       "stage": 1,
-      "habitat": "sea",
+      "habitat": "lake",
       "implementationStatus": "playtest_placeholder_runtime_0.3",
       "ruleClass": "MUST",
       "locomotion": "swim",
@@ -1111,9 +1117,9 @@
         "passPolicy": "go_around"
       },
       "asset": {
-        "slotId": "slot.butterflyfish",
-        "status": "placeholder",
-        "url": null,
+        "slotId": "slot.discus",
+        "status": "integrated",
+        "url": "./public/models/fish_discus_01-v001.glb",
         "variants": [],
         "height": 0.45,
         "rotation": [
@@ -1124,24 +1130,27 @@
         "pivot": "bottom_center",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
-        "animations": {},
+        "animations": {
+          "idle": "Swim",
+          "move": "SwimFast"
+        },
         "requiredAnimationRoles": [
           "idle",
           "move"
         ],
-        "rigSource": null,
+        "rigSource": "blender",
         "colliderMode": "auto_bounds",
         "collisionBoxes": null,
         "lod": [],
         "placeholder": "procedural:fish",
         "placeholderStyle": "butterfly",
         "finalSource": "Aholo Lux3D",
-        "lux3dUsed": false,
-        "plannedModelPath": "frontend/public/models/butterflyfish-v1.glb",
-        "ledgerId": "PLAN-fish_butterfly_01",
-        "fallbackLedgerId": "PH-fish_butterfly_01"
+        "lux3dUsed": true,
+        "plannedModelPath": "frontend/public/models/fish_discus_01-v001.glb",
+        "ledgerId": "LUX3D-fish_discus_01",
+        "fallbackLedgerId": "PH-fish_discus_01"
       },
-      "place": "岩礁之间",
+      "place": "湖底的树根之间",
       "safeAnchors": [],
       "acceptanceIds": [
         "QA-17",

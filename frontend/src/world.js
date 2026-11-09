@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { SPECIES, TUNING, LAYOUT, WATERS, inRegion, mulberry32, layerOf } from './species.js';
 import { makeRock } from './assets.js';
+import { AmbientMotion } from './ambient.js';
 
 export const PLANET_RADIUS=7500;
 const UP=new THREE.Vector3(0,1,0);
@@ -265,6 +266,9 @@ export class World {
   }
   update(dt,player,target,targetPoint=null,targetSize=1){
     this.time+=dt;const t=this.time,stage=SPECIES[player.kind].stage;
+    // Unplayed birds and fish keep to their routes (D-027); built after spawning and pruning.
+    if(!this.ambient)this.ambient=new AmbientMotion(this,LAYOUT.ambient||[]);
+    this.ambient.update(dt,player,this.ambientHold);
     this.waterMat.uniforms.time.value=t;for(const w of this.waterBodies)w.material.uniforms.time.value=t;
     for(const d of this.decor){
       d.object.visible=stage<=(d.slot.visibleUpToStage??1)&&!(d.procedural&&this.externalTerrain);
