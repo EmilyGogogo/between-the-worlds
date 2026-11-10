@@ -12,11 +12,12 @@ export const WATERS = [];
 export const INTERACTIONS = [];
 export const INPUT = {bindings:[]};
 export const TUNING = {};
+export const CAMERA_MODES = {};
 export async function loadRuntimeConfig(){
   const response=await fetch('./public/config/game.json');
   if(!response.ok)throw new Error(`Game configuration unavailable (${response.status})`);
   const data=await response.json();
-  Object.assign(SPECIES,data.species);Object.assign(CATEGORIES,data.categories);Object.assign(LAYOUT,data.layout);SCALE_TIERS.push(...(data.scaleTiers||[]));Object.assign(SCALE_LAYERS,data.scaleLayers);WATERS.push(...Object.values(LAYOUT.regions).filter(r=>r.water));
+  Object.assign(SPECIES,data.species);Object.assign(CATEGORIES,data.categories);Object.assign(LAYOUT,data.layout);SCALE_TIERS.push(...(data.scaleTiers||[]));Object.assign(SCALE_LAYERS,data.scaleLayers);Object.assign(CAMERA_MODES,data.cameraModes);WATERS.push(...Object.values(LAYOUT.regions).filter(r=>r.water));
   INTERACTIONS.push(...(data.interactions||[]));Object.assign(INPUT,data.input);Object.assign(TUNING,data.tuning);
   if(!LAYOUT.instances.some(i=>i.id===LAYOUT.initialInstance))throw new Error(`Missing initial body: ${LAYOUT.initialInstance}`);
   for(const item of [...LAYOUT.instances,...LAYOUT.scatter])if(!SPECIES[item.kind])throw new Error(`Unknown body kind: ${item.kind}`);

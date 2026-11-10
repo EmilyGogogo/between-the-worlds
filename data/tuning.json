@@ -188,8 +188,8 @@
       "reviewState": "proposed"
     },
     "perceptionCrossfadeSec": {
-      "runtimeBinding": "not_integrated",
-      "note": "尚未接入；当前视觉感知混合使用整个 possessionDurationSec 过渡。",
+      "runtimeBinding": "integrated",
+      "note": "D-029：第一／第三人称切换的视觉淡化；魂穿仍在整个 possessionDurationSec 内混合。",
       "value": 1.2,
       "unit": "s",
       "min": 0.5,
