@@ -1010,6 +1010,133 @@
       ]
     },
     {
+      "id": "insect_blue_morpho_01",
+      "name": "蓝闪蝶",
+      "category": "insect",
+      "runtimeKind": "blueMorpho",
+      "stage": 1,
+      "habitat": "meadow",
+      "activityRegion": "island_airspace",
+      "implementationStatus": "integrated_pending_acceptance",
+      "ruleClass": "MUST",
+      "locomotion": "fly",
+      "verticalControl": "view_direction",
+      "moveSpeed": 2.7,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 1.65,
+      "observationRange": 18,
+      "possessionRange": 18,
+      "scaleTier": "S1",
+      "scaleTierReason": "蓝闪蝶为近地小型飞行身体",
+      "uniqueAbility": {
+        "id": "low_flight",
+        "text": "在草叶间低空飞行，以近地尺度观察环境",
+        "reviewState": "creator_directed_pending_team",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "art_direction",
+        "reviewState": "creator_directed_pending_team",
+        "summary": "暂沿用海鸥感知档案；色彩更饱满、远景更清楚，听觉效果待试玩确认",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1.15,
+          "contrast": 1.1,
+          "brightness": 1.02,
+          "fogMultiplier": 0.6,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 1400,
+          "underwaterLowpassHz": 360,
+          "range": 65,
+          "waterCueGain": 0.6,
+          "windGain": 0.16,
+          "distantCueGain": 1.1,
+          "heightAttenuation": true
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 0.48,
+        "height": 0.16,
+        "fovDeg": 64,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.07,
+            0
+          ],
+          "hideBody": true
+        }
+      },
+      "body": {
+        "height": 0.14,
+        "collisionRadius": 0.19,
+        "wadeDepthM": 0
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.18,
+            0,
+            -0.11,
+            0.18,
+            0.14,
+            0.11
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.blueMorpho",
+        "status": "integrated",
+        "url": "./public/models/blue-morpho-flight-v002.glb",
+        "variants": [],
+        "height": 0.04,
+        "rotation": [
+          -1.5707963267948966,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": "procedural_shader",
+        "colliderMode": "manual",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:insect",
+        "placeholderStyle": "morpho",
+        "finalSource": "Hyper3D Rodin",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/blue-morpho-flight-v002.glb",
+        "ledgerId": "PREVIEW-blue-morpho",
+        "fallbackLedgerId": "PH-insect_blue_morpho_01",
+        "proceduralAnimation": "morpho_wings"
+      },
+      "place": "草叶之间",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-01",
+        "QA-23",
+        "QA-25",
+        "QA-30",
+        "QA-31",
+        "QA-34",
+        "QA-48",
+        "QA-49"
+      ],
+      "flightHeightM": 8
+    },
+    {
       "id": "fish_silver_01",
       "name": "银斧鱼",
       "category": "fish",
@@ -1670,6 +1797,14 @@
       "placeholder": "fish",
       "soundCue": null,
       "release": "0.3"
+    },
+    "insect": {
+      "name": "昆虫",
+      "isAnimal": true,
+      "placeholder": "insect",
+      "soundCue": null,
+      "release": "0.4",
+      "decision": "D-030"
     }
   }
 }

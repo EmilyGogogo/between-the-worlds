@@ -227,6 +227,27 @@
       "lux3dUsed": true,
       "pivot": "bottom_center"
     },
+    "blueMorpho": {
+      "url": "./public/models/blue-morpho-flight-v002.glb",
+      "variants": [],
+      "lod": [],
+      "height": 0.04,
+      "rotation": [
+        -1.5707963267948966,
+        0,
+        0
+      ],
+      "animations": {},
+      "colliderMode": "manual",
+      "collisionBoxes": null,
+      "slotId": "slot.blueMorpho",
+      "status": "integrated",
+      "placeholder": "procedural:insect",
+      "placeholderStyle": "morpho",
+      "lux3dUsed": false,
+      "pivot": "bottom_center",
+      "proceduralAnimation": "morpho_wings"
+    },
     "silverfish": {
       "url": "./public/models/fish_silver_01-v001.glb",
       "variants": [],

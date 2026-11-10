@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { SPECIES, TUNING, LAYOUT, WATERS, inRegion, mulberry32, layerOf } from './species.js';
 import { makeRock } from './assets.js';
-import { createButterflies } from './butterfly.js';
 import { AmbientMotion } from './ambient.js';
 
 export const PLANET_RADIUS=7500;
@@ -76,7 +75,7 @@ float breeze=sin(position.x*.15+position.z*.21+windTime*.85)*.11;transformed.x+=
 }
 
 export class World {
-  constructor(scene,assets,playableButterfly){
+  constructor(scene,assets){
     this.scene=scene;this.assets=assets;this.entities=[];this.byId=new Map();this.byRoot=new Map();this.decor=[];this.time=0;this.externalTerrain=null;this.surfaceRay=new THREE.Raycaster();
     this.planetRoot=new THREE.Group();this.planetRoot.position.y=-PLANET_RADIUS;scene.add(this.planetRoot);
     // The ocean coordinate frame is inert; no playable planets in this version.
@@ -96,7 +95,6 @@ export class World {
     });
     this.populate();this.createDecor();this.createSky();this.createRipples();
     this.ready=this.loadEnvironment();scene.updateMatrixWorld(true);
-    if(playableButterfly)this.updateButterfly=createButterflies(this,playableButterfly,true);
   }
   addBody(id,kind,root,visual){
     if(this.byId.has(id))throw new Error(`Duplicate body id: ${id}`);
@@ -268,7 +266,6 @@ export class World {
   }
   update(dt,player,target,targetPoint=null,targetSize=1,transition=null){
     this.time+=dt;const t=this.time,stage=SPECIES[player.kind].stage;
-    this.updateButterfly?.(t,stage<=1,player,transition);
     // Unplayed birds and fish keep to their routes (D-027); built after spawning and pruning.
     if(!this.ambient)this.ambient=new AmbientMotion(this,LAYOUT.ambient||[]);
     this.ambient.update(dt,player,this.ambientHold);
@@ -287,8 +284,10 @@ export class World {
       if(e.visual)e.visual.visible=e===player||s.stage>=hideBelow;
       if(!e.visual||!e.visual.visible)continue;
       const v=e.visual;
+      if(v.userData.flap)v.userData.flap.value=0.3+0.7*Math.sin(t*2*Math.PI*6+e.seed);
       if(v.userData.sway)v.rotation.z=Math.sin(t*.9+e.seed)*v.userData.sway;
       if(v.userData.bird){const a=Math.sin(t*(e.moving?7:3.4)+e.seed)*.38;v.userData.leftWing.rotation.z=a;v.userData.rightWing.rotation.z=-a;v.position.y=Math.sin(t*2+e.seed)*.08;}
+      if(v.userData.insect){const a=Math.sin(t*9+e.seed)*.55;v.userData.leftWing.rotation.z=a;v.userData.rightWing.rotation.z=-a;v.position.y=Math.sin(t*2+e.seed)*.01;}
       if(v.userData.limbs)for(let i=0;i<v.userData.limbs.length;i++)v.userData.limbs[i].rotation.x=e.moving?Math.sin(t*s.limbSwingRate+i*Math.PI)*.38:0;
       if(v.userData.dogTail)v.userData.dogTail.rotation.z=Math.sin(t*4)*.2;
       if(v.userData.fish)v.userData.tail.rotation.y=Math.sin(t*(e.moving?10:4)+e.seed)*.35;

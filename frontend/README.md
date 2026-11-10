@@ -1,6 +1,6 @@
 # 万物之间 · 浏览器前端
 
-> 现行规范：0.4-review（主岛＋群岛；八个类别，当前 11 种，以 `data/entities.json` 为准），见 [规范入口](../docs/README.md)。现状与剩余差距见 [原型审计](../docs/11-prototype-audit.md)。
+> 现行规范：0.4-review（主岛＋群岛；九个类别，当前 12 种，以 `data/entities.json` 为准），见 [规范入口](../docs/README.md)。现状与剩余差距见 [原型审计](../docs/11-prototype-audit.md)。
 
 Three.js r170 浏览器前端，所有模型目前是代码生成的占位。这不是 Unity Web 导出；正式引擎见 R-05。
 

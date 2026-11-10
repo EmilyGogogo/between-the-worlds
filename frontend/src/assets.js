@@ -17,6 +17,27 @@ const barkMat=standard('#aaa38c',{map:barkTex,bumpMap:barkTex,bumpScale:.06});
 const rockMat=standard('#7b7f70');
 const sphereGeo=new THREE.SphereGeometry(1,16,12);
 const rockGeo=new THREE.IcosahedronGeometry(1,2);
+const WING_SHADER=`
+uniform float flapAngle;
+varying float vWingUnderside;
+float wingAngle(vec3 p){return -sign(p.x)*smoothstep(0.06,0.21,abs(p.x))*flapAngle;}
+vec3 turnWing(vec3 p,float a){float c=cos(a),s=sin(a);return vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);}
+`;
+function animateMorpho(model,root){
+  const flap={value:0};root.userData.flap=flap;
+  model.traverse(object=>{
+    if(!object.isMesh)return;
+    object.frustumCulled=false;object.material=object.material.clone();
+    object.material.onBeforeCompile=shader=>{
+      shader.uniforms.flapAngle=flap;
+      shader.vertexShader=WING_SHADER+shader.vertexShader
+        .replace('#include <beginnormal_vertex>',`#include <beginnormal_vertex>\nobjectNormal=turnWing(objectNormal,wingAngle(position));`)
+        .replace('#include <begin_vertex>',`#include <begin_vertex>\nvWingUnderside=smoothstep(0.08,0.22,abs(position.x))*smoothstep(0.15,0.75,-normal.z);\nfloat hinge=sign(position.x)*0.06;\nvec3 pivot=vec3(hinge,0.,0.);\ntransformed=pivot+turnWing(position-pivot,wingAngle(position));`);
+      shader.fragmentShader='varying float vWingUnderside;\n'+shader.fragmentShader
+        .replace('#include <map_fragment>',`#include <map_fragment>\nfloat wingTone=dot(diffuseColor.rgb,vec3(0.2126,0.7152,0.0722));\nvec3 brownWing=vec3(0.23,0.103,0.038)*(0.43+2.3*wingTone);\ndiffuseColor.rgb=mix(diffuseColor.rgb,brownWing,vWingUnderside);`);
+    };
+  });
+}
 
 function foliageTexture(pine=false){
   const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),r=mulberry32(pine?129:82);
@@ -122,6 +143,17 @@ function bird(style){
   for(let side of [-1,1])mesh(sphereGeo,white,root,side*.09,.13,.51,.07,.025,tern?.35:.22).rotation.y=side*.15;
   root.userData.bird=true;return root;
 }
+function insect(){
+  const root=new THREE.Group(),body=standard('#272a2a'),wing=standard('#287db0',{side:THREE.DoubleSide});
+  mesh(sphereGeo,body,root,0,.035,0,.025,.025,.12);
+  for(const side of [-1,1]){
+    const pivot=new THREE.Group();root.add(pivot);
+    const shape=new THREE.Shape();shape.moveTo(0,-.09);shape.bezierCurveTo(.22,-.2,.22,.12,0,.1);shape.closePath();
+    const panel=mesh(new THREE.ShapeGeometry(shape,12),wing,pivot);panel.rotation.x=-Math.PI/2;panel.scale.x=side;
+    root.userData[side===1?'rightWing':'leftWing']=pivot;
+  }
+  root.userData.insect=true;return root;
+}
 function fish(style){
   const root=new THREE.Group(),butterfly=style==='butterfly';
   let color=butterfly?'#d9b844':style==='perch'?'#819178':'#bac9ba';
@@ -198,6 +230,7 @@ const PLACEHOLDERS={
   human:()=>human(),
   dog:()=>dog(),
   bird:style=>bird(style),
+  insect:()=>insect(),
   fish:style=>fish(style),
 };
 export function registerPlaceholder(name,make){PLACEHOLDERS[name]=make;}
@@ -259,6 +292,7 @@ export class AssetLibrary {
     if(!list)return makeProcedural(kind,seed,this.manifest.species?.[kind]);
     const template=this.pick(list,mulberry32(seed)),entry=template.entry;
     const root=new THREE.Group(),model=clone(template.gltf.scene);
+    if(entry.proceduralAnimation==='morpho_wings')animateMorpho(model,root);
     this.fit(model,entry,SPECIES[kind].height);
     if(template.lod.length){
       // Far away, a simpler model stands in (LOD); the full model keeps the animation.

@@ -1228,6 +1228,78 @@
         -120.66
       ],
       "placement": "surface"
+    },
+    {
+      "id": "blue-morpho-playable",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        2.15,
+        1.4,
+        9.7
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-1",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        4.071947428640385,
+        1.55,
+        10.379629621983844
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-2",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        -0.7889917462604903,
+        1.1,
+        8.139904013701775
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-3",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        -1.199532730971945,
+        1.7,
+        9.458077511332581
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-4",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        -10.471252793138365,
+        1.25,
+        0.6169928076391802
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-5",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        -5.109818324529283,
+        1.6,
+        -5.296982104872399
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
     }
   ],
   "scatter": [
@@ -1793,6 +1865,162 @@
       },
       "animation": "idle",
       "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-0",
+      "members": [
+        "blue-morpho-playable"
+      ],
+      "shape": "ellipse",
+      "center": [
+        1.5,
+        9.7
+      ],
+      "radii": [
+        0.65,
+        0.55
+      ],
+      "periodSec": 8.72665,
+      "phaseDeg": 0.0,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.4,
+        "highM": 1.4
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-1",
+      "members": [
+        "blue-morpho-playable-1"
+      ],
+      "shape": "ellipse",
+      "center": [
+        3.8,
+        9
+      ],
+      "radii": [
+        1.6,
+        1.4
+      ],
+      "periodSec": 8.17059,
+      "phaseDeg": 80.21409131831524,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.55,
+        "highM": 1.55
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-2",
+      "members": [
+        "blue-morpho-playable-2"
+      ],
+      "shape": "ellipse",
+      "center": [
+        0.2999999999999998,
+        7.9
+      ],
+      "radii": [
+        1.1,
+        1.7
+      ],
+      "periodSec": 7.61598,
+      "phaseDeg": 171.88733853924697,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.1,
+        "highM": 1.1
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-3",
+      "members": [
+        "blue-morpho-playable-3"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -0.7999999999999998,
+        10.6
+      ],
+      "radii": [
+        1.3,
+        1.2
+      ],
+      "periodSec": 7.189,
+      "phaseDeg": 252.10142985756227,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.7,
+        "highM": 1.7
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-4",
+      "members": [
+        "blue-morpho-playable-4"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -9,
+        -1
+      ],
+      "radii": [
+        2.5,
+        2
+      ],
+      "periodSec": 7.88354,
+      "phaseDeg": 126.05071492878113,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.25,
+        "highM": 1.25
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-5",
+      "members": [
+        "blue-morpho-playable-5"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -6,
+        -3
+      ],
+      "radii": [
+        1.9,
+        2.6
+      ],
+      "periodSec": 6.96584,
+      "phaseDeg": 297.9380534680281,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.6,
+        "highM": 1.6
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
       "resumeAfterSec": 4
     }
   ]

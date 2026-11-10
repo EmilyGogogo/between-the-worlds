@@ -1,4 +1,3 @@
-import { preparePlayableButterfly } from './butterfly.js';
 import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
 import { World, terrainHeight, PLANET_RADIUS } from './world.js';
@@ -9,8 +8,7 @@ import { Ambience } from './audio.js';
 
 const $=id=>document.getElementById(id);
 // 0.3 baseline save; earlier prototype saves (planets, companions) are ignored (W-04).
-const MORPHO_PREVIEW=new URLSearchParams(location.search).has('morpho');
-const STORAGE=MORPHO_PREVIEW?'between-all-things.save.v4.morpho':'between-all-things.save.v4';
+const STORAGE='between-all-things.save.v4';
 const SOUND='between-all-things.sound';
 const UP=new THREE.Vector3(0,1,0);
 const v1=new THREE.Vector3(),v2=new THREE.Vector3(),v3=new THREE.Vector3();
@@ -34,14 +32,14 @@ function blendView(a,b,f){
 }
 
 class Game {
-  constructor(renderer,assets,playableButterfly){
+  constructor(renderer,assets){
     this.renderer=renderer;this.assets=assets;this.scene=new THREE.Scene();
     this.scene.fog=new THREE.FogExp2('#bac9b5',.004);
     this.camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.025,400000);
     this.camera.position.set(25,14,55);this.camera.lookAt(-5,6,-15);
     this.scene.add(new THREE.HemisphereLight('#dfe8d9','#75804e',1.8));
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
-    this.world=new World(this.scene,assets,playableButterfly);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.world.collision=this.collision;
+    this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.world.collision=this.collision;
     this.world.moveBody=(entity,delta,dt)=>this.moveBody(entity,delta,dt);this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
     this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;this.cameraMode=CAMERA_MODES.default;this.cameraBodyTurn=0;
@@ -571,7 +569,7 @@ class Game {
         this.camera.lookAt(this.introFocus);this.scene.userData.cameraPosition=this.camera.position;this.applyPerception();
       }
       const info=this.targetInfo,size=info?.carrier?Math.max(1.5,this.camera.position.distanceTo(info.point)*.05):Math.max(SPECIES[this.target?.kind]?.radius||0,.5);
-      this.world.ambientHold=this.transition?.to||null;
+      this.world.ambientHold=this.transition?[this.transition.from,this.transition.to]:null;
       this.world.update(dt,subject,this.target,info?.point||null,size,this.transition);
       if(this.started)this.interactions.update(dt);
     }
@@ -585,10 +583,7 @@ async function boot(){
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     await loadRuntimeConfig();
     const assets=new AssetLibrary();await assets.prepare();
-    const playableButterfly=MORPHO_PREVIEW?await preparePlayableButterfly(assets).catch(error=>{
-      assets.errors.push('butterfly: '+error.message);console.warn('Playable butterfly unavailable.',error);return null;
-    }):null;
-    game=new Game(renderer,assets,playableButterfly);await game.world.ready;game.collision.refresh();
+    game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
     if(!game.hasSave)$('enter-label').textContent='进入旷野';$('enter').disabled=false;
     // Debug access is available only with ?debug; the normal product UI stays quiet.
     if(new URLSearchParams(location.search).has('debug'))window.__world=game;

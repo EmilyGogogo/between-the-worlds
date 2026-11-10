@@ -8,7 +8,7 @@
 | input-map.json | 键位、保留的 E、已删除的 Space／Ctrl、过渡中的输入规则 | integrated |
 | tuning.json | 可调初值、范围、单位、对应规则与硬约束 | integrated |
 | dialogue.json | 世界回应正文、来源、触发与冷却 | integrated |
-| anchors.json | 世界布局：74 个具名个体、10 组成片布景、区域、锚点与海鸥／鱼的环境航线 `ambient`（D-027） | integrated |
+| anchors.json | 世界布局：80 个具名个体、10 组成片布景、区域、锚点与海鸥／蓝闪蝶／鱼的环境航线 `ambient`（D-027、D-030） | integrated |
 | interactions.json | 互动规则：触发、过滤、效果 | integrated |
 | asset-ledger.csv | 每个资产槽的占位行与计划行；真实产物的来源证据 | 文档台账，不是加载清单 |
 
@@ -26,6 +26,7 @@
 - `stage` 是渲染尺度层（0 近地、1 身体、2 地貌、3 岛屿），只管镜头、雾、光照和细节隐藏。每层的具体设置在 `scaleLayers`（镜头前视比例、是否贴地与避障、雾浓度、太阳与阴影、焦点高度、进入时的最小俯角），字段含义写在 `scaleLayerFields`；运行时代码不按层号写死数值，新增一层只加数据。目标遮挡检查按 P-02 对所有尺度强制执行，不属于可关闭的渲染设置。
 - `body.limbSwingRate`：有四肢的占位模型（人、狗）走动时的摆动速率（弧度／秒）；没有时不摆动。
 - `activityRegion`：飞行身体所在的空域，指向 `anchors.json` 中带 `center`、`radius`、`maxY`、`minClearanceM` 的区域；高度上限与 `tuning.json` 的 `flightCeilingM` 一致。新增会飞的种类只需指向一个空域。
+- `flightHeightM`：飞行种类可选的离地高度上限（米），与空域上限同时生效；蓝闪蝶为 8 米。
 - `scaleTier` 是魂穿尺度档（`scaleTiers` 中的 S1～S5），魂穿关系由它推导：只能进入本档与相邻档（P-12，D-021），不再手写 `allowedTargets`。`scaleTiers[].referenceSizeM` 是归档参考（身高与体长／翼展取大），超出时写 `scaleTierReason`；`viewLiftEyeHeightM` 是视点抬升阈值（P-15、P-16）。个别例外写 `relationOverrides: {"allow": [...], "deny": [...], "decision": "D-xxx"}`。运行时仍要检查可见、距离、遮挡和准备状态。
 - `cameraModes`：D-029 双视角的默认模式与第三人称共用全彩视觉、FOV；`third_person.followBodyTurn` 为 true，使实际镜头环绕位置与注视方向在同帧跟随身体转角，短按左右也立即响应，位移继续缓动且实际镜头经过避障；同次方向输入固定移动参考，鼠标环视仍能更新它。身体 `camera.firstPerson.eyeOffset` 是根节点局部眼位（米），`hideBody` 控制第一人称隐藏自身视觉模型，岛必须为 false 以保留地形。身体 `perception.vision` 与 `camera.fovDeg` 仅用于第一人称，听觉在两种视角都使用身体档案。
 - `turnSpeedDegPerSec`：最大朝向转速（度／秒），初值不变，已接入方向移动与转身。
@@ -33,6 +34,7 @@
 - `collision.solid` 与 `collision.passPolicy`：`go_around`（必须绕行）或 `yield_with_bend`（可以经过但弯折）。
 - `perception.vision` 与 `perception.hearing` 是感知档案；`basis` 写明是参照、艺术表达还是尺度音景，`reviewState` 写明是创作者指定还是方案。
 - `asset.status`：`placeholder` → `generated` → `edited` → `integrated` → `accepted`。`asset.lux3dUsed` 只有在真实产物进入槽后才改为 `true`，并且台账要有证据。
+- `asset.proceduralAnimation`：蓝闪蝶模型使用 `morpho_wings` 程序翅膀动画，模型本身没有动作片段；不能与片段映射混用。
 - `_meta.reviewState` 与 `ruleClass`、`implementationStatus` 互相独立；`MUST` 不等于已实现。
 - 数值用 JSON 数字，距离米、时间秒；角度按字段合同填写，FOV／转向速度使用度，资产 `rotation` 使用弧度。
 

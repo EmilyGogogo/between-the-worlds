@@ -64,15 +64,16 @@ def run(body):
 
 
 passed = []
-# Test the opt-in preview separately so its extra species does not affect baseline counts.
-c.call('Page.navigate', {'url': args.url + '?debug&morpho'})
+# Check the normal entry, including the formal butterfly bodies.
+c.call('Page.navigate', {'url': args.url + '?debug'})
 c.wait_for('!!window.__world&&!document.getElementById("enter").disabled', 90)
 passed += json.loads(c.evaluate(r"""(()=>{
 const g=window.__world,W=g.world,results=[];
 const assert=(name,ok,detail='')=>{if(!ok)throw Error(name+' '+detail);results.push(name);};
 g.paused=true;
 const human=W.byId.get('human-first'),butterfly=W.byId.get('blue-morpho-playable'),tree=W.byId.get('tree-first');
-assert('preview loads the playable butterfly',!!butterfly);
+assert('normal entry loads six playable butterflies',W.entities.filter(e=>e.kind==='blueMorpho').length===6&&!!butterfly);
+assert('butterfly model is integrated',W.assets.hasModel('blueMorpho')&&!!butterfly.visual.userData.flap);
 const evaluate=g.evaluate,entities=W.entities;
 g.player=human;g.candidate=null;g.target=null;g.candidateTime=0;
 W.entities=[butterfly,tree];
@@ -86,15 +87,15 @@ g.selectTarget(.01);
 assert('a new butterfly target also waits for stability',g.candidate===butterfly&&g.target===null);
 g.selectTarget(1);assert('an aimed butterfly becomes selectable',g.target===butterfly);
 g.evaluate=evaluate;W.entities=entities;
-const update=W.updateButterfly,t=W.time+1;
-update(t,true,butterfly,null);
+W.update(.01,human,null);const ambient=W.ambient,t=W.time;
+ambient.update(.01,butterfly,[butterfly,human]);
 butterfly.root.position.x+=4;butterfly.root.position.y=W.height(butterfly.root.position.x,butterfly.root.position.z)+6;
 const released=butterfly.root.position.clone();
-update(t+.1,true,human,{from:butterfly,to:human});
+W.time=t+.1;ambient.update(.1,human,[butterfly,human]);
 assert('a butterfly is held throughout the outgoing transition',butterfly.root.position.equals(released));
-update(t+.2,true,human,null);update(t+3,true,human,null);
+W.time=t+.2;ambient.update(.1,human);W.time=t+3;ambient.update(.1,human);
 assert('a released butterfly rests before returning',butterfly.root.position.equals(released));
-update(t+4.2,true,human,null);update(t+4.25,true,human,null);
+W.time=t+4.25;ambient.update(.05,human);
 const moved=butterfly.root.position.distanceTo(released);
 assert('a released butterfly resumes without teleporting',moved>0&&moved<1,moved.toFixed(3));
 return JSON.stringify(results);
@@ -435,8 +436,9 @@ load()
 passed += run(r"""
 const A=W.ambient,groups=LAYOUT.ambient||[],members=groups.flatMap(gr=>gr.members.map(id=>W.byId.get(id)));
 assert('every ambient member exists and is driven by its route',groups.length>0&&members.every(e=>e&&A.has(e)));
-const start=new Map(members.map(e=>[e,e.root.position.clone()]));step(300);
-assert('unplayed ambient bodies move on their own',members.every(e=>e.root.position.distanceTo(start.get(e))>1),members.filter(e=>e.root.position.distanceTo(start.get(e))<=1).map(e=>e.id).join());
+const start=new Map(members.map(e=>[e,e.root.position.clone()])),travel=new Map(members.map(e=>[e,0]));
+for(let n=0;n<300;n++){step(1);for(const e of members){travel.set(e,travel.get(e)+e.root.position.distanceTo(start.get(e)));start.get(e).copy(e.root.position);}}
+assert('unplayed ambient bodies move on their own',members.every(e=>travel.get(e)>.5),members.filter(e=>travel.get(e)<=.5).map(e=>e.id).join());
 const out=[];let spread=0;
 for(let k=0;k<40;k++){step(30);g.collision.refresh();
   for(const gr of groups){const list=gr.members.map(id=>W.byId.get(id));

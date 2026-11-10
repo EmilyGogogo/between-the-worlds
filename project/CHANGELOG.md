@@ -1,5 +1,13 @@
 # 变更记录
 
+## 2026-11-10 · 蓝闪蝶纳入正式实体
+
+- 负责人：待团队认领；关联：PR #9 后续，待关联提交。
+- AI：Codex 负责数据、程序、文档和自动检查；人工复核待负责人完成。
+- 变更与原因：按创作者要求新增昆虫类别和蓝闪蝶正式种类（D-030），六只进入主岛普通布局与存档，复用环境航线和碰撞；保留 8 米限高及程序翅膀动画，补充模型缺失占位。旧 `?morpho` 试玩存档不自动迁移。同步数据、生成配置、资产台账、范围与 QA。
+- 验证（2026-11-10，本地 macOS）：`python3 project/sync_runtime.py` 已生成运行配置与清单；`python3 project/validate_docs.py` 1879 项通过；`python3 project/check_repository.py` 检查 155 文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。本机没有 Node.js，未执行独立 JavaScript 语法检查。`python3 project/check_all.py --output .work/morpho-formal-final` 在普通入口蓝闪蝶专项及部分后续检查后，于页面重新加载等待处超时，完整浏览器回归未通过；此前两次尝试中 Chrome 断连，日志保留在本地 `.work/`。
+- 未验证项 / 风险：团队共同确认、模型许可、程序动画与画面、音景、碰撞和真人试玩待完成；模型无自带动画片段，不声称完成资产验收。蓝闪蝶靠近超出 8 米限高的障碍物时的自主归航仍需验证。
+
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
 ## 2026-11-10 · PR #9 主线冲突整合与审查
