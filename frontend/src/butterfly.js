@@ -69,21 +69,37 @@ export function createButterflies(world,model,playable=false){
     flight.add(visual);
     if(playable)world.islandRoot.add(flight);
     else flock.add(flight);
-    return {flight,visual,flap,route};
+    return {flight,visual,flap,route,held:false,resumeAt:0,returning:false};
   });
   const start=world.byId.get('human-first').home;
+  let previousTime=0;
   const update=(time,visible,player,transition)=>{
+    const dt=Math.max(0,time-previousTime);previousTime=time;
     flock.visible=visible;
-    if(!visible)return;
-    for(const {flight,flap,route} of butterflies){
+    for(const butterfly of butterflies){
+      const {flight,flap,route}=butterfly;
       const [dx,dz,rx,rz,height,offset]=route;
       flap.value=0.3+0.7*Math.sin(time*2*Math.PI*(6+offset*.28)+offset);
-      if(playable&&(flight===player?.root||flight===transition?.to.root))flight.userData.piloted=true;
-      if(flight.userData.piloted)continue;
+      if(playable&&(flight===player?.root||flight===transition?.from?.root||flight===transition?.to?.root)){
+        butterfly.held=true;continue;
+      }
+      if(butterfly.held){butterfly.held=false;butterfly.resumeAt=time+4;butterfly.returning=true;}
+      if(!visible||time<butterfly.resumeAt)continue;
       const phase=time*(0.72+offset*.035)+offset;
       const x=start.x+dx+rx*Math.cos(phase);
       const z=start.z+dz+rz*Math.sin(phase);
-      flight.position.set(x,world.height(x,z)+height+0.2*Math.sin(2*phase),z);
+      const y=world.height(x,z)+height+0.2*Math.sin(2*phase);
+      if(butterfly.returning){
+        const entity=world.byRoot.get(flight),goal=new THREE.Vector3(x,y,z),delta=goal.sub(flight.position);
+        // Follow the same clearance and collision rules as a controlled flying body.
+        const clearance=world.ambient?.clear(entity,x,y,z)??y;
+        delta.y=Math.min(world.height(x,z)+SPECIES.blueMorpho.flightHeight,clearance)-flight.position.y;
+        const distance=delta.length(),max=SPECIES.blueMorpho.speed*Math.min(dt,time-butterfly.resumeAt);
+        if(distance>max)delta.multiplyScalar(max/distance);
+        if(entity&&dt>0){world.moveBody(entity,delta,dt);world.collision.refreshEntity(entity);}
+        continue;
+      }
+      flight.position.set(x,y,z);
       flight.rotation.y=Math.atan2(rx*Math.sin(phase),-rz*Math.cos(phase));
     }
   };

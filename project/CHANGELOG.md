@@ -9,6 +9,8 @@
 - 变更与原因：合入主线并保留双方记录；移动和镜头冲突采用 D-029 的统一控制，蝴蝶试玩保留模型、入口和飞行高度限制。蝴蝶原有专用背后转向行为因此改变。
 - 验证：`python3 project/validate_docs.py` 通过 1791 项；`git diff --check` 通过。`python3 project/check_repository.py --javascript` 因环境缺少 Node.js 未运行；`python3 project/check_all.py` 沙箱内启动被拒，沙箱外运行在页面重载等待处超时，完整浏览器回归未通过。
 - 未验证项 / 风险：真人试玩、资产许可及正式验收待完成；试玩目标选择和飞行状态问题待审查处理。
+- 后续修复：蝴蝶使用与其他身体一致的目标角度、稳定时间和排序；过渡期间保持占用，离开后等待约 4 秒，再按限速与碰撞规则追随航线，避免停飞和跳回。新增隔离浏览器专项回归并补充试玩 QA 和实现审计；不扩大正式种类范围。
+- 后续验证：专项浏览器检查已执行通过；完整 `python3 project/check_all.py --output .work/pr9-review-fixes-final` 在专项检查后加载普通页面时超时，重试 `--output .work/pr9-review-fixes-recheck` 仍在后续普通页面重载时超时，完整回归未通过。`python3 project/check_repository.py` 检查 156 个文件、0 错误（未含 JavaScript 语法，环境缺少 Node.js）；真人试玩、复杂避障及目标设备性能待验证。此前两次专项回归失败用于定位等待时间跨帧计算问题，修复后重跑通过。
 
 ## 2026-11-08 · 最新主线的蓝闪蝶试玩
 

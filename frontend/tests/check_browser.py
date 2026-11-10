@@ -64,6 +64,41 @@ def run(body):
 
 
 passed = []
+# Test the opt-in preview separately so its extra species does not affect baseline counts.
+c.call('Page.navigate', {'url': args.url + '?debug&morpho'})
+c.wait_for('!!window.__world&&!document.getElementById("enter").disabled', 90)
+passed += json.loads(c.evaluate(r"""(()=>{
+const g=window.__world,W=g.world,results=[];
+const assert=(name,ok,detail='')=>{if(!ok)throw Error(name+' '+detail);results.push(name);};
+g.paused=true;
+const human=W.byId.get('human-first'),butterfly=W.byId.get('blue-morpho-playable'),tree=W.byId.get('tree-first');
+assert('preview loads the playable butterfly',!!butterfly);
+const evaluate=g.evaluate,entities=W.entities;
+g.player=human;g.candidate=null;g.target=null;g.candidateTime=0;
+W.entities=[butterfly,tree];
+g.evaluate=e=>({entity:e,angle:e===tree ? .01 : .4,distance:e===tree?3:1,carrier:false,own:false});
+g.selectTarget(.01);
+assert('a nearby butterfly cannot displace a more directly aimed target',g.candidate===tree&&g.target===null);
+g.selectTarget(1);
+assert('target selection waits for the configured stability time',g.target===tree);
+g.evaluate=e=>e===butterfly?({entity:e,angle:.01,distance:1,carrier:false,own:false}):null;
+g.selectTarget(.01);
+assert('a new butterfly target also waits for stability',g.candidate===butterfly&&g.target===null);
+g.selectTarget(1);assert('an aimed butterfly becomes selectable',g.target===butterfly);
+g.evaluate=evaluate;W.entities=entities;
+const update=W.updateButterfly,t=W.time+1;
+update(t,true,butterfly,null);
+butterfly.root.position.x+=4;butterfly.root.position.y=W.height(butterfly.root.position.x,butterfly.root.position.z)+6;
+const released=butterfly.root.position.clone();
+update(t+.1,true,human,{from:butterfly,to:human});
+assert('a butterfly is held throughout the outgoing transition',butterfly.root.position.equals(released));
+update(t+.2,true,human,null);update(t+3,true,human,null);
+assert('a released butterfly rests before returning',butterfly.root.position.equals(released));
+update(t+4.2,true,human,null);update(t+4.25,true,human,null);
+const moved=butterfly.root.position.distanceTo(released);
+assert('a released butterfly resumes without teleporting',moved>0&&moved<1,moved.toFixed(3));
+return JSON.stringify(results);
+})()"""))
 load()
 passed += run(r"""
 // Counts come from data/entities.json, never from this test, so adding species or categories needs no edit here.

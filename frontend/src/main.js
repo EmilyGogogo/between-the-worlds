@@ -9,7 +9,6 @@ import { Ambience } from './audio.js';
 
 const $=id=>document.getElementById(id);
 // 0.3 baseline save; earlier prototype saves (planets, companions) are ignored (W-04).
-const MORPHO_NEAR_REACH=8;
 const MORPHO_PREVIEW=new URLSearchParams(location.search).has('morpho');
 const STORAGE=MORPHO_PREVIEW?'between-all-things.save.v4.morpho':'between-all-things.save.v4';
 const SOUND='between-all-things.sound';
@@ -228,15 +227,9 @@ class Game {
     }
     const to=point.clone().sub(eye),len=to.length();if(len<1e-6)return null;
     const angle=Math.acos(clamp(to.normalize().dot(direction),-1,1)),angular=Math.atan2(o.radius,len);
-    const nearMorpho=e.kind==='blueMorpho'&&surface<=MORPHO_NEAR_REACH;
-    if(nearMorpho){
-      const screen=point.clone().project(this.camera);
-      if(angle>=Math.PI/2||Math.abs(screen.x)>1||Math.abs(screen.y)>1||Math.abs(screen.z)>1)return null;
-    }else{
-      const aimTolerance=o.stage<s.stage?.29:.16;
-      if(angle>Math.min(.9,aimTolerance+angular))return null;
-      if(2*angular<tune('targetMinAngularSizeRad',.008))return null;
-    }
+    const aimTolerance=o.stage<s.stage?.29:.16;
+    if(angle>Math.min(.9,aimTolerance+angular))return null;
+    if(2*angular<tune('targetMinAngularSizeRad',.008))return null;
     if(this.world.occludes(eye,point,Math.max(o.radius,o.height*.35))||this.collision.obscures(eye,point,p,e))return null;
     return {entity:e,angle,distance:surface,carrier:false,own,point:null};
   }
@@ -272,18 +265,15 @@ class Game {
   selectTarget(dt){
     const eye=this.camera.position,direction=this.camera.getWorldDirection(v2);this.updateLift();
     const list=[];for(const e of this.world.entities){const c=this.evaluate(e,eye,direction);if(c)list.push(c);}
-    // In the butterfly preview, nearby visible butterflies take priority over other bodies.
-    const nearbyMorphos=list.filter(c=>c.entity.kind==='blueMorpho'&&c.distance<=MORPHO_NEAR_REACH);
-    const eligible=nearbyMorphos.length?nearbyMorphos:list;
-    let best=this.rankCandidates(eligible)[0]||null;
+    let best=this.rankCandidates(list)[0]||null;
     if(best&&this.candidate&&best.entity!==this.candidate){
-      const previous=eligible.find(c=>c.entity===this.candidate);
+      const previous=list.find(c=>c.entity===this.candidate);
       if(previous&&previous.carrier===best.carrier&&Boolean(previous.own)===Boolean(best.own)&&Math.abs(previous.angle-best.angle)<=THREE.MathUtils.degToRad(tune('angleTieToleranceDeg',1.5)))best=previous;
     }
     const next=best?.entity||null;
     if(next!==this.candidate){this.candidate=next;this.candidateTime=0;}else this.candidateTime+=dt;
     // Ripple after a short settle; an illegal target clears immediately (P-05, P-11).
-    this.target=next&&(nearbyMorphos.length||next===this.target||this.candidateTime>=tune('targetStableSec',.12))?next:null;
+    this.target=next&&(next===this.target||this.candidateTime>=tune('targetStableSec',.12))?next:null;
     this.targetInfo=this.target?best:null;
   }
 
