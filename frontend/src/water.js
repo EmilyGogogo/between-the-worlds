@@ -14,7 +14,7 @@ void main(){
   #include <fog_vertex>
 }`;
 const fragment=`
-uniform float time;uniform vec2 flow;uniform vec3 deep;uniform vec3 shallow;uniform float clarity;uniform float level;
+uniform float time;uniform vec2 flow;uniform vec3 deep;uniform vec3 shallow;uniform float clarity;uniform float level;uniform float deepOpacity;uniform float shallowOpacity;
 uniform sampler2D heightMap;uniform vec2 fieldSize;uniform vec2 fieldRange;uniform float hasField;
 uniform vec3 sunDir;uniform vec3 sunColor;uniform vec3 skyZenith;uniform vec3 skyHorizon;uniform float rain;uniform float night;
 uniform vec4 holes[4];uniform int holeCount;
@@ -52,7 +52,7 @@ void main(){
   // Shore foam and the thin line where water meets land.
   float edge=1.-smoothstep(.0,.35,depth);float foam=edge*smoothstep(.45,.75,wNoise(p*1.7+vec2(time*.4,0.))+edge*.4);
   c=mix(c,vec3(.86,.82,.72)*(1.-night*.45),foam*.55);
-  float alpha=mix(.97,.55,shallowness)*smoothstep(-.02,.06,depth);
+  float alpha=mix(deepOpacity,shallowOpacity,shallowness)*smoothstep(-.02,.06,depth);
   gl_FragColor=vec4(c,alpha);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -66,10 +66,10 @@ export function heightTexture(field){
   t.minFilter=t.magFilter=THREE.LinearFilter;t.needsUpdate=true;return t;
 }
 
-export function waterMaterial({deep,shallow,clarity=1.4,flow=[1,0],level=0,holes=[]},shared,field,heightMap){
+export function waterMaterial({deep,shallow,clarity=1.4,deepOpacity=.97,shallowOpacity=.55,flow=[1,0],level=0,holes=[]},shared,field,heightMap){
   const uniforms=THREE.UniformsUtils.merge([THREE.UniformsLib.fog,{
     time:{value:0},flow:{value:new THREE.Vector2(...flow)},deep:{value:new THREE.Color(deep)},shallow:{value:new THREE.Color(shallow)},
-    clarity:{value:clarity},level:{value:level},hasField:{value:field?1:0},
+    clarity:{value:clarity},deepOpacity:{value:deepOpacity},shallowOpacity:{value:shallowOpacity},level:{value:level},hasField:{value:field?1:0},
     holes:{value:[0,1,2,3].map(i=>new THREE.Vector4(...(holes[i]||[0,0,1,1])))},holeCount:{value:holes.length},
     fieldSize:{value:new THREE.Vector2(field?.width||1,field?.depth||1)},fieldRange:{value:new THREE.Vector2(...(field?.desc.heightRange||[0,1]))},
   }]);

@@ -52,7 +52,7 @@ CSV 为 UTF-8 BOM。计划行中的生成日期、原文件、输入、授权与
 | 换成片草地、湖底卵石的模型 | `environmentSlots` → `env.meadow`／`env.pebbles` 的 `url`／`variants` | 不用 |
 | 新增一种成片装饰（如灌木丛、落叶） | `environmentSlots` 加一个带 `scatter` 的槽 | 不用 |
 | 在世界里多放几个个体、多一片树林 | `anchors.json` → `instances` 或 `scatter` | 不用 |
-| 调雨林的疏密、层次与树种（D-030、D-031） | `env.forest.scatter`：`clumping`（林窗多少与大小）、`layers[]` 每层的 `models`（模型名，见 `vegetation.json`）与 `fallback`（模型缺失时的程序占位）、`heightM`、`spacingM`、`attempts`、`slender`、`leanDeg`、`trunk`（树干半径，模型米）；`lodRangesM` 是三档网格各自画到多远，更远画替身；`blocksBodiesUpToM` 以下高度的身体会被布景树干挡住 | 不用 |
+| 调雨林的疏密、层次与树种（D-033、D-034） | `env.forest.scatter`：`clumping`（林窗多少与大小）、`layers[]` 每层的 `models`（模型名，见 `vegetation.json`）与 `fallback`（模型缺失时的程序占位）、`heightM`、`spacingM`、`attempts`、`slender`、`leanDeg`、`trunk`（树干半径，模型米）；`lodRangesM` 是三档网格各自画到多远，更远画替身；`blocksBodiesUpToM` 以下高度的身体会被布景树干挡住 | 不用 |
 | 调林下植物 | `env.understory.scatter.plants[]`：`model`、`weight`、`heightM`、`patchM`（成片大小）；`lodRangesM`、`drawDistanceM` | 不用 |
 | 换或新增植被模型 | 原始 GLB 放进 `assets/lux3d/LUX3D-vegetation-rainforest/raw/v001/`，在 `project/vegetation/build_vegetation.py` 的 `MODELS` 登记（各档面数、是否烘焙替身），在 Blender 中运行后输出到 `frontend/public/models/vegetation/`，台账与 LICENSES 登记来源 | 不用 |
 | 新增一个种类（苍鹭、柴犬、珊瑚鱼……） | `python3 project/new_species.py`（可用 `--tier` 指定尺度档），再调数值 | 不用 |
@@ -118,7 +118,7 @@ CSV 为 UTF-8 BOM。计划行中的生成日期、原文件、输入、授权与
 **水体**：带 `water` 字段的区域就是水体，代码不按名字认湖。两种类型：
 
 - `"type": "enclosed"`（湖、池塘）：椭圆区域（`shape`、`center`、`radii`）内的平静水面，`surfaceY` 是水面高度（岛的局部坐标），`opacity` 是水面不透明度；可选 `basin: {"depthM", "falloffM": [x, z]}` 让程序占位地形在此挖出湖盆（换成 GLB 地形后湖盆由模型提供）。
-- `"type": "river"`：全局只能有一个（D-027），`levelM` 是河面高度，`minDepthM` 是算作水体的最浅深度；`corridor` 给出河道半宽、长度与岛离岸的距离，两岸雨林据此生成，岛只在河道内漂移。
+- `"type": "river"`：全局只能有一个（D-030），`levelM` 是河面高度，`minDepthM` 是算作水体的最浅深度；`corridor` 给出河道半宽、长度与岛离岸的距离，两岸雨林据此生成，岛只在河道内漂移。
 - 封闭水体只在湖床低于 `surfaceY` 的地方有水，所以椭圆可以框住整段弯曲的牛轭湖而不淹没内侧沙脊；`look` 设定深水、浅水颜色、清澈度与流向。
 - 主岛地形：`entities.json` 的 `env.world.heightfield` 指向 `project/terrain/river_island.py` 在 Blender 中生成的高度场与地表分层权重图（沙、湿泥、草、龟裂泥，其余为落叶层）；装饰槽可用 `groundLayer`（序号或 `litter`）只长在某一层上。改地形时改脚本参数后重新生成，再把 `island-terrain.json` 中的网格、尺寸与高度范围抄回 `heightfield`。
 

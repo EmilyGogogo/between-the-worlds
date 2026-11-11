@@ -229,7 +229,7 @@ export class World {
   }
   addBody(id,kind,root,visual){
     if(this.byId.has(id))throw new Error(`Duplicate body id: ${id}`);
-    const entity={id,kind,root,visual,heading:0,moving:false,baseY:root.position.y,groundOffset:root.position.y-terrainHeight(root.position.x,root.position.z),seed:this.entities.length,home:root.position.clone()};
+    const entity={id,kind,root,visual,heading:0,moving:false,baseY:root.position.y,groundOffset:root.position.y-terrainHeight(root.position.x,root.position.z),seed:this.entities.length,home:root.position.clone(),homeRotation:[root.rotation.x,root.rotation.y,root.rotation.z],homeBaseY:root.position.y};
     this.entities.push(entity);this.byId.set(id,entity);this.byRoot.set(root,entity);return entity;
   }
   spawn(kind,x,y,z,id,parent,random=false){
@@ -306,7 +306,9 @@ export class World {
         object=new THREE.Group();procedural=true;const r=mulberry32(slot.scatter.seed??500);
         for(const area of slot.scatter.areas)for(let i=0;i<area.count;i++){
           const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],y=this.height(x,z);
-          if(!scatterAllows(slot.scatter,x,y,z))continue;
+          const pool=this.water(x,z);
+          if(!scatterAllows(slot.scatter,x,y,z)||
+             ((area.waterType||slot.scatter.waterType)&&pool?.type!==(area.waterType||slot.scatter.waterType)))continue;
           const rock=makeRock(i+500,.15+r()*.45);rock.position.set(x,y,z);object.add(rock);
         }
       }
@@ -441,11 +443,12 @@ export class World {
     for(const e of this.entities){
       const s=SPECIES[e.kind];
       if(e.visual)e.visual.visible=e===player||s.stage>=hideBelow;
+      if(this.firstPersonBodies?.includes(e)&&s.firstPerson?.hideBody)e.visual.visible=false;
       if(!e.visual||!e.visual.visible)continue;
       const v=e.visual;
       if(v.userData.sway)v.rotation.z=Math.sin(t*.9+e.seed)*v.userData.sway;
       if(v.userData.bird){const a=Math.sin(t*(e.moving?7:3.4)+e.seed)*.38;v.userData.leftWing.rotation.z=a;v.userData.rightWing.rotation.z=-a;v.position.y=Math.sin(t*2+e.seed)*.08;}
-      if(v.userData.limbs)for(let i=0;i<v.userData.limbs.length;i++)v.userData.limbs[i].rotation.x=e.moving?Math.sin(t*s.limbSwingRate+i*Math.PI)*.38:0;
+      if(v.userData.limbs){for(let i=0;i<v.userData.limbs.length;i++){const limb=v.userData.limbs[i];if(s.category==='human'&&e.swimming){const arm=i%2===1;limb.rotation.x=arm?Math.sin(t*3.2+i)*.7:Math.sin(t*2.4+i)*.28;limb.rotation.z=arm?(i===1?-.45:.45):0;}else{limb.rotation.x=e.moving?Math.sin(t*s.limbSwingRate+i*Math.PI)*.38:0;limb.rotation.z=0;}}}
       if(v.userData.dogTail)v.userData.dogTail.rotation.z=Math.sin(t*4)*.2;
       if(v.userData.fish)v.userData.tail.rotation.y=Math.sin(t*(e.moving?10:4)+e.seed)*.35;
       v.userData.moving=e===player?(e.animationMoving??e.moving):e.moving;
@@ -462,13 +465,15 @@ export class World {
     }else this.ripple.visible=false;
   }
   serialize(){return this.entities.map(e=>({id:e.id,kind:e.kind,position:e.root.position.toArray(),rotation:[e.root.rotation.x,e.root.rotation.y,e.root.rotation.z],baseY:e.baseY,heading:e.heading}));}
-  restore(records){
+  serializeLayout(){return this.entities.map(e=>({id:e.id,kind:e.kind,position:e.home.toArray(),rotation:e.homeRotation||[0,0,0],baseY:e.homeBaseY??e.baseY}));}
+  restore(records,layout=[]){
+    const old=new Map((Array.isArray(layout)?layout:[]).filter(r=>r&&typeof r.id==='string').map(r=>[r.id,r]));
     for(const record of records||[]){
       const e=this.byId.get(record.id);if(!e||!Array.isArray(record.position)||record.position.length!==3||!record.position.every(Number.isFinite))continue;
-      e.root.position.fromArray(record.position);e.heading=Number.isFinite(record.heading)?record.heading:0;
-      if(Array.isArray(record.rotation)&&record.rotation.length===3&&record.rotation.every(Number.isFinite))e.root.rotation.set(...record.rotation);
+      const prior=old.get(record.id),position=prior?.position?.length===3?e.home.clone().add(new THREE.Vector3(...record.position).sub(new THREE.Vector3(...prior.position))):new THREE.Vector3(...record.position);e.root.position.copy(position);e.heading=Number.isFinite(record.heading)?record.heading:0;
+      if(Array.isArray(record.rotation)&&record.rotation.length===3&&record.rotation.every(Number.isFinite)){const oldRotation=prior?.rotation;e.root.rotation.set(...(Array.isArray(oldRotation)&&oldRotation.length===3?record.rotation.map((v,i)=>e.homeRotation[i]+v-oldRotation[i]):record.rotation));}
       else if(SPECIES[e.kind].mode!=='island')e.root.rotation.y=e.heading;
-      e.baseY=Number.isFinite(record.baseY)?record.baseY:e.root.position.y;
+      e.baseY=Number.isFinite(record.baseY)&&Number.isFinite(prior?.baseY)?(e.homeBaseY??e.baseY)+record.baseY-prior.baseY:(Number.isFinite(record.baseY)?record.baseY:e.root.position.y);
     }
     this.scene.updateMatrixWorld(true);
   }

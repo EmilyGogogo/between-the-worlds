@@ -46,7 +46,7 @@ export class WorldCollision {
   }
   // Scenery trunks (env.forest) on the main island block small bodies (a person, a dog), so
   // nothing walks through a trunk; bodies taller than `blocksBodiesUpToM` (the trees one can
-  // become) pass through the scenery forest and keep their room to move (D-031).
+  // become) pass through the scenery forest and keep their room to move (D-034).
   hitsScenery(entity,frame){
     const list=this.world.obstacles,s=SPECIES[entity.kind];
     if(!list?.length||entity.root.parent!==this.world.islandRoot||s.stage>1||s.height>this.world.obstacleBodyHeight)return false;

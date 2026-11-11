@@ -205,9 +205,9 @@ def main():
 
     # D-029: both camera modes are configured for every body; islands retain terrain.
     modes = entity_doc['cameraModes']
-    check(modes['default'] == 'third_person' and modes['decision'] == 'D-029', 'Camera defaults must follow D-029')
-    check(modes['third_person']['vision'] == {'grayscale': 0, 'saturation': 1, 'contrast': 1, 'brightness': 1, 'fogMultiplier': 1, 'tint': None}, 'Third-person vision must be full colour (D-029)')
-    check(modes['third_person']['followBodyTurn'] is True, 'Third-person camera must follow body turns (D-029)')
+    check(modes['default'] == 'third_person' and modes['decision'] == 'D-035', 'Camera defaults must follow D-035')
+    check(modes['third_person']['vision'] == {'grayscale': 0, 'saturation': 1, 'contrast': 1, 'brightness': 1, 'fogMultiplier': 1, 'tint': None}, 'Third-person vision must be full colour (D-035)')
+    check(modes['third_person']['followBodyTurn'] is True, 'Third-person camera must follow body turns (D-035)')
     for e in entity_list:
         first = e['camera']['firstPerson']
         offset = first['eyeOffset']
@@ -215,14 +215,14 @@ def main():
         check(0 < offset[1] <= e['body']['height'], f'{e["id"]}: eye must lie within body height')
         check(first['hideBody'] == (e['category'] != 'island'), f'{e["id"]}: first-person visibility must preserve island terrain')
 
-    # Input (D-007, D-029)
+    # Input (D-007, D-035)
     inputs = read_json('input-map.json')
     codes = [code for b in inputs['bindings'] for code in b['codes']]
     check(len(codes) == len(set(codes)), 'Duplicate active key binding')
     for code in ['KeyE', 'Space', 'ControlLeft', 'ControlRight']:
         check(code not in codes, f'{code} must stay unbound (I-02/I-03)')
     check(next(b for b in inputs['bindings'] if b['action'] == 'possess')['codes'] == ['KeyR'], 'R must be exclusive')
-    check(next(b for b in inputs['bindings'] if b['action'] == 'toggle_view')['codes'] == ['KeyV'], 'V toggles camera mode (D-029)')
+    check(next(b for b in inputs['bindings'] if b['action'] == 'toggle_view')['codes'] == ['KeyV'], 'V toggles camera mode (D-035)')
 
     # Layout (W-08): named instances and scatter groups, read at runtime.
     layout = read_json('anchors.json')
@@ -232,7 +232,7 @@ def main():
     unique(layout['instances'], 'id', 'instance ID')
     unique(layout['scatter'], 'id', 'scatter group ID')
     regions = {r['id'] for r in layout['regions']}
-    # Water bodies (M-04): data-driven; exactly one river (D-027), enclosed bodies need a shape and surface.
+    # Water bodies (M-04): data-driven; exactly one river (D-030), enclosed bodies need a shape and surface.
     num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
     waters = [r for r in layout['regions'] if r.get('water')]
     rivers = [r for r in waters if r['water'].get('type') == 'river']
@@ -278,6 +278,9 @@ def main():
     for slot in decor_slots:
         check(slot['scatter']['carrier'] in instances, f'{slot["slotId"]}: unknown carrier')
         check(set(slot['scatter'].get('avoidRegions', [])) | ({slot['scatter']['insideRegion']} if slot['scatter'].get('insideRegion') else set()) <= regions, f'{slot["slotId"]}: unknown region')
+        if slot.get('placeholder') == 'procedural:pebble':
+            for area in slot['scatter'].get('areas', []):
+                check(area.get('waterType') in {'river', 'enclosed'}, f'{slot["slotId"]}: pebble areas must name a water type')
     placed = {i['type'] for i in layout['instances']} | {g['type'] for g in layout['scatter']}
     check(placed == entity_ids, f'Every body type needs individuals in the world: missing {sorted(entity_ids - placed)}')
     for e in entity_list:

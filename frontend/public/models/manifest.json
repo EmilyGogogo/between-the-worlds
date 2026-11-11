@@ -201,7 +201,20 @@
               128,
               240
             ],
-            "count": 160
+            "count": 160,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              153,
+              303
+            ],
+            "size": [
+              84,
+              44
+            ],
+            "count": 180,
+            "waterType": "river"
           }
         ]
       },
@@ -730,30 +743,27 @@
       "pivot": "sea_level_center"
     },
     "gull": {
-      "url": "./public/models/bird_gull_01-v003.glb",
+      "url": null,
       "variants": [],
       "lod": [],
-      "height": 0.32,
+      "height": 0.65,
       "rotation": [
         0,
         0,
         0
       ],
-      "animations": {
-        "idle": "Glide",
-        "move": "Flap"
-      },
+      "animations": {},
       "colliderMode": "auto_bounds",
       "collisionBoxes": null,
       "slotId": "slot.gull",
-      "status": "integrated",
+      "status": "placeholder",
       "placeholder": "procedural:bird",
       "placeholderStyle": "gull",
-      "lux3dUsed": true,
+      "lux3dUsed": false,
       "pivot": "bottom_center"
     },
     "silverfish": {
-      "url": "./public/models/fish_silver_01-v001.glb",
+      "url": null,
       "variants": [],
       "lod": [],
       "height": 0.32,
@@ -762,21 +772,18 @@
         0,
         0
       ],
-      "animations": {
-        "idle": "Swim",
-        "move": "SwimFast"
-      },
+      "animations": {},
       "colliderMode": "auto_bounds",
       "collisionBoxes": null,
       "slotId": "slot.silverfish",
-      "status": "integrated",
+      "status": "placeholder",
       "placeholder": "procedural:fish",
       "placeholderStyle": "silver",
-      "lux3dUsed": true,
+      "lux3dUsed": false,
       "pivot": "bottom_center"
     },
-    "discus": {
-      "url": "./public/models/fish_discus_01-v001.glb",
+    "butterflyfish": {
+      "url": null,
       "variants": [],
       "lod": [],
       "height": 0.45,
@@ -785,17 +792,14 @@
         0,
         0
       ],
-      "animations": {
-        "idle": "Swim",
-        "move": "SwimFast"
-      },
+      "animations": {},
       "colliderMode": "auto_bounds",
       "collisionBoxes": null,
-      "slotId": "slot.discus",
-      "status": "integrated",
+      "slotId": "slot.butterflyfish",
+      "status": "placeholder",
       "placeholder": "procedural:fish",
       "placeholderStyle": "butterfly",
-      "lux3dUsed": true,
+      "lux3dUsed": false,
       "pivot": "bottom_center"
     },
     "human": {

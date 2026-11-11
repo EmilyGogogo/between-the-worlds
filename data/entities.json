@@ -189,7 +189,15 @@
         "mode": "third_person",
         "distance": 3.5,
         "height": 0.308,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.35,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.7,
@@ -297,7 +305,15 @@
         "mode": "third_person",
         "distance": 46.0,
         "height": 8.8,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            10.0,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 20.0,
@@ -437,7 +453,15 @@
         "mode": "third_person",
         "distance": 24.0,
         "height": 4.4,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            5.0,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 10.0,
@@ -577,7 +601,15 @@
         "mode": "third_person",
         "distance": 96.0,
         "height": 18.5,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            21.0,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 42.0,
@@ -733,7 +765,15 @@
         "mode": "third_person",
         "distance": 8.0,
         "height": 0.88,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            1.0,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 2.0,
@@ -840,7 +880,15 @@
         "mode": "third_person",
         "distance": 230.0,
         "height": 30.8,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            35.0,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 70.0,
@@ -955,7 +1003,15 @@
         "mode": "third_person",
         "distance": 950.0,
         "height": 37.4,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            20.0,
+            0
+          ],
+          "hideBody": false
+        }
       },
       "body": {
         "height": 40.0,
@@ -1073,7 +1129,15 @@
         "mode": "third_person",
         "distance": 5.0,
         "height": 0.28600000000000003,
-        "fovDeg": 52
+        "fovDeg": 52,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.325,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.65,
@@ -1184,7 +1248,15 @@
         "mode": "third_person",
         "distance": 3.5,
         "height": 0.1408,
-        "fovDeg": 58
+        "fovDeg": 58,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.16,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.32,
@@ -1295,7 +1367,15 @@
         "mode": "third_person",
         "distance": 3.5,
         "height": 0.198,
-        "fovDeg": 58
+        "fovDeg": 58,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.225,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.45,
@@ -1406,7 +1486,15 @@
         "mode": "third_person",
         "distance": 5,
         "height": 0.77,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.875,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 1.75,
@@ -1445,7 +1533,12 @@
         "pivot": "bottom_center",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
-        "animations": {"idle": "model-action", "move": "model-action", "run": "model-action", "swim": "model-action"},
+        "animations": {
+          "idle": "model-action",
+          "move": "model-action",
+          "run": "model-action",
+          "swim": "model-action"
+        },
         "requiredAnimationRoles": [
           "idle",
           "move"
@@ -1521,7 +1614,15 @@
         "mode": "third_person",
         "distance": 4,
         "height": 0.35200000000000004,
-        "fovDeg": 48
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.4,
+            0
+          ],
+          "hideBody": true
+        }
       },
       "body": {
         "height": 0.8,
@@ -1768,12 +1869,12 @@
     },
     {
       "slotId": "env.pebbles",
-      "name": "湖底卵石（装饰）",
+      "name": "水底卵石（装饰）",
       "status": "placeholder",
       "url": null,
       "runtimeRead": true,
       "placeholder": "procedural:pebble",
-      "note": "牛轭湖底卵石装饰，不可魂穿；只放在湖床低于湖面的地方",
+      "note": "水底卵石装饰，不可魂穿；只放在实际水体床面，包含牛轭湖与南岸清澈河道",
       "variants": [],
       "height": 0.5,
       "scaleRange": [
@@ -1797,7 +1898,20 @@
               128,
               240
             ],
-            "count": 160
+            "count": 160,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              153,
+              303
+            ],
+            "size": [
+              84,
+              44
+            ],
+            "count": 180,
+            "waterType": "river"
           }
         ]
       }
@@ -2180,6 +2294,28 @@
       "placeholder": "fish",
       "soundCue": null,
       "release": "0.3"
+    }
+  },
+  "cameraModes": {
+    "default": "third_person",
+    "decision": "D-035",
+    "third_person": {
+      "movement": "camera_relative_face_travel",
+      "followBodyTurn": true,
+      "fovDeg": 48,
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      }
+    },
+    "first_person": {
+      "movement": "camera_relative_look_heading",
+      "vision": "current_body",
+      "hearing": "current_body"
     }
   }
 }

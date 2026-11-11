@@ -58,6 +58,28 @@
       "release": "0.3"
     }
   },
+  "cameraModes": {
+    "default": "third_person",
+    "decision": "D-035",
+    "third_person": {
+      "movement": "camera_relative_face_travel",
+      "followBodyTurn": true,
+      "fovDeg": 48,
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      }
+    },
+    "first_person": {
+      "movement": "camera_relative_look_heading",
+      "vision": "current_body",
+      "hearing": "current_body"
+    }
+  },
   "scaleLayers": {
     "0": {
       "cameraLookAhead": 0.65,
@@ -147,8 +169,17 @@
       "activityRegion": null,
       "speed": 2.8,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 3.5,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.35,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 17.0,
       "targets": [
         "grass",
@@ -214,8 +245,17 @@
       "activityRegion": null,
       "speed": 14.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 46.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          10.0,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 180.0,
       "targets": [
         "broadleaf",
@@ -288,8 +328,17 @@
       "activityRegion": null,
       "speed": 16.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 24.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          5.0,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 150.0,
       "targets": [
         "broadleaf",
@@ -362,8 +411,17 @@
       "activityRegion": null,
       "speed": 24.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 96.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          21.0,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 300.0,
       "targets": [
         "broadleaf",
@@ -444,8 +502,17 @@
       "activityRegion": null,
       "speed": 9.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 8.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          1.0,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 100.0,
       "targets": [
         "grass",
@@ -521,8 +588,17 @@
       "activityRegion": null,
       "speed": 75.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 230.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          35.0,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 1000.0,
       "targets": [
         "broadleaf",
@@ -593,8 +669,17 @@
       "activityRegion": null,
       "speed": 230.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 950.0,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          20.0,
+          0
+        ],
+        "hideBody": false
+      },
       "reach": 16000.0,
       "targets": [
         "boulder",
@@ -657,8 +742,17 @@
       "activityRegion": "island_airspace",
       "speed": 18.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 5.0,
       "fov": 52,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.325,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 130.0,
       "targets": [
         "grass",
@@ -724,8 +818,17 @@
       "activityRegion": null,
       "speed": 9.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 3.5,
       "fov": 58,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.16,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 100.0,
       "targets": [
         "grass",
@@ -791,8 +894,17 @@
       "activityRegion": null,
       "speed": 7.0,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 3.5,
       "fov": 58,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.225,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 100.0,
       "targets": [
         "grass",
@@ -805,7 +917,7 @@
       ],
       "deny": [],
       "place": "河湾浅水",
-      "response": "相濡以沫，不如相忘于江湖。",
+      "response": "",
       "moments": {},
       "vision": {
         "grayscale": 0,
@@ -858,8 +970,17 @@
       "activityRegion": null,
       "speed": 6,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 5,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.875,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 65,
       "targets": [
         "grass",
@@ -928,8 +1049,17 @@
       "activityRegion": null,
       "speed": 7.5,
       "boost": 2.7,
+      "turnSpeed": 180,
       "camera": 4,
       "fov": 48,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.4,
+          0
+        ],
+        "hideBody": true
+      },
       "reach": 60,
       "targets": [
         "grass",
@@ -979,8 +1109,10 @@
     }
   },
   "layout": {
+    "layoutId": "river_island_v1",
     "mainIsland": "island-main",
     "initialInstance": "human-first",
+    "savePlayerAliases": {},
     "regions": {
       "main_land": {
         "id": "main_land",
@@ -1003,13 +1135,15 @@
           "surfaceY": 0.2,
           "opacity": 0.92,
           "look": {
-            "deep": "#1c130b",
-            "shallow": "#4d3720",
-            "clarity": 1.1,
+            "deep": "#3b7f72",
+            "shallow": "#a7d8b2",
+            "clarity": 2.2,
             "flow": [
               0.12,
               0.04
-            ]
+            ],
+            "deepOpacity": 0.52,
+            "shallowOpacity": 0.22
           }
         }
       },
@@ -1043,13 +1177,15 @@
           "surfaceY": 0.2,
           "opacity": 0.92,
           "look": {
-            "deep": "#1c130b",
-            "shallow": "#4d3720",
-            "clarity": 1.1,
+            "deep": "#3b7f72",
+            "shallow": "#a7d8b2",
+            "clarity": 2.2,
             "flow": [
               0.12,
               0.04
-            ]
+            ],
+            "deepOpacity": 0.52,
+            "shallowOpacity": 0.22
           }
         }
       },
@@ -1070,13 +1206,15 @@
           "surfaceY": 0.2,
           "opacity": 0.92,
           "look": {
-            "deep": "#1c130b",
-            "shallow": "#4d3720",
-            "clarity": 1.1,
+            "deep": "#3b7f72",
+            "shallow": "#a7d8b2",
+            "clarity": 2.2,
             "flow": [
               0.12,
               0.04
-            ]
+            ],
+            "deepOpacity": 0.52,
+            "shallowOpacity": 0.22
           }
         }
       },
@@ -1152,15 +1290,17 @@
       },
       "river": {
         "id": "river",
-        "definition": "亚马逊式大河：两岸雨林之间的河道，岛屿层身体在其中漂移（D-027）",
+        "definition": "清澈的主河道；浅色水面允许看到鱼与河底卵石，人物进入后显示游泳姿态",
         "water": {
           "type": "river",
           "levelM": -0.1,
           "minDepthM": 0.4,
           "look": {
-            "deep": "#6b4a2a",
-            "shallow": "#a9855a",
-            "clarity": 1.8,
+            "deep": "#2f8f9b",
+            "shallow": "#9bd9c5",
+            "clarity": 3.4,
+            "deepOpacity": 0.42,
+            "shallowOpacity": 0.18,
             "flow": [
               1,
               0
@@ -1492,7 +1632,7 @@
         "carrier": "island-main",
         "position": [
           150,
-          -1.8,
+          -0.9,
           305
         ],
         "placement": "fixed",
@@ -1552,7 +1692,7 @@
         "carrier": "island-main",
         "position": [
           152,
-          -1.8,
+          -0.9,
           303
         ],
         "placement": "fixed",
@@ -1612,7 +1752,7 @@
         "carrier": "island-main",
         "position": [
           154,
-          -1.8,
+          -0.9,
           301
         ],
         "placement": "fixed",
@@ -1672,7 +1812,7 @@
         "carrier": "island-main",
         "position": [
           156,
-          -1.8,
+          -0.9,
           299
         ],
         "placement": "fixed",
@@ -2295,7 +2435,8 @@
         "placement": "surface",
         "kind": "rock"
       }
-    ]
+    ],
+    "ambient": []
   },
   "interactions": [
     {
@@ -2458,6 +2599,14 @@
         ],
         "label": "魂穿",
         "enabledWhen": "legal_target"
+      },
+      {
+        "action": "toggle_view",
+        "codes": [
+          "KeyV"
+        ],
+        "label": "第一／第三人称",
+        "enabledWhen": "exploring"
       },
       {
         "action": "pause",
@@ -2684,8 +2833,8 @@
       "reviewState": "proposed"
     },
     "perceptionCrossfadeSec": {
-      "runtimeBinding": "not_integrated",
-      "note": "尚未接入；当前视觉感知混合使用整个 possessionDurationSec 过渡。",
+      "runtimeBinding": "integrated",
+      "note": "D-029：第一／第三人称切换的视觉淡化；魂穿仍在整个 possessionDurationSec 内混合。",
       "value": 1.2,
       "unit": "s",
       "min": 0.5,

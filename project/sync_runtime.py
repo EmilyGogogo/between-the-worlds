@@ -76,6 +76,7 @@ def generate():
     decor = [{k: s.get(k) for k in RUNTIME_DECOR_FIELDS} for s in entities['environmentSlots'] if s.get('scatter')]
     to_kind = lambda item: {**{k: v for k, v in item.items() if k != 'type'}, 'kind': kinds[item['type']]}
     world_layout = {
+        'layoutId': layout.get('layoutId'),
         'mainIsland': layout['mainIsland'], 'initialInstance': layout['initialInstance'],
         'savePlayerAliases': layout.get('savePlayerAliases', {}),
         'regions': {r['id']: r for r in layout['regions']},

@@ -66,13 +66,15 @@
         "surfaceY": 0.2,
         "opacity": 0.92,
         "look": {
-          "deep": "#1c130b",
-          "shallow": "#4d3720",
-          "clarity": 1.1,
+          "deep": "#3b7f72",
+          "shallow": "#a7d8b2",
+          "clarity": 2.2,
           "flow": [
             0.12,
             0.04
-          ]
+          ],
+          "deepOpacity": 0.52,
+          "shallowOpacity": 0.22
         }
       }
     },
@@ -106,13 +108,15 @@
         "surfaceY": 0.2,
         "opacity": 0.92,
         "look": {
-          "deep": "#1c130b",
-          "shallow": "#4d3720",
-          "clarity": 1.1,
+          "deep": "#3b7f72",
+          "shallow": "#a7d8b2",
+          "clarity": 2.2,
           "flow": [
             0.12,
             0.04
-          ]
+          ],
+          "deepOpacity": 0.52,
+          "shallowOpacity": 0.22
         }
       }
     },
@@ -133,13 +137,15 @@
         "surfaceY": 0.2,
         "opacity": 0.92,
         "look": {
-          "deep": "#1c130b",
-          "shallow": "#4d3720",
-          "clarity": 1.1,
+          "deep": "#3b7f72",
+          "shallow": "#a7d8b2",
+          "clarity": 2.2,
           "flow": [
             0.12,
             0.04
-          ]
+          ],
+          "deepOpacity": 0.52,
+          "shallowOpacity": 0.22
         }
       }
     },
@@ -215,15 +221,17 @@
     },
     {
       "id": "river",
-      "definition": "亚马逊式大河：两岸雨林之间的河道，岛屿层身体在其中漂移（D-027）",
+      "definition": "清澈的主河道；浅色水面允许看到鱼与河底卵石，人物进入后显示游泳姿态",
       "water": {
         "type": "river",
         "levelM": -0.1,
         "minDepthM": 0.4,
         "look": {
-          "deep": "#6b4a2a",
-          "shallow": "#a9855a",
-          "clarity": 1.8,
+          "deep": "#2f8f9b",
+          "shallow": "#9bd9c5",
+          "clarity": 3.4,
+          "deepOpacity": 0.42,
+          "shallowOpacity": 0.18,
           "flow": [
             1,
             0
@@ -784,7 +792,7 @@
       "carrier": "island-main",
       "position": [
         150,
-        -1.8,
+        -0.9,
         305
       ],
       "placement": "fixed",
@@ -844,7 +852,7 @@
       "carrier": "island-main",
       "position": [
         152,
-        -1.8,
+        -0.9,
         303
       ],
       "placement": "fixed",
@@ -904,7 +912,7 @@
       "carrier": "island-main",
       "position": [
         154,
-        -1.8,
+        -0.9,
         301
       ],
       "placement": "fixed",
@@ -964,7 +972,7 @@
       "carrier": "island-main",
       "position": [
         156,
-        -1.8,
+        -0.9,
         299
       ],
       "placement": "fixed",
