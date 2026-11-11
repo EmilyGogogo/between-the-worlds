@@ -89,7 +89,8 @@ class Game {
     document.addEventListener('mousemove',e=>{
       if(!this.started||this.paused||(document.pointerLockElement!==canvas&&!this.dragging))return;
       const sensitivity=tune('mouseSensitivityRadPerPixel',.0025);
-      this.yaw-=e.movementX*sensitivity;this.pitch=clamp(this.pitch+e.movementY*sensitivity*.8,this.pitchMin(),1.16);
+      const turn=-e.movementX*sensitivity;this.yaw+=turn;if(this.movementInput)this.movementInput.yaw+=turn;
+      this.pitch=clamp(this.pitch+e.movementY*sensitivity*.8,this.pitchMin(),1.16);
     });
     canvas.addEventListener('wheel',e=>{if(!this.started||this.paused||this.cameraMode==='first_person')return;e.preventDefault();this.zoom=clamp(this.zoom+e.deltaY*.0006,.85,1.5);},{passive:false});
     window.addEventListener('pagehide',()=>this.save());
@@ -297,23 +298,37 @@ class Game {
     const e=this.player,s=SPECIES[e.kind],a=this.actions;
     const x=Number(a.has('move_right'))-Number(a.has('move_left')),z=Number(a.has('move_back'))-Number(a.has('move_forward'));
     const first=this.cameraMode==='first_person';
-    if(first||!(x||z))this.movementInput=null;else if(!this.movementInput||this.movementInput.x!==x||this.movementInput.z!==z)this.movementInput={x,z,yaw:this.yaw};
-    const human=s.category==='human';
-    const directHumanTurn=human&&!first&&x;
-    if(directHumanTurn){const beforeYaw=this.yaw;this.yaw-=x*dt*5;this.cameraBodyTurn+=this.yaw-beforeYaw;}
-    const dir=new THREE.Vector3(first?x:(human?0:x),0,z);if(dir.lengthSq())dir.normalize();dir.applyAxisAngle(UP,this.movementInput?.yaw??this.yaw);
+    const parentQ=e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
+    if(first||!(x||z))this.movementInput=null;
+    else if(!this.movementInput||this.movementInput.x!==x||this.movementInput.z!==z){
+      const screenDir=new THREE.Vector3(x,0,z).normalize().applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ);
+      this.movementInput={x,z,yaw:this.yaw,targetHeading:Math.atan2(-screenDir.x,-screenDir.z)};
+    }
+    const dir=first?new THREE.Vector3(x,0,z):new THREE.Vector3();
+    if(first&&dir.lengthSq())dir.normalize().applyAxisAngle(UP,this.yaw);
     if(s.verticalControl==='view_direction'&&z)dir.y=-z*this.climb();
     if(dir.lengthSq()>1)dir.normalize();
-    e.moving=dir.lengthSq()>0;e.boosting=e.moving&&a.has('boost');
-    const speed=s.speed*(a.has('boost')?s.boost:1),parentQ=e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
-    const before=e.root.position.clone();
-    const local=dir.applyQuaternion(parentQ),headingBefore=e.heading;
-    const facing=first?new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ):local;
-    if(directHumanTurn){const f=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ);e.heading=Math.atan2(-f.x,-f.z);e.root.rotation.y=e.heading;}
-    else if(first||local.lengthSq())this.faceDirection(e,facing,dt);
-    if(!directHumanTurn&&!first&&CAMERA_MODES.third_person.followBodyTurn){const frame=parentQ.clone().invert(),wh=h=>{const f=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,h).applyQuaternion(frame);return Math.atan2(-f.x,-f.z);};const turn=Math.atan2(Math.sin(wh(e.heading)-wh(headingBefore)),Math.cos(wh(e.heading)-wh(headingBefore)));this.yaw+=turn;this.cameraBodyTurn+=turn;}
-    const alignment=first||!local.lengthSq()?1:Math.max(0,Math.cos(Math.atan2(-local.x,-local.z)-e.heading));
-    this.moveBody(e,local.multiplyScalar(speed*dt*alignment),dt,human&&!first);
+    e.moving=first?dir.lengthSq()>0:Boolean(this.movementInput);e.boosting=e.moving&&a.has('boost');
+    const speed=s.speed*(a.has('boost')?s.boost:1),before=e.root.position.clone(),headingBefore=e.heading;
+    let local,alignment=1;
+    if(first){
+      local=dir.applyQuaternion(parentQ).multiplyScalar(speed*dt);
+      if(local.x||local.z)this.faceDirection(e,local,dt);
+    }else if(this.movementInput){
+      const delta=Math.atan2(Math.sin(this.movementInput.targetHeading-e.heading),Math.cos(this.movementInput.targetHeading-e.heading));
+      const step=THREE.MathUtils.degToRad(s.turnSpeed)*dt;
+      e.heading+=THREE.MathUtils.clamp(delta,-step,step);
+      if(s.mode!=='island')e.root.rotation.y=e.heading;
+      alignment=Math.abs(delta)<=step?1:0;
+      local=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,e.heading).multiplyScalar(speed*dt*alignment);
+      if(s.verticalControl==='view_direction'&&z)local.y=-z*this.climb()*speed*dt;
+      if(CAMERA_MODES.third_person.followBodyTurn){
+        const frame=parentQ.clone().invert(),wh=h=>{const f=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,h).applyQuaternion(frame);return Math.atan2(-f.x,-f.z);};
+        const turn=Math.atan2(Math.sin(wh(e.heading)-wh(headingBefore)),Math.cos(wh(e.heading)-wh(headingBefore)));
+        this.yaw+=turn;this.cameraBodyTurn+=turn;
+      }
+    }else local=new THREE.Vector3();
+    this.moveBody(e,local,dt,true);
     if(s.mode!=='island')this.unstick(e,dt);
     const distance=e.root.position.distanceTo(before);
     e.movementRatio=e.moving&&dt>0?Math.min(1,distance/(speed*dt)):0;
@@ -325,7 +340,6 @@ class Game {
   moveBody(e,local,dt,keepHeading=false){
     const s=SPECIES[e.kind];
     if((local.x||local.z)&&!keepHeading){const angle=Math.atan2(-local.x,-local.z);e.heading+=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading))*Math.min(1,dt*5);if(s.mode!=='island')e.root.rotation.y=e.heading;}
-    if(keepHeading&&(local.x||local.z)){const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert());e.heading=Math.atan2(-facing.x,-facing.z);e.root.rotation.y=e.heading;}
     if(s.mode==='island'){this.moveIsland(e,local);return;}
     if(s.mode==='ground')local.y=0;
     const p=e.root.position;

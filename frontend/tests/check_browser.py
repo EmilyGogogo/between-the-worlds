@@ -140,7 +140,8 @@ for(const kind of kinds)for(const [action,relative] of [['move_back',Math.PI],['
   assert(`${kind}: ${action} starts a bounded turn and camera follow`,Math.abs(turn)<=SPECIES[kind].turnSpeed*Math.PI/180*.1+1e-8&&Math.abs(cameraTurn-turn)<1e-6&&Math.abs(turn)>.01);
   if(action==='move_back')assert(`${kind}: back does not backpedal at turn start`,W.position(e).distanceTo(position)<1e-7);
   for(let i=0;i<24;i++){g.move(1/20);g.updateCamera(1/20);}
-  assert(`${kind}: ${action} body and camera reach the requested direction`,Math.cos(e.heading-start-relative)>.999&&Math.cos(g.yaw-.7-relative)>.999&&W.position(e).distanceTo(position)>.01);
+  const moved=W.position(e).distanceTo(position);
+  assert(`${kind}: ${action} body and camera reach the requested direction`,Math.cos(e.heading-start-relative)>.999&&Math.cos(g.yaw-.7-relative)>.999&&moved>.01);
   const settledYaw=g.yaw,settledHeading=e.heading;
   for(let i=0;i<20;i++){g.move(1/20);g.updateCamera(1/20);}
   assert(`${kind}: holding ${action} does not accumulate another turn`,Math.abs(g.yaw-settledYaw)<1e-6&&Math.abs(e.heading-settledHeading)<1e-6);

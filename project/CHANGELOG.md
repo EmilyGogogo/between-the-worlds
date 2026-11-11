@@ -2,6 +2,22 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-11 · 统一所有实体的第三人称正方向操作
+
+- 负责人：Codex；关联：D-035；当前 worktree 仍为 detached HEAD，未推送或合并受保护的 `main`。
+- AI：Codex 负责按创作者追加要求调整移动、镜头跟转、规则、验收与回归；人工复核尚未完成。
+- 变更与原因：第三人称下所有实体依据按键开始时的画面方向移动：W 向画面前方前进，A/D 转向画面左／右并沿该方向前进，S 先转身约 180° 后前进；持续按键锁定目标方向，镜头跟随实际转角。第一人称保留 W 前进、A/D 横移、S 后退及鼠标视线控制。
+- 验证：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1888 项；`python3 project/check_repository.py --javascript` 检查 206 个 first-party 文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。隔离浏览器回归未能启动，本机服务端口绑定返回 `PermissionError: [Errno 1] Operation not permitted`，浏览器连接被拒绝。
+- 未验证项 / 风险：未在真实浏览器确认不同实体的转身手感、岛屿朝向、水中人物动作及河水视觉效果；真人试玩未做。
+
+## 2026-11-11 · 提高河流水体通透度并校正河鱼可见性
+
+- 负责人：Codex；关联：D-035；当前 worktree 仍为 detached HEAD，未推送或合并受保护的 `main`。
+- AI：Codex 负责水体外观参数、河鱼位置检查、运行配置同步与验证；人工复核尚未完成。
+- 变更与原因：按创作者要求让河水更清澈，将主河道深／浅水不透明度调整为 `0.24`／`0.10`，颜色调整为浅青绿色，清晰度从 `3.4` 提高到 `5.2`；蝴蝶鱼保持在主岛南岸外的河水中，并将其高度从约 `-0.9 m` 抬到 `-0.62 m` 以靠近水面、提高可见性。银色小鱼仍位于牛轭湖，不移动到主河道。
+- 验证：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1888 项；`python3 project/check_repository.py --javascript` 检查 206 个 first-party 文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。隔离浏览器回归未能启动，本机服务端口绑定返回 `PermissionError: [Errno 1] Operation not permitted`，浏览器连接被拒绝。
+- 未验证项 / 风险：仍需在实际浏览器从岸边和水下分别确认鱼、河底卵石和浅色水体的遮挡关系；牛轭湖保持较深的黑水外观，银色小鱼可见性需单独试玩。
+
 ## 2026-11-11 · 河心岛 PR 审查与 Main 合并收口
 
 - 负责人：Codex；关联：D-035，当前 worktree 的本地合并提交 `28d82c6`；最终是否合并受保护的 `main` 仍由 @EmilyGogogo 审核。

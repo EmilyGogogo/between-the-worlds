@@ -1296,11 +1296,11 @@
           "levelM": -0.1,
           "minDepthM": 0.4,
           "look": {
-            "deep": "#2f8f9b",
-            "shallow": "#9bd9c5",
-            "clarity": 3.4,
-            "deepOpacity": 0.42,
-            "shallowOpacity": 0.18,
+            "deep": "#58b8bd",
+            "shallow": "#c2efda",
+            "clarity": 5.2,
+            "deepOpacity": 0.24,
+            "shallowOpacity": 0.1,
             "flow": [
               1,
               0
@@ -1632,7 +1632,7 @@
         "carrier": "island-main",
         "position": [
           150,
-          -0.9,
+          -0.62,
           305
         ],
         "placement": "fixed",
@@ -1692,7 +1692,7 @@
         "carrier": "island-main",
         "position": [
           152,
-          -0.9,
+          -0.62,
           303
         ],
         "placement": "fixed",
@@ -1752,7 +1752,7 @@
         "carrier": "island-main",
         "position": [
           154,
-          -0.9,
+          -0.62,
           301
         ],
         "placement": "fixed",
@@ -1812,7 +1812,7 @@
         "carrier": "island-main",
         "position": [
           156,
-          -0.9,
+          -0.62,
           299
         ],
         "placement": "fixed",
