@@ -54,6 +54,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--chrome', help='Path to Chrome executable')
     parser.add_argument('--no-pointer-lock', action='store_true', help='Run partial browser checks without requesting pointer lock')
+    parser.add_argument('--diagnose-movement', action='store_true', help='Collect render A/B movement diagnostics instead of browser regression')
     parser.add_argument('--only', choices=('all', 'docs', 'browser'), default='all',
                         help='Run one CI module or the complete local check')
     parser.add_argument('--output', type=Path, default=ROOT / '.work/collaboration-checks')
@@ -141,6 +142,8 @@ def main():
                     ]
                     if args.no_pointer_lock:
                         command.append('--no-pointer-lock')
+                    if args.diagnose_movement:
+                        command.append('--diagnose-movement')
                     # Full real-asset reloads plus input/layout regressions exceed five
                     # minutes under software rendering. Keep individual assertion limits.
                     check = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)
@@ -148,8 +151,8 @@ def main():
                 if check.returncode:
                     result['browser'] = 'failed'
                     raise RuntimeError('Browser checks failed; see browser.log')
-                result['browser'] = 'partial' if args.no_pointer_lock else 'passed'
-                result['status'] = 'partial' if args.no_pointer_lock else 'passed'
+                result['browser'] = 'diagnostic' if args.diagnose_movement else 'partial' if args.no_pointer_lock else 'passed'
+                result['status'] = 'partial' if args.no_pointer_lock or args.diagnose_movement else 'passed'
             finally:
                 for process in reversed(processes):
                     if process.poll() is None:

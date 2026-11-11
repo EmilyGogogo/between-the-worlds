@@ -9,6 +9,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+import time
 from cdp import CDP
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -26,6 +27,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--port', type=int, default=9223)
 parser.add_argument('--url', default='http://127.0.0.1:4173/')
 parser.add_argument('--no-pointer-lock', action='store_true', help='Skip checks that request real pointer lock')
+parser.add_argument('--diagnose-movement', action='store_true', help='Only collect butterfly render A/B input diagnostics; not a regression pass')
 args = parser.parse_args()
 c = CDP(args.port)
 for method in ['Runtime.enable', 'Page.enable', 'Network.enable']:
@@ -42,6 +44,13 @@ def load():
     previous = c.evaluate('performance.timeOrigin')
     c.call('Page.navigate', {'url': args.url + '?debug'})
     c.wait_for(f'performance.timeOrigin!=={previous}&&!!window.__world&&!document.getElementById("enter").disabled', 90)
+
+
+if args.diagnose_movement:
+    from movement_diagnostics import diagnose
+    load()
+    diagnose(c)
+    sys.exit(0)
 
 
 PRELUDE = r"""
@@ -502,6 +511,49 @@ def browser_assert(name, expression):
     assert c.evaluate(expression), name
     passed.append(name)
 
+
+def movement_state():
+    """Capture enough state to distinguish stalled frames from blocked movement."""
+    return c.evaluate(r"""(()=>{
+      const g=window.__world,p=g.world.position(g.player),o=g.inputOrigin;
+      return {
+        paused:g.paused,
+        actions:[...g.actions],
+        pressedCodes:[...g.pressedCodes],
+        transition:g.transition?.opening?'opening':g.transition?'possession':null,
+        elapsed:g.elapsed,
+        heading:g.player.heading,
+        yaw:g.yaw,
+        position:p.toArray(),
+        origin:o?.toArray()??null,
+        distance:o?p.distanceTo(o):null,
+        animationMoving:g.player.animationMoving,
+        movementRatio:g.player.movementRatio,
+        rendererInfo:g.renderer.info?.render?{
+          calls:g.renderer.info.render.calls,
+          triangles:g.renderer.info.render.triangles,
+          frame:g.renderer.info.render.frame
+        }:null
+      };
+    })()""")
+
+
+def wait_for_movement(code):
+    before = movement_state()
+    start = time.monotonic()
+    key_event(code)
+    try:
+        c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
+    except TimeoutError as error:
+        after = movement_state()
+        raise AssertionError(f'{code} movement threshold not reached: ' + json.dumps({
+            'wallSeconds': time.monotonic() - start, 'before': before, 'after': after,
+            'elapsedDelta': after['elapsed'] - before['elapsed'],
+            'renderFrameDelta': after['rendererInfo']['frame'] - before['rendererInfo']['frame'],
+        })) from error
+    finally:
+        key_event(code, 'keyUp')
+
 browser_assert('entry explains hidden pointer and Escape before playing',
                "document.querySelector('.welcome-controls').textContent.includes('指针会隐藏')")
 # Hold the opening transition long enough to inspect and test its input boundary.
@@ -548,13 +600,7 @@ for code in ('KeyW', 'KeyS', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'ArrowLeft'
                         'KeyA': 1.5707963267948966, 'ArrowLeft': 1.5707963267948966,
                         'KeyD': -1.5707963267948966, 'ArrowRight': -1.5707963267948966}[code]
     c.evaluate(f'window.__world.clearInput();window.__world.player.root.position.fromArray({json.dumps(origin)});window.__world.player.heading=window.__world.yaw+{relative_heading};window.__world.player.root.rotation.y=window.__world.player.heading;window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
-    key_event(code)
-    try:
-        c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
-    except TimeoutError as error:
-        state = c.evaluate('({paused:window.__world.paused,actions:[...window.__world.actions],heading:window.__world.player.heading,yaw:window.__world.yaw,elapsed:window.__world.elapsed})')
-        raise AssertionError(f'{code} did not move: {state}') from error
-    key_event(code, 'keyUp')
+    wait_for_movement(code)
     passed.append(f'{code} moves during actual exploration')
 key_event('KeyV')
 c.wait_for("window.__world.cameraMode==='first_person'", 10)
@@ -589,9 +635,7 @@ c.evaluate("document.getElementById('world').dispatchEvent(new PointerEvent('poi
 browser_assert('cancelled pointer stops drag look', '!window.__world.dragging')
 c.call('Input.dispatchMouseEvent', {'type': 'mouseReleased', 'x': 640, 'y': 320, 'button': 'left', 'clickCount': 1})
 c.evaluate('window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
-key_event('ArrowUp')
-c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
-key_event('ArrowUp', 'keyUp')
+wait_for_movement('ArrowUp')
 passed.append('movement remains usable after pointer lock rejection')
 # Deterministic target lifetime; this does not replace the real input checks above.
 passed += json.loads(c.evaluate(r"""(()=>{
