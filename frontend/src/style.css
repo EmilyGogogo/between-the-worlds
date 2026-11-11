@@ -13,7 +13,7 @@ body:not(.playing) .vignette{background:linear-gradient(90deg,rgba(220,229,207,.
 /* Compact, always-visible controls (D-024). Full instructions live in the pause menu. */
 .welcome-controls{margin-top:17px;font:12px/1.9 -apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;color:#334b37;letter-spacing:.3px}
 .pause-button{width:auto;border-radius:20px;padding:0 12px;display:flex;gap:7px;font:11px/1.5 -apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif}
-.control-guide{position:absolute;z-index:3;right:24px;bottom:24px;max-width:calc(100vw - 48px);padding:9px 12px;border:1px solid #edf0de40;border-radius:3px;background:#23392eea;color:#f5f5e6;font:12px/1.8 -apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;pointer-events:none}
+.control-guide{position:absolute;z-index:3;right:24px;bottom:24px;max-width:min(300px,calc(100vw - 48px));padding:9px 12px;border:1px solid #edf0de40;border-radius:3px;background:#23392eea;color:#f5f5e6;font:12px/1.8 -apple-system,BlinkMacSystemFont,"Microsoft YaHei",sans-serif;pointer-events:none}
 .control-guide kbd{font:12px/1.8 -apple-system,BlinkMacSystemFont,sans-serif;color:inherit}
 .control-guide .unavailable{opacity:.55}
 .control-status{padding-bottom:5px;margin-bottom:4px;border-bottom:1px solid #edf0de40;color:#f3eccf}

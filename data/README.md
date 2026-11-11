@@ -8,7 +8,7 @@
 | input-map.json | 键位、保留的 E、已删除的 Space／Ctrl、过渡中的输入规则 | integrated |
 | tuning.json | 可调初值、范围、单位、对应规则与硬约束 | integrated |
 | dialogue.json | 世界回应正文、来源、触发与冷却 | integrated |
-| anchors.json | 世界布局：72 个具名个体、10 组成片布景、区域与锚点 | integrated |
+| anchors.json | 世界布局：74 个具名个体、10 组成片布景、区域、锚点与海鸥／鱼的环境航线 `ambient`（D-027） | integrated |
 | interactions.json | 互动规则：触发、过滤、效果 | integrated |
 | asset-ledger.csv | 每个资产槽的占位行与计划行；真实产物的来源证据 | 文档台账，不是加载清单 |
 
@@ -22,10 +22,13 @@
 ## 字段原则
 
 - 稳定 ID 不随中文名或模型版本改变。`entities[].id` 是种类，`anchors.instances[].id` 是个体，`asset.slotId` 是资产槽。
+- 确需替换／删除已发布的个体时，在 `anchors.json` 的 `savePlayerAliases` 把旧当前身体 ID 映射到现有身体。它只迁移控制权，旧个体的位置不套到替代身体（例如近海蝴蝶鱼换为山湖七彩神仙鱼）；其他仍存在的个体照常恢复。没有映射的已移除当前身体退到 `initialInstance`，保留其余会话进度。
 - `stage` 是渲染尺度层（0 近地、1 身体、2 地貌、3 岛屿），只管镜头、雾、光照和细节隐藏。每层的具体设置在 `scaleLayers`（镜头前视比例、是否贴地与避障、雾浓度、太阳与阴影、焦点高度、进入时的最小俯角），字段含义写在 `scaleLayerFields`；运行时代码不按层号写死数值，新增一层只加数据。目标遮挡检查按 P-02 对所有尺度强制执行，不属于可关闭的渲染设置。
 - `body.limbSwingRate`：有四肢的占位模型（人、狗）走动时的摆动速率（弧度／秒）；没有时不摆动。
 - `activityRegion`：飞行身体所在的空域，指向 `anchors.json` 中带 `center`、`radius`、`maxY`、`minClearanceM` 的区域；高度上限与 `tuning.json` 的 `flightCeilingM` 一致。新增会飞的种类只需指向一个空域。
 - `scaleTier` 是魂穿尺度档（`scaleTiers` 中的 S1～S5），魂穿关系由它推导：只能进入本档与相邻档（P-12，D-021），不再手写 `allowedTargets`。`scaleTiers[].referenceSizeM` 是归档参考（身高与体长／翼展取大），超出时写 `scaleTierReason`；`viewLiftEyeHeightM` 是视点抬升阈值（P-15、P-16）。个别例外写 `relationOverrides: {"allow": [...], "deny": [...], "decision": "D-xxx"}`。运行时仍要检查可见、距离、遮挡和准备状态。
+- `cameraModes`：D-029 双视角的默认模式与第三人称共用全彩视觉、FOV；`third_person.followBodyTurn` 为 true，使实际镜头环绕位置与注视方向在同帧跟随身体转角，短按左右也立即响应，位移继续缓动且实际镜头经过避障；同次方向输入固定移动参考，鼠标环视仍能更新它。身体 `camera.firstPerson.eyeOffset` 是根节点局部眼位（米），`hideBody` 控制第一人称隐藏自身视觉模型，岛必须为 false 以保留地形。身体 `perception.vision` 与 `camera.fovDeg` 仅用于第一人称，听觉在两种视角都使用身体档案。
+- `turnSpeedDegPerSec`：最大朝向转速（度／秒），初值不变，已接入方向移动与转身。
 - `verticalControl`：`none` 或 `view_direction`（随镜头俯仰升降）。没有跳跃和升降键字段。
 - `collision.solid` 与 `collision.passPolicy`：`go_around`（必须绕行）或 `yield_with_bend`（可以经过但弯折）。
 - `perception.vision` 与 `perception.hearing` 是感知档案；`basis` 写明是参照、艺术表达还是尺度音景，`reviewState` 写明是创作者指定还是方案。
@@ -33,9 +36,9 @@
 - `_meta.reviewState` 与 `ruleClass`、`implementationStatus` 互相独立；`MUST` 不等于已实现。
 - 数值用 JSON 数字，距离米、时间秒；角度按字段合同填写，FOV／转向速度使用度，资产 `rotation` 使用弧度。
 
-`runtimeBinding: integrated` 表示这个文件有运行时入口，不表示每个字段均已执行。`uniqueAbility.text`、评审与实现状态是文档元数据；`acceleration`、`turnSpeedDegPerSec`、`observationRange` 当前未导出到运行配置；部分回应阈值仍有硬编码。修改这些字段不能声称已经改变游戏，绑定缺口见 [11](../docs/11-prototype-audit.md)。
+`runtimeBinding: integrated` 表示这个文件有运行时入口，不表示每个字段均已执行。`uniqueAbility.text`、评审与实现状态是文档元数据；`acceleration`、`observationRange` 当前未导出到运行配置；部分回应阈值仍有硬编码。修改这些字段不能声称已经改变游戏，绑定缺口见 [11](../docs/11-prototype-audit.md)。
 
-`tuning.parameters` 中 `runtimeBinding: not_integrated` 的参数是待接入目标，`planning_only` 是排期／性能目标，都不能作为已生效的调参入口。`collisionSkinM` 已同时接入世界与承载体坐标的碰撞盒。水下低通唯一来源为各身体的 `perception.hearing.underwaterLowpassHz`（当前均为 360 Hz）；已删除未生效的全局 600 Hz 重复项，实际声音数值未改变。
+`tuning.parameters` 中 `runtimeBinding: not_integrated` 的参数是待接入目标，`planning_only` 是排期／性能目标，都不能作为已生效的调参入口。`perceptionCrossfadeSec` 已接入 V 切换的视觉混合，魂穿仍随完整过渡混合。`collisionSkinM` 已同时接入世界与承载体坐标的碰撞盒。水下低通唯一来源为各身体的 `perception.hearing.underwaterLowpassHz`（当前均为 360 Hz）；已删除未生效的全局 600 Hz 重复项，实际声音数值未改变。
 
 CSV 为 UTF-8 BOM。计划行中的生成日期、原文件、输入、授权与证据为空，表示尚未发生，不是可以事后补造的遗漏。
 

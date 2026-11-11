@@ -58,8 +58,9 @@ def generate():
             'radius': e['body']['collisionRadius'], 'height': e['body']['height'],
             'wadeDepth': e['body']['wadeDepthM'], 'surface': e['body'].get('surface'),
             'limbSwingRate': e['body'].get('limbSwingRate', 0), 'activityRegion': e.get('activityRegion'),
-            'speed': e['moveSpeed'], 'boost': e['boostMultiplier'],
+            'speed': e['moveSpeed'], 'boost': e['boostMultiplier'], 'turnSpeed': e['turnSpeedDegPerSec'],
             'camera': e['camera']['distance'], 'fov': e['camera']['fovDeg'],
+            'firstPerson': e['camera']['firstPerson'],
             'reach': e['possessionRange'], 'targets': [kinds[t] for t in relations[e['id']]],
             'deny': [kinds[t] for t in e.get('relationOverrides', {}).get('deny', [])],
             'place': e['place'], 'response': responses.get(e['id'], ''), 'moments': moments.get(e['id'], {}),
@@ -76,14 +77,16 @@ def generate():
     to_kind = lambda item: {**{k: v for k, v in item.items() if k != 'type'}, 'kind': kinds[item['type']]}
     world_layout = {
         'mainIsland': layout['mainIsland'], 'initialInstance': layout['initialInstance'],
+        'savePlayerAliases': layout.get('savePlayerAliases', {}),
         'regions': {r['id']: r for r in layout['regions']},
         'instances': [to_kind(i) for i in layout['instances']],
         'scatter': [to_kind(s) for s in layout['scatter']],
+        'ambient': layout.get('ambient', []),
     }
     rules = [{k: v for k, v in x.items() if k not in ('description', 'rules', 'reviewState')} for x in interactions['interactions']]
     return {
         'frontend/public/config/game.json': {
-            'version': entities['_meta']['specVersion'], 'categories': entities['categories'],
+            'version': entities['_meta']['specVersion'], 'categories': entities['categories'], 'cameraModes': entities['cameraModes'],
             'scaleLayers': {str(l['stage']): {k: l[k] for k in RUNTIME_LAYER_FIELDS} for l in entities['scaleLayers']},
             'scaleTiers': [{'id': t['id'], 'name': t['name'], 'rank': rank[t['id']], 'liftEyeHeightM': t['viewLiftEyeHeightM']}
                            for t in entities['scaleTiers'] if t['id'] in rank],

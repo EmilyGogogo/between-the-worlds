@@ -1,0 +1,81 @@
+{
+ "load_seconds": 9.5,
+ "checks": [
+  {
+   "name": "gull GLB template loaded (L-04)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "every gull individual uses the GLB, none the placeholder",
+   "ok": true,
+   "detail": "8 gulls"
+  },
+  {
+   "name": "model scaled to body height 0.65 m (C-03)",
+   "ok": true,
+   "detail": "size 2.836 x 0.650 x 1.955"
+  },
+  {
+   "name": "idle and move roles map to Glide and Flap clips",
+   "ok": true,
+   "detail": "idle=Glide,move=Flap"
+  },
+  {
+   "name": "collision box follows the model bounds (auto_bounds)",
+   "ok": true,
+   "detail": "box 2.84x0.65x1.95"
+  },
+  {
+   "name": "a still gull plays the idle role",
+   "ok": true,
+   "detail": "idle"
+  },
+  {
+   "name": "a moving gull switches to the move role",
+   "ok": true,
+   "detail": "move"
+  },
+  {
+   "name": "gull climbs when looking up (I-02)",
+   "ok": true,
+   "detail": "24.1"
+  },
+  {
+   "name": "gull stays under the flight ceiling (M-04)",
+   "ok": true,
+   "detail": "180.0"
+  },
+  {
+   "name": "stopping returns the gull to idle",
+   "ok": true,
+   "detail": "idle"
+  },
+  {
+   "name": "a high gull with the new model can still select the island below (P-15)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "high gull -> island possession works",
+   "ok": true,
+   "detail": "island-main"
+  },
+  {
+   "name": "a human can target a gull with the new model (P-01)",
+   "ok": true,
+   "detail": "gull-1"
+  },
+  {
+   "name": "human -> gull possession works",
+   "ok": true,
+   "detail": "gull-1"
+  }
+ ],
+ "screenshots": [
+  "01-gull-glide-idle.jpg",
+  "02-gull-flap-move.jpg",
+  "03-human-targets-gull.jpg",
+  "04-gull-high-over-island.jpg"
+ ]
+}

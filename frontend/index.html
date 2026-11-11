@@ -12,7 +12,7 @@
 </head>
 <body>
   <main id="experience" aria-label="万物之间，三维探索世界">
-    <canvas id="world" aria-label="游戏画面。WASD 或方向键控制身体，鼠标环视，R 魂穿，Esc 暂停与操作说明。" aria-describedby="control-guide" tabindex="0"></canvas>
+    <canvas id="world" aria-label="游戏画面。WASD 或方向键移动，鼠标环视，V 切换视角，R 魂穿，Esc 暂停与操作说明。" aria-describedby="control-guide" tabindex="0"></canvas>
     <div class="vignette" aria-hidden="true"></div>
     <div id="perception-tint" class="perception-tint" aria-hidden="true"></div>
     <header class="topbar">
@@ -35,7 +35,7 @@
       <h1>万物之间</h1>
       <p>成为一株草，也成为一座岛。</p>
       <button id="enter" class="enter-button" disabled><span id="enter-label">风正在经过</span><svg viewBox="0 0 32 16" aria-hidden="true"><path d="M0 8h29m-6-6 6 6-6 6"/></svg></button>
-      <div class="welcome-controls">人：W/S 前后移动，A/D 转向；方向键等效。<br>鼠标环视。进入后指针会隐藏，按 Esc 暂停并显示鼠标。<br>若指针仍可见，按住鼠标左键拖动画面。</div>
+      <div class="welcome-controls">WASD / 方向键移动，鼠标环视，V 切换第一 / 第三人称。<br>进入后指针会隐藏，按 Esc 暂停并显示鼠标。<br>若指针仍可见，按住鼠标左键拖动画面。</div>
     </section>
     <div id="opening-mark" class="opening-mark" aria-hidden="true"><span>风起的地方</span><i></i><small>THE QUIET SHORE</small></div>
 
@@ -43,8 +43,8 @@
     <div id="first-hint" class="first-hint" role="status"></div>
     <aside id="control-guide" class="control-guide" aria-label="操作速查" hidden>
       <div id="control-status" class="control-status" role="status" hidden></div>
-      <div id="move-guide"><kbd>WASD / ↑↓←→</kbd> <span id="movement-label">前后移动 · 左右转向</span> <span>·</span> <span id="look-guide">鼠标环视</span></div>
-      <div id="possess-guide"><kbd>R</kbd> 看向涟漪，成为它</div>
+      <div id="move-guide"><kbd>WASD / ↑↓←→</kbd> <span id="movement-label">移动</span> <span>·</span> <span id="look-guide">鼠标环视</span></div>
+      <div id="possess-guide"><kbd>R</kbd> 看向涟漪，成为它 <span>·</span> <kbd>V</kbd> <span id="view-label">第三人称</span></div>
       <div><kbd>Shift</kbd> 加速 <span>·</span> <kbd>Esc</kbd> 暂停 / 操作</div>
       <div id="vertical-guide" hidden>抬头或低头，向前移动可升降</div>
     </aside>
@@ -56,8 +56,9 @@
         <div id="pause-reason" class="eyebrow">停留片刻</div>
         <h2>世界仍在这里。</h2>
         <div class="controls">
-          <div><span id="pause-movement-label">前后移动 / 左右转向</span><kbd>W S A D / ↑ ↓ ← →</kbd></div>
+          <div><span id="pause-movement-label">前 / 后 / 左 / 右</span><kbd>W S A D / ↑ ↓ ← →</kbd></div>
           <div><span>环视</span><span>移动鼠标 / 按住左键拖动</span></div>
+          <div><span>第一 / 第三人称</span><kbd>V</kbd></div>
           <div><span>加速</span><kbd>Shift</kbd></div>
           <div><span>魂穿</span><span>看向涟漪，按 <kbd>R</kbd></span></div>
           <div><span>鸟与鱼升降</span><span>抬头或低头，再向前</span></div>

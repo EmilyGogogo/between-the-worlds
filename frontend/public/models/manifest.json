@@ -730,27 +730,7 @@
       "pivot": "sea_level_center"
     },
     "gull": {
-      "url": null,
-      "variants": [],
-      "lod": [],
-      "height": 0.65,
-      "rotation": [
-        0,
-        0,
-        0
-      ],
-      "animations": {},
-      "colliderMode": "auto_bounds",
-      "collisionBoxes": null,
-      "slotId": "slot.gull",
-      "status": "placeholder",
-      "placeholder": "procedural:bird",
-      "placeholderStyle": "gull",
-      "lux3dUsed": false,
-      "pivot": "bottom_center"
-    },
-    "silverfish": {
-      "url": null,
+      "url": "./public/models/bird_gull_01-v003.glb",
       "variants": [],
       "lod": [],
       "height": 0.32,
@@ -759,18 +739,44 @@
         0,
         0
       ],
-      "animations": {},
+      "animations": {
+        "idle": "Glide",
+        "move": "Flap"
+      },
+      "colliderMode": "auto_bounds",
+      "collisionBoxes": null,
+      "slotId": "slot.gull",
+      "status": "integrated",
+      "placeholder": "procedural:bird",
+      "placeholderStyle": "gull",
+      "lux3dUsed": true,
+      "pivot": "bottom_center"
+    },
+    "silverfish": {
+      "url": "./public/models/fish_silver_01-v001.glb",
+      "variants": [],
+      "lod": [],
+      "height": 0.32,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "animations": {
+        "idle": "Swim",
+        "move": "SwimFast"
+      },
       "colliderMode": "auto_bounds",
       "collisionBoxes": null,
       "slotId": "slot.silverfish",
-      "status": "placeholder",
+      "status": "integrated",
       "placeholder": "procedural:fish",
       "placeholderStyle": "silver",
-      "lux3dUsed": false,
+      "lux3dUsed": true,
       "pivot": "bottom_center"
     },
-    "butterflyfish": {
-      "url": null,
+    "discus": {
+      "url": "./public/models/fish_discus_01-v001.glb",
       "variants": [],
       "lod": [],
       "height": 0.45,
@@ -779,14 +785,17 @@
         0,
         0
       ],
-      "animations": {},
+      "animations": {
+        "idle": "Swim",
+        "move": "SwimFast"
+      },
       "colliderMode": "auto_bounds",
       "collisionBoxes": null,
-      "slotId": "slot.butterflyfish",
-      "status": "placeholder",
+      "slotId": "slot.discus",
+      "status": "integrated",
       "placeholder": "procedural:fish",
       "placeholderStyle": "butterfly",
-      "lux3dUsed": false,
+      "lux3dUsed": true,
       "pivot": "bottom_center"
     },
     "human": {
