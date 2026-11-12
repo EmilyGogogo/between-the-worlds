@@ -9,6 +9,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+import time
 from cdp import CDP
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -420,7 +421,9 @@ assert('a school keeps together',spread<2,spread.toFixed(2));
 const bird=W.byId.get(groups.find(gr=>gr.vertical.mode==='aboveGround').members[0]);
 take(bird.id);const held=bird.root.position.clone();step(60);
 assert('the played body is not moved by its route',bird.root.position.distanceTo(held)<.01);
-take('human-first');const left=bird.root.position.clone();step(60);const rest=bird.root.position.distanceTo(left);step(180);
+// Rest and rejoin timing follow the route's own resumeAfterSec, so tuning it needs no test edit.
+const resumeFrames=Math.round((A.state.get(bird).group.resumeAfterSec??4)*30);
+take('human-first');const left=bird.root.position.clone();step(Math.floor(resumeFrames/2));const rest=bird.root.position.distanceTo(left);step(Math.ceil(resumeFrames/2)+120);
 assert('a released body rests, then rejoins its route',rest<.01&&bird.root.position.distanceTo(left)>2,rest.toFixed(3));
 """)
 # Review regressions: removed save players, terrain on rejoining, and played-body collision.
@@ -470,6 +473,31 @@ def browser_assert(name, expression):
     assert c.evaluate(expression), name
     passed.append(name)
 
+# Real input runs on the page's own animation frames. CI renders with SwiftShader at
+# about one frame per second and can stall for several seconds while compiling a newly
+# visible model, so a wall-clock limit measures the renderer, not the input path.
+# Fail when enough game time has run without movement, or when frames stop entirely.
+MOVE_GAME_SECONDS = 1.0
+MOVE_WALL_SECONDS = 90
+def mark_input_origin():
+    c.evaluate('window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();'
+               'window.__world.inputElapsed=window.__world.elapsed;true')
+
+def wait_for_input_movement(label):
+    start = time.monotonic()
+    while True:
+        state = c.evaluate('(()=>{const g=window.__world;return {moved:g.world.position(g.player).distanceTo(g.inputOrigin),'
+                           'game:g.elapsed-g.inputElapsed,paused:g.paused,actions:[...g.actions],heading:g.player.heading,yaw:g.yaw};})()')
+        if state['moved'] > .2:
+            return
+        wall = time.monotonic() - start
+        if state['game'] >= MOVE_GAME_SECONDS:
+            raise AssertionError(f'{label} did not move after {state["game"]:.2f} s of game time: {state}')
+        if wall > MOVE_WALL_SECONDS:
+            raise AssertionError(f'{label}: only {state["game"]:.2f} s of game time ran in {wall:.0f} s; '
+                                 f'the page stopped producing frames: {state}')
+        time.sleep(.2)
+
 browser_assert('entry explains hidden pointer and Escape before playing',
                "document.querySelector('.welcome-controls').textContent.includes('指针会隐藏')")
 # Hold the opening transition long enough to inspect and test its input boundary.
@@ -515,13 +543,10 @@ for code in ('KeyW', 'KeyS', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'ArrowLeft'
     relative_heading = {'KeyW': 0, 'ArrowUp': 0, 'KeyS': 3.141592653589793, 'ArrowDown': 3.141592653589793,
                         'KeyA': 1.5707963267948966, 'ArrowLeft': 1.5707963267948966,
                         'KeyD': -1.5707963267948966, 'ArrowRight': -1.5707963267948966}[code]
-    c.evaluate(f'window.__world.clearInput();window.__world.player.root.position.fromArray({json.dumps(origin)});window.__world.player.heading=window.__world.yaw+{relative_heading};window.__world.player.root.rotation.y=window.__world.player.heading;window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
+    c.evaluate(f'window.__world.clearInput();window.__world.player.root.position.fromArray({json.dumps(origin)});window.__world.player.heading=window.__world.yaw+{relative_heading};window.__world.player.root.rotation.y=window.__world.player.heading;true')
+    mark_input_origin()
     key_event(code)
-    try:
-        c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
-    except TimeoutError as error:
-        state = c.evaluate('({paused:window.__world.paused,actions:[...window.__world.actions],heading:window.__world.player.heading,yaw:window.__world.yaw,elapsed:window.__world.elapsed})')
-        raise AssertionError(f'{code} did not move: {state}') from error
+    wait_for_input_movement(code)
     key_event(code, 'keyUp')
     passed.append(f'{code} moves during actual exploration')
 key_event('KeyV')
@@ -556,9 +581,9 @@ browser_assert('unlocked left drag changes the camera', f'window.__world.draggin
 c.evaluate("document.getElementById('world').dispatchEvent(new PointerEvent('pointercancel'));true")
 browser_assert('cancelled pointer stops drag look', '!window.__world.dragging')
 c.call('Input.dispatchMouseEvent', {'type': 'mouseReleased', 'x': 640, 'y': 320, 'button': 'left', 'clickCount': 1})
-c.evaluate('window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
+mark_input_origin()
 key_event('ArrowUp')
-c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
+wait_for_input_movement('ArrowUp after pointer lock rejection')
 key_event('ArrowUp', 'keyUp')
 passed.append('movement remains usable after pointer lock rejection')
 # Deterministic target lifetime; this does not replace the real input checks above.
