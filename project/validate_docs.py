@@ -128,6 +128,9 @@ def main():
         if e['locomotion'] == 'fly':  # M-04: every flyer names its airspace
             air = region_doc.get(e.get('activityRegion'), {})
             check(all(k in air for k in ['center', 'radius', 'maxY', 'minClearanceM']), f'{eid}: activityRegion must be an airspace with center, radius, maxY, minClearanceM')
+        if 'flightHeightM' in e:
+            height = e['flightHeightM']
+            check(e['locomotion'] == 'fly' and isinstance(height, (int, float)) and not isinstance(height, bool) and height > 0, f'{eid}: flightHeightM must be positive and belong to a flyer')
         check('isAnimal' not in e, f'{eid}: isAnimal belongs to the category')
         check('allowedTargets' not in e, f'{eid}: relations come from scaleTier, not allowedTargets (D-021)')
         low, high = tiers[e['scaleTier']]['referenceSizeM']
@@ -170,6 +173,8 @@ def main():
         check(isinstance(a['variants'], list), f'{eid}: variants must be a list')
         check(a['placeholder'].startswith('procedural:'), f'{eid}: placeholder must name a generator')
         sources = [a['url']] if a['url'] else []
+        if a.get('proceduralAnimation'):
+            check(a['proceduralAnimation'] == 'morpho_wings' and e['runtimeKind'] == 'blueMorpho' and bool(a['url']) and not a['animations'], f'{eid}: procedural animation needs the blue morpho model and no clip mappings')
         for variant in a['variants']:
             check(isinstance(variant, str) or bool(variant.get('url')), f'{eid}: each variant needs a url')
             sources.append(variant if isinstance(variant, str) else variant.get('url'))
@@ -178,7 +183,8 @@ def main():
             check({'idle', 'move'} <= set(a['requiredAnimationRoles']), f'{eid}: animals need idle and move (L-05)')
         if sources:
             check(a['status'] in SLOT_STATES[3:], f'{eid}: model set but slot not integrated')
-            check(set(a['requiredAnimationRoles']) <= set(a['animations']), f'{eid}: missing animation mapping')
+            procedural = a.get('proceduralAnimation') == 'morpho_wings'
+            check(procedural or set(a['requiredAnimationRoles']) <= set(a['animations']), f'{eid}: missing animation mapping')
             for url in sources + [l['url'] for l in a['lod'] if l.get('url')] + [a[key] for key in ('idleUrl', 'runUrl', 'swimUrl') if a.get(key)]:
                 if url and not url.startswith('http'):
                     check((ROOT / 'frontend' / url.removeprefix('./')).exists(), f'{eid}: asset file missing: {url}')

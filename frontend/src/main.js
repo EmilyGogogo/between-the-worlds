@@ -41,7 +41,7 @@ class Game {
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
     // Day, night, seasons and rain (D-028) light the world and its water.
     this.atmosphere=new Atmosphere(this.scene,{sun:this.sun,hemi:this.hemi,renderer});
-    this.world=new World(this.scene,assets,this.atmosphere);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.interactions=new InteractionSystem(this);
+    this.world=new World(this.scene,assets,this.atmosphere);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.world.collision=this.collision;this.world.moveBody=(entity,delta,dt)=>this.moveBody(entity,delta,dt);this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
     this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
     this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;this.cameraMode=CAMERA_MODES.default;this.cameraBodyTurn=0;this.movementInput=null;
@@ -90,7 +90,7 @@ class Game {
       if(!this.started||this.paused||(document.pointerLockElement!==canvas&&!this.dragging))return;
       const sensitivity=tune('mouseSensitivityRadPerPixel',.0025);
       const turn=-e.movementX*sensitivity;this.yaw+=turn;if(this.movementInput)this.movementInput.yaw+=turn;
-      this.pitch=clamp(this.pitch+e.movementY*sensitivity*.8,this.pitchMin(),1.16);
+      this.pitch=clamp(this.pitch+e.movementY*sensitivity*.8,this.pitchMin(),this.pitchMax());
     });
     canvas.addEventListener('wheel',e=>{if(!this.started||this.paused||this.cameraMode==='first_person')return;e.preventDefault();this.zoom=clamp(this.zoom+e.deltaY*.0006,.85,1.5);},{passive:false});
     window.addEventListener('pagehide',()=>this.save());
@@ -149,7 +149,7 @@ class Game {
   pitchMax(){return this.cameraMode==='first_person'?1.35:1.16;}
   toggleView(){if(!this.started||this.paused||this.transition)return false;const first=this.cameraMode!=='first_person';this.cameraMode=first?'first_person':'third_person';this.pitch=clamp(first?(this.pitch-LEVEL_PITCH)*1.6:this.pitch/1.6+LEVEL_PITCH,this.pitchMin(),this.pitchMax());this.zoom=1;this.target=null;this.candidate=null;this.targetInfo=null;this.clearInput();this.snapCamera=true;this.updateControlGuide();this.save();return true;}
   // Looking up while moving forward rises, looking down dives (I-02).
-  climb(){return -Math.sin((this.pitch-LEVEL_PITCH)*1.6);}
+  climb(){return -Math.sin(this.cameraMode==='first_person'?this.pitch:(this.pitch-LEVEL_PITCH)*1.6);}
 
   // --- Possession: re-validate on R, commit only when the camera arrives (P-06～P-08).
   possess(){
@@ -169,7 +169,7 @@ class Game {
       this.transition={opening:true,from:tr.from,to:tr.from,start:this.camera.position.clone(),startFocus:this.focusGoal.clone(),elapsed:0,duration:tune('rollbackDurationSec',.8)};return;
     }
     this.player=tr.to;this.collision.refresh();this.collision.repair(this.player);
-    this.pitch=clamp(this.pitch,this.pitchMin(),1.16);this.stuck={time:0,anchor:null};
+    this.pitch=clamp(this.pitch,this.pitchMin(),this.pitchMax());this.stuck={time:0,anchor:null};
     const moment=SPECIES[this.player.kind].moments?.first_possess,key=this.player.kind+':first_possess';
     this.pendingMoment=moment&&!this.shown.has(key)?{key,text:moment,kind:this.player.kind}:null;
     this.interactions.onPossess(this.player);this.updatePresence();this.save();
@@ -313,7 +313,8 @@ class Game {
     let local,alignment=1;
     if(first){
       local=dir.applyQuaternion(parentQ).multiplyScalar(speed*dt);
-      if(local.x||local.z)this.faceDirection(e,local,dt);
+      const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ);
+      this.faceDirection(e,facing,dt);
     }else if(this.movementInput){
       const delta=Math.atan2(Math.sin(this.movementInput.targetHeading-e.heading),Math.cos(this.movementInput.targetHeading-e.heading));
       const step=THREE.MathUtils.degToRad(s.turnSpeed)*dt;
@@ -321,20 +322,22 @@ class Game {
       if(s.mode!=='island')e.root.rotation.y=e.heading;
       alignment=Math.abs(delta)<=step?1:0;
       local=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,e.heading).multiplyScalar(speed*dt*alignment);
-      if(s.verticalControl==='view_direction'&&z)local.y=-z*this.climb()*speed*dt;
+      if(s.verticalControl==='view_direction'&&z)local.y=-z*this.climb()*speed*dt*alignment;
       if(CAMERA_MODES.third_person.followBodyTurn){
         const frame=parentQ.clone().invert(),wh=h=>{const f=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,h).applyQuaternion(frame);return Math.atan2(-f.x,-f.z);};
         const turn=Math.atan2(Math.sin(wh(e.heading)-wh(headingBefore)),Math.cos(wh(e.heading)-wh(headingBefore)));
         this.yaw+=turn;this.cameraBodyTurn+=turn;
       }
     }else local=new THREE.Vector3();
-    this.moveBody(e,local,dt,true);
-    if(s.mode!=='island')this.unstick(e,dt);
+    if(first||alignment!==0){
+      this.moveBody(e,local,dt,true);
+      if(s.mode!=='island')this.unstick(e,dt);
+    }
     const distance=e.root.position.distanceTo(before);
     e.movementRatio=e.moving&&dt>0?Math.min(1,distance/(speed*dt)):0;
     e.animationMoving=e.movementRatio>.01;
   }
-  faceDirection(e,facing,dt){const s=SPECIES[e.kind];const desired=Math.atan2(-facing.x,-facing.z);const delta=Math.atan2(Math.sin(desired-e.heading),Math.cos(desired-e.heading));e.heading+=THREE.MathUtils.clamp(delta,-THREE.MathUtils.degToRad(s.turnSpeed)*dt,THREE.MathUtils.degToRad(s.turnSpeed)*dt);e.root.rotation.y=e.heading;}
+  faceDirection(e,facing,dt){const s=SPECIES[e.kind];const desired=Math.atan2(-facing.x,-facing.z);const delta=Math.atan2(Math.sin(desired-e.heading),Math.cos(desired-e.heading));e.heading+=THREE.MathUtils.clamp(delta,-THREE.MathUtils.degToRad(s.turnSpeed)*dt,THREE.MathUtils.degToRad(s.turnSpeed)*dt);if(s.mode!=='island')e.root.rotation.y=e.heading;}
   // Moves any body (the player's, or one answering an interaction) by a delta in its
   // carrier's frame: soft activity areas first, then solid collision (M-01～M-08).
   moveBody(e,local,dt,keepHeading=false){
@@ -361,7 +364,7 @@ class Game {
     const p=e.root.position;
     if(e.root.parent!==this.world.islandRoot){p.y=Math.max(p.y,this.groundHeight(e)+.2);return;}
     if(s.mode==='swim'){const w=this.world.water(p.x,p.z);if(w)p.y=clamp(p.y,w.floor+s.height*.3,Math.max(w.floor+s.height*.3,w.surface-s.height*.7));}
-    if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion];p.y=clamp(p.y,this.world.height(p.x,p.z)+air.minClearanceM,tune('flightCeilingM',air.maxY));}
+    if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion];p.y=clamp(p.y,this.world.height(p.x,p.z)+air.minClearanceM,Math.min(tune('flightCeilingM',air.maxY),this.world.height(p.x,p.z)+(s.flightHeight??Infinity)));}
   }
   // Islands drift along the river between its forested banks (M-04, D-027).
   moveIsland(e,local){
@@ -508,8 +511,10 @@ class Game {
     catch{$('save-status').textContent='暂时无法保存足迹';}
   }
   restore(){
-    try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'null');if(!saved||saved.version!==SAVE_VERSION||saved.layoutId!==(LAYOUT.layoutId||'river_island_v1')||!Array.isArray(saved.entities)||!Array.isArray(saved.layout)||!this.world.byId.has(saved.player))return false;
-      this.world.restore(saved.entities,saved.layout);this.atmosphere.restore(saved.atmosphere);this.player=this.world.byId.get(saved.player);
+    try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'null');if(!saved||saved.version!==SAVE_VERSION||saved.layoutId!==(LAYOUT.layoutId||'river_island_v1')||!Array.isArray(saved.entities)||!Array.isArray(saved.layout))return false;
+      const id=this.world.byId.has(saved.player)?saved.player:LAYOUT.savePlayerAliases?.[saved.player];
+      const player=this.world.byId.get(id)||this.world.byId.get(LAYOUT.initialInstance);if(!player)return false;
+      this.world.restore(saved.entities,saved.layout);this.atmosphere.restore(saved.atmosphere);this.player=player;
       this.cameraMode=saved.cameraMode==='first_person'?'first_person':CAMERA_MODES.default;
       this.yaw=Number.isFinite(saved.yaw)?saved.yaw:.35;this.pitch=clamp(Number.isFinite(saved.pitch)?saved.pitch:.27,this.pitchMin(),this.pitchMax());
       this.hints={...this.hints,...saved.hints};this.shown=new Set(Array.isArray(saved.shown)?saved.shown:[]);$('enter-label').textContent='继续漫游';return true;
@@ -535,6 +540,7 @@ class Game {
         this.camera.lookAt(this.introFocus);this.scene.userData.cameraPosition=this.camera.position;this.lightFollow(this.introFocus,true);this.applyPerception();
       }
       const info=this.targetInfo,size=info?.carrier?Math.max(1.5,this.camera.position.distanceTo(info.point)*.05):Math.max(SPECIES[this.target?.kind]?.radius||0,.5);
+      this.world.ambientHold=this.transition?[this.transition.from,this.transition.to]:null;
       this.world.update(dt,subject,this.target,info?.point||null,size);
       if(this.started)this.interactions.update(dt);
     }

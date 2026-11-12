@@ -43,6 +43,12 @@
   },
   "mainIsland": "island-main",
   "initialInstance": "human-first",
+  "savePlayerAliases": {
+    "butterflyfish-0": "discus-0",
+    "butterflyfish-1": "discus-1",
+    "butterflyfish-2": "discus-2",
+    "butterflyfish-3": "discus-3"
+  },
   "initialLookAtAnchor": "A02",
   "regions": [
     {
@@ -60,21 +66,21 @@
         64,
         120
       ],
-      "definition": "牛轭湖（弃置的河曲）：椭圆只框定范围，只有湖床低于湖面的地方才有水；银色小鱼的水体",
+      "definition": "牛轭湖（弃置的河曲）：椭圆只框定范围，只有湖床低于湖面的地方才有水；银斧鱼的水体",
       "water": {
         "type": "enclosed",
         "surfaceY": 0.2,
         "opacity": 0.92,
         "look": {
-          "deep": "#3b7f72",
-          "shallow": "#a7d8b2",
+          "deep": "#9bc9ed",
+          "shallow": "#d4eaff",
           "clarity": 2.2,
           "flow": [
             0.12,
             0.04
           ],
-          "deepOpacity": 0.52,
-          "shallowOpacity": 0.22
+          "deepOpacity": 0.46,
+          "shallowOpacity": 0.3
         }
       }
     },
@@ -102,21 +108,21 @@
         60,
         38
       ],
-      "definition": "岛首低洼处的水塘（D-032，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为深色黑水",
+      "definition": "岛首低洼处的水塘（D-032，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为浅蓝色半透明水体",
       "water": {
         "type": "enclosed",
         "surfaceY": 0.2,
         "opacity": 0.92,
         "look": {
-          "deep": "#3b7f72",
-          "shallow": "#a7d8b2",
+          "deep": "#9bc9ed",
+          "shallow": "#d4eaff",
           "clarity": 2.2,
           "flow": [
             0.12,
             0.04
           ],
-          "deepOpacity": 0.52,
-          "shallowOpacity": 0.22
+          "deepOpacity": 0.46,
+          "shallowOpacity": 0.3
         }
       }
     },
@@ -131,21 +137,21 @@
         64,
         38
       ],
-      "definition": "岛中部南侧的林中水塘（D-032，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为深色黑水",
+      "definition": "岛中部南侧的林中水塘（D-032，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为浅蓝色半透明水体",
       "water": {
         "type": "enclosed",
         "surfaceY": 0.2,
         "opacity": 0.92,
         "look": {
-          "deep": "#3b7f72",
-          "shallow": "#a7d8b2",
+          "deep": "#9bc9ed",
+          "shallow": "#d4eaff",
           "clarity": 2.2,
           "flow": [
             0.12,
             0.04
           ],
-          "deepOpacity": 0.52,
-          "shallowOpacity": 0.22
+          "deepOpacity": 0.46,
+          "shallowOpacity": 0.3
         }
       }
     },
@@ -203,7 +209,7 @@
     },
     {
       "id": "river_shallows",
-      "definition": "主岛南岸外的浅水，蝴蝶鱼所在"
+      "definition": "主岛南岸外的浅水，七彩神仙鱼所在"
     },
     {
       "id": "island_airspace",
@@ -227,11 +233,11 @@
         "levelM": -0.1,
         "minDepthM": 0.4,
         "look": {
-          "deep": "#58b8bd",
-          "shallow": "#c2efda",
+          "deep": "#9bc9ed",
+          "shallow": "#d4eaff",
           "clarity": 5.2,
-          "deepOpacity": 0.24,
-          "shallowOpacity": 0.10,
+          "deepOpacity": 0.46,
+          "shallowOpacity": 0.3,
           "flow": [
             1,
             0
@@ -281,7 +287,8 @@
         "tree_palm_01",
         "rock_coast_01",
         "human_01",
-        "dog_01"
+        "dog_01",
+        "insect_blue_morpho_01"
       ],
       "purpose": "第一批身体层目标：人、狗、岩石、树",
       "validatedInGame": false
@@ -320,7 +327,7 @@
         "fish_silver_01",
         "bird_gull_01"
       ],
-      "purpose": "银色小鱼的黑水湖：弃置的河曲，湖面 0.2 m，湖床约 -2.8 m",
+      "purpose": "银斧鱼的牛轭湖：弃置的河曲，湖面 0.2 m，湖床约 -2.8 m",
       "validatedInGame": false
     },
     {
@@ -350,9 +357,9 @@
         303
       ],
       "safeFor": [
-        "fish_butterfly_01"
+        "fish_discus_01"
       ],
-      "purpose": "蝴蝶鱼在主岛南岸外的河水里",
+      "purpose": "七彩神仙鱼在主岛南岸外的河水里",
       "validatedInGame": false
     },
     {
@@ -767,9 +774,9 @@
       "type": "fish_silver_01",
       "carrier": "island-main",
       "position": [
-        -109.0,
-        -0.82,
-        -103.0
+        -44.5,
+        -0.56,
+        -12
       ],
       "placement": "fixed",
       "anchorId": "A04"
@@ -779,16 +786,16 @@
       "type": "fish_silver_01",
       "carrier": "island-main",
       "position": [
-        -60.0,
-        -0.78,
-        27.0
+        -44.5,
+        -0.56,
+        -11
       ],
       "placement": "fixed",
       "anchorId": "A04"
     },
     {
-      "id": "butterflyfish-0",
-      "type": "fish_butterfly_01",
+      "id": "discus-0",
+      "type": "fish_discus_01",
       "carrier": "island-main",
       "position": [
         150,
@@ -827,9 +834,9 @@
       "type": "fish_silver_01",
       "carrier": "island-main",
       "position": [
-        -74.0,
-        -1.8,
-        -73.0
+        -43.5,
+        -0.56,
+        -12
       ],
       "placement": "fixed",
       "anchorId": "A04"
@@ -839,16 +846,16 @@
       "type": "fish_silver_01",
       "carrier": "island-main",
       "position": [
-        -44.0,
-        -1.46,
-        62.0
+        -43.5,
+        -0.56,
+        -11
       ],
       "placement": "fixed",
       "anchorId": "A04"
     },
     {
-      "id": "butterflyfish-1",
-      "type": "fish_butterfly_01",
+      "id": "discus-1",
+      "type": "fish_discus_01",
       "carrier": "island-main",
       "position": [
         152,
@@ -887,9 +894,9 @@
       "type": "fish_silver_01",
       "carrier": "island-main",
       "position": [
-        -47.0,
-        -1.73,
-        -45.0
+        -42.5,
+        -0.56,
+        -12
       ],
       "placement": "fixed",
       "anchorId": "A04"
@@ -899,16 +906,16 @@
       "type": "fish_silver_01",
       "carrier": "island-main",
       "position": [
-        -58.0,
-        -1.33,
-        91.0
+        -42.5,
+        -0.56,
+        -11
       ],
       "placement": "fixed",
       "anchorId": "A04"
     },
     {
-      "id": "butterflyfish-2",
-      "type": "fish_butterfly_01",
+      "id": "discus-2",
+      "type": "fish_discus_01",
       "carrier": "island-main",
       "position": [
         154,
@@ -947,9 +954,9 @@
       "type": "fish_silver_01",
       "carrier": "island-main",
       "position": [
-        -35.0,
-        -1.57,
-        -11.0
+        -41.5,
+        -0.56,
+        -12
       ],
       "placement": "fixed",
       "anchorId": "A04"
@@ -959,16 +966,16 @@
       "type": "fish_silver_01",
       "carrier": "island-main",
       "position": [
-        -108.0,
-        -0.76,
-        119.0
+        -41.5,
+        -0.56,
+        -11
       ],
       "placement": "fixed",
       "anchorId": "A04"
     },
     {
-      "id": "butterflyfish-3",
-      "type": "fish_butterfly_01",
+      "id": "discus-3",
+      "type": "fish_discus_01",
       "carrier": "island-main",
       "position": [
         156,
@@ -1310,6 +1317,78 @@
         -120.66
       ],
       "placement": "surface"
+    },
+    {
+      "id": "blue-morpho-playable",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        16.15,
+        1.4,
+        19.7
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-1",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        18.071947428640385,
+        1.55,
+        20.379629621983845
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-2",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        13.21100825373951,
+        1.1,
+        18.139904013701774
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-3",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        12.800467269028054,
+        1.7,
+        19.458077511332583
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-4",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        3.5287472068616346,
+        1.25,
+        10.61699280763918
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
+    },
+    {
+      "id": "blue-morpho-playable-5",
+      "type": "insect_blue_morpho_01",
+      "carrier": "island-main",
+      "position": [
+        8.890181675470718,
+        1.6,
+        4.703017895127601
+      ],
+      "placement": "surface",
+      "anchorId": "A02"
     }
   ],
   "scatter": [
@@ -1622,6 +1701,539 @@
         "A06"
       ],
       "note": "人→狗（黑白／远听）→海鸥（林地与湖面上空）→湖鱼→近海鱼"
+    }
+  ],
+  "ambient": [
+    {
+      "id": "AM-GULL-0",
+      "members": [
+        "gull-0"
+      ],
+      "shape": "ellipse",
+      "center": [
+        4,
+        -8
+      ],
+      "radii": [
+        20,
+        20
+      ],
+      "periodSec": 32,
+      "phaseDeg": 0,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 2.5,
+        "highM": 26,
+        "lowAtDeg": 90,
+        "lowSlowdown": 0.65
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-1",
+      "members": [
+        "gull-1"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -25,
+        -12
+      ],
+      "radii": [
+        44,
+        32
+      ],
+      "rotationDeg": 20,
+      "periodSec": 44,
+      "phaseDeg": 35,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 3,
+        "highM": 32,
+        "lowAtDeg": 100,
+        "lowSlowdown": 0.6
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-2",
+      "members": [
+        "gull-2"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -83,
+        -65
+      ],
+      "radii": [
+        46,
+        28
+      ],
+      "periodSec": 40,
+      "phaseDeg": 50,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 3,
+        "highM": 22,
+        "lowAtDeg": 0,
+        "lowSlowdown": 0.6
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-3",
+      "members": [
+        "gull-3"
+      ],
+      "shape": "ellipse",
+      "center": [
+        120,
+        -10
+      ],
+      "radii": [
+        190,
+        150
+      ],
+      "rotationDeg": 25,
+      "periodSec": 150,
+      "phaseDeg": 60,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 5,
+        "highM": 55,
+        "lowAtDeg": 30,
+        "lowSlowdown": 0.5
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-4",
+      "members": [
+        "gull-4"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -100,
+        -30
+      ],
+      "radii": [
+        20,
+        20
+      ],
+      "periodSec": 32,
+      "phaseDeg": 120,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 5,
+        "highM": 35,
+        "lowAtDeg": 90,
+        "lowSlowdown": 0.65
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-5",
+      "members": [
+        "gull-5"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -70,
+        -30
+      ],
+      "radii": [
+        44,
+        32
+      ],
+      "rotationDeg": 20,
+      "periodSec": 44,
+      "phaseDeg": 165,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 5,
+        "highM": 35,
+        "lowAtDeg": 100,
+        "lowSlowdown": 0.6
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-6",
+      "members": [
+        "gull-6"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -40,
+        -30
+      ],
+      "radii": [
+        46,
+        28
+      ],
+      "periodSec": 40,
+      "phaseDeg": 210,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 5,
+        "highM": 35,
+        "lowAtDeg": 0,
+        "lowSlowdown": 0.6
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-GULL-7",
+      "members": [
+        "gull-7"
+      ],
+      "shape": "ellipse",
+      "center": [
+        -10,
+        -30
+      ],
+      "radii": [
+        190,
+        150
+      ],
+      "rotationDeg": 25,
+      "periodSec": 150,
+      "phaseDeg": 255,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 5,
+        "highM": 35,
+        "lowAtDeg": 30,
+        "lowSlowdown": 0.5
+      },
+      "type": "path",
+      "animation": "climb",
+      "maxSpeedMS": 14,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-HATCHET-SCHOOL",
+      "type": "path",
+      "members": [
+        "silverfish-0",
+        "silverfish-1",
+        "silverfish-2",
+        "silverfish-3",
+        "silverfish-4",
+        "silverfish-5",
+        "silverfish-6",
+        "silverfish-7"
+      ],
+      "shape": "figure8",
+      "center": [
+        -43,
+        -12
+      ],
+      "radii": [
+        10,
+        20
+      ],
+      "rotationDeg": 0,
+      "periodSec": 50,
+      "phaseDeg": 0,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "lake",
+        "depthM": 0.5
+      },
+      "formation": {
+        "columns": 4,
+        "spacingM": 1.0,
+        "wobbleM": 0.15
+      },
+      "animation": "move",
+      "maxSpeedMS": 5,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-0",
+      "type": "path",
+      "members": [
+        "discus-0"
+      ],
+      "shape": "ellipse",
+      "center": [
+        150,
+        305
+      ],
+      "radii": [
+        5,
+        3
+      ],
+      "rotationDeg": 0,
+      "periodSec": 34,
+      "phaseDeg": 0,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "river",
+        "depthM": 0.18
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-1",
+      "type": "path",
+      "members": [
+        "discus-1"
+      ],
+      "shape": "ellipse",
+      "center": [
+        152,
+        303
+      ],
+      "radii": [
+        5,
+        3
+      ],
+      "rotationDeg": 37,
+      "periodSec": 40,
+      "phaseDeg": 61,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "river",
+        "depthM": 0.18
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-2",
+      "type": "path",
+      "members": [
+        "discus-2"
+      ],
+      "shape": "ellipse",
+      "center": [
+        154,
+        301
+      ],
+      "radii": [
+        5,
+        3
+      ],
+      "rotationDeg": 74,
+      "periodSec": 38,
+      "phaseDeg": 122,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "river",
+        "depthM": 0.18
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-DISCUS-3",
+      "type": "path",
+      "members": [
+        "discus-3"
+      ],
+      "shape": "ellipse",
+      "center": [
+        156,
+        299
+      ],
+      "radii": [
+        5,
+        3
+      ],
+      "rotationDeg": 111,
+      "periodSec": 44,
+      "phaseDeg": 183,
+      "vertical": {
+        "mode": "belowSurface",
+        "water": "river",
+        "depthM": 0.18
+      },
+      "animation": "idle",
+      "maxSpeedMS": 3,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-0",
+      "members": [
+        "blue-morpho-playable"
+      ],
+      "shape": "ellipse",
+      "center": [
+        15.5,
+        19.7
+      ],
+      "radii": [
+        0.65,
+        0.55
+      ],
+      "periodSec": 8.72665,
+      "phaseDeg": 0.0,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.4,
+        "highM": 1.4
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-1",
+      "members": [
+        "blue-morpho-playable-1"
+      ],
+      "shape": "ellipse",
+      "center": [
+        17.8,
+        19
+      ],
+      "radii": [
+        1.6,
+        1.4
+      ],
+      "periodSec": 8.17059,
+      "phaseDeg": 80.21409131831524,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.55,
+        "highM": 1.55
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-2",
+      "members": [
+        "blue-morpho-playable-2"
+      ],
+      "shape": "ellipse",
+      "center": [
+        14.3,
+        17.9
+      ],
+      "radii": [
+        1.1,
+        1.7
+      ],
+      "periodSec": 7.61598,
+      "phaseDeg": 171.88733853924697,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.1,
+        "highM": 1.1
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-3",
+      "members": [
+        "blue-morpho-playable-3"
+      ],
+      "shape": "ellipse",
+      "center": [
+        13.2,
+        20.6
+      ],
+      "radii": [
+        1.3,
+        1.2
+      ],
+      "periodSec": 7.189,
+      "phaseDeg": 252.10142985756227,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.7,
+        "highM": 1.7
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-4",
+      "members": [
+        "blue-morpho-playable-4"
+      ],
+      "shape": "ellipse",
+      "center": [
+        5,
+        9
+      ],
+      "radii": [
+        2.5,
+        2
+      ],
+      "periodSec": 7.88354,
+      "phaseDeg": 126.05071492878113,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.25,
+        "highM": 1.25
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
+    },
+    {
+      "id": "AM-MORPHO-5",
+      "members": [
+        "blue-morpho-playable-5"
+      ],
+      "shape": "ellipse",
+      "center": [
+        8,
+        7
+      ],
+      "radii": [
+        1.9,
+        2.6
+      ],
+      "periodSec": 6.96584,
+      "phaseDeg": 297.9380534680281,
+      "vertical": {
+        "mode": "aboveGround",
+        "lowM": 1.6,
+        "highM": 1.6
+      },
+      "type": "path",
+      "animation": "move",
+      "maxSpeedMS": 2.7,
+      "resumeAfterSec": 4
     }
   ]
 }

@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_ASSET_FIELDS = ['url', 'idleUrl', 'runUrl', 'swimUrl', 'variants', 'lod', 'height', 'rotation', 'animations', 'colliderMode',
-                        'collisionBoxes', 'slotId', 'status', 'placeholder', 'placeholderStyle', 'lux3dUsed', 'pivot']
+                        'collisionBoxes', 'slotId', 'status', 'placeholder', 'placeholderStyle', 'lux3dUsed', 'pivot', 'proceduralAnimation']
 RUNTIME_DECOR_FIELDS = ['slotId', 'url', 'variants', 'height', 'scaleRange', 'wind', 'visibleUpToStage', 'placeholder', 'placeholderStyle', 'scatter', 'status']
 RUNTIME_LAYER_FIELDS = ['cameraLookAhead', 'cameraTerrainFloor', 'cameraCollision', 'fogDensity', 'localSun', 'focusHeightRatio', 'possessMinPitch']
 
@@ -66,6 +66,7 @@ def generate():
             'place': e['place'], 'response': responses.get(e['id'], ''), 'moments': moments.get(e['id'], {}),
             'vision': e['perception']['vision'], 'hearing': e['perception']['hearing'],
             'collision': e['collision'], 'verticalControl': e['verticalControl'],
+            'flightHeight': e.get('flightHeightM'),
         }
         models[kind] = {k: e['asset'][k] for k in RUNTIME_ASSET_FIELDS if k in e['asset']}
     world = next((s for s in entities['environmentSlots'] if s['slotId'] == 'env.world'), None)

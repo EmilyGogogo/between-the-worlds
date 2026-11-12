@@ -6,6 +6,7 @@ import { waterMaterial, heightTexture } from './water.js';
 import { createBanks } from './banks.js';
 import { LodField } from './vegetation.js';
 import { fireflies } from './sky.js';
+import { AmbientMotion } from './ambient.js';
 
 // The river follows a very large sphere: a drifting island tilts a little, while the
 // curvature stays below the haze of the far banks.
@@ -413,8 +414,10 @@ export class World {
     target.y+=s.height*layerOf(entity.kind).focusHeightRatio;
     return target;
   }
-  update(dt,player,target,targetPoint=null,targetSize=1){
+  update(dt,player,target,targetPoint=null,targetSize=1,transition=null){
     this.time+=dt;const t=this.time,stage=SPECIES[player.kind].stage;
+    if(!this.ambient)this.ambient=new AmbientMotion(this,LAYOUT.ambient||[]);
+    this.ambient.update(dt,player,this.ambientHold||transition);
     this.islandRoot.updateMatrixWorld();this.shared.toIsland.value.copy(this.islandRoot.matrixWorld).invert();
     const eye=this.scene.userData.cameraPosition,localEye=eye?this.islandRoot.worldToLocal(eye.clone()):null;
     if(localEye&&this.terrain.update)this.terrain.update(localEye);
@@ -447,6 +450,8 @@ export class World {
       if(!e.visual||!e.visual.visible)continue;
       const v=e.visual;
       if(v.userData.sway)v.rotation.z=Math.sin(t*.9+e.seed)*v.userData.sway;
+      if(v.userData.flap)v.userData.flap.value=0.3+0.7*Math.sin(t*2*Math.PI*6+e.seed);
+      if(v.userData.insect){const a=Math.sin(t*9+e.seed)*.55;v.userData.leftWing.rotation.z=a;v.userData.rightWing.rotation.z=-a;v.position.y=Math.sin(t*2+e.seed)*.01;}
       if(v.userData.bird){const a=Math.sin(t*(e.moving?7:3.4)+e.seed)*.38;v.userData.leftWing.rotation.z=a;v.userData.rightWing.rotation.z=-a;v.position.y=Math.sin(t*2+e.seed)*.08;}
       if(v.userData.limbs){for(let i=0;i<v.userData.limbs.length;i++){const limb=v.userData.limbs[i];if(s.category==='human'&&e.swimming){const arm=i%2===1;limb.rotation.x=arm?Math.sin(t*3.2+i)*.7:Math.sin(t*2.4+i)*.28;limb.rotation.z=arm?(i===1?-.45:.45):0;}else{limb.rotation.x=e.moving?Math.sin(t*s.limbSwingRate+i*Math.PI)*.38:0;limb.rotation.z=0;}}}
       if(v.userData.dogTail)v.userData.dogTail.rotation.z=Math.sin(t*4)*.2;

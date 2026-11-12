@@ -56,6 +56,14 @@
       "placeholder": "fish",
       "soundCue": null,
       "release": "0.3"
+    },
+    "insect": {
+      "name": "昆虫",
+      "isAnimal": true,
+      "placeholder": "insect",
+      "soundCue": null,
+      "release": "0.4",
+      "decision": "D-035"
     }
   },
   "cameraModes": {
@@ -186,9 +194,10 @@
         "rock",
         "gull",
         "silverfish",
-        "butterflyfish",
+        "discus",
         "human",
-        "dog"
+        "dog",
+        "blueMorpho"
       ],
       "deny": [],
       "place": "风起的地方",
@@ -225,7 +234,8 @@
         "solid": false,
         "passPolicy": "yield_with_bend"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
     },
     "broadleaf": {
       "id": "tree_broadleaf_01",
@@ -308,7 +318,8 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
     },
     "palm": {
       "id": "tree_palm_01",
@@ -391,7 +402,8 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
     },
     "kapok": {
       "id": "tree_kapok_01",
@@ -482,7 +494,8 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
     },
     "rock": {
       "id": "rock_coast_01",
@@ -522,9 +535,10 @@
         "rock",
         "gull",
         "silverfish",
-        "butterflyfish",
+        "discus",
         "human",
-        "dog"
+        "dog",
+        "blueMorpho"
       ],
       "deny": [],
       "place": "水线的边缘",
@@ -561,7 +575,8 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
     },
     "boulder": {
       "id": "rock_large_01",
@@ -642,7 +657,8 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
     },
     "island": {
       "id": "island_01",
@@ -722,7 +738,8 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
     },
     "gull": {
       "id": "bird_gull_01",
@@ -734,8 +751,8 @@
       "tier": 0,
       "scaleTier": "S1",
       "mode": "fly",
-      "radius": 0.65,
-      "height": 0.65,
+      "radius": 0.5,
+      "height": 0.32,
       "wadeDepth": 0,
       "surface": null,
       "limbSwingRate": 0,
@@ -743,12 +760,12 @@
       "speed": 18.0,
       "boost": 2.7,
       "turnSpeed": 180,
-      "camera": 5.0,
+      "camera": 3.5,
       "fov": 52,
       "firstPerson": {
         "eyeOffset": [
           0,
-          0.325,
+          0.24,
           0
         ],
         "hideBody": true
@@ -759,9 +776,10 @@
         "rock",
         "gull",
         "silverfish",
-        "butterflyfish",
+        "discus",
         "human",
-        "dog"
+        "dog",
+        "blueMorpho"
       ],
       "deny": [],
       "place": "风的路径",
@@ -787,22 +805,23 @@
       "collision": {
         "boxes": [
           [
-            -1.4,
-            0,
-            -0.7,
-            1.4,
-            0.65,
-            0.8
+            -0.69,
+            0.0,
+            -0.34,
+            0.69,
+            0.32,
+            0.39
           ]
         ],
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "view_direction"
+      "verticalControl": "view_direction",
+      "flightHeight": null
     },
     "silverfish": {
       "id": "fish_silver_01",
-      "name": "银色小鱼",
+      "name": "银斧鱼",
       "category": "fish",
       "isAnimal": true,
       "soundCue": null,
@@ -824,7 +843,7 @@
       "firstPerson": {
         "eyeOffset": [
           0,
-          0.16,
+          0.208,
           0
         ],
         "hideBody": true
@@ -835,12 +854,13 @@
         "rock",
         "gull",
         "silverfish",
-        "butterflyfish",
+        "discus",
         "human",
-        "dog"
+        "dog",
+        "blueMorpho"
       ],
       "deny": [],
-      "place": "水下的光",
+      "place": "水面下的群",
       "response": "子非鱼，安知鱼之乐？",
       "moments": {},
       "vision": {
@@ -874,11 +894,12 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "view_direction"
+      "verticalControl": "view_direction",
+      "flightHeight": null
     },
-    "butterflyfish": {
-      "id": "fish_butterfly_01",
-      "name": "蝴蝶鱼",
+    "discus": {
+      "id": "fish_discus_01",
+      "name": "七彩神仙鱼",
       "category": "fish",
       "isAnimal": true,
       "soundCue": null,
@@ -900,7 +921,7 @@
       "firstPerson": {
         "eyeOffset": [
           0,
-          0.225,
+          0.2925,
           0
         ],
         "hideBody": true
@@ -911,9 +932,10 @@
         "rock",
         "gull",
         "silverfish",
-        "butterflyfish",
+        "discus",
         "human",
-        "dog"
+        "dog",
+        "blueMorpho"
       ],
       "deny": [],
       "place": "河湾浅水",
@@ -950,7 +972,8 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "view_direction"
+      "verticalControl": "view_direction",
+      "flightHeight": null
     },
     "human": {
       "id": "human_01",
@@ -990,9 +1013,10 @@
         "rock",
         "gull",
         "silverfish",
-        "butterflyfish",
+        "discus",
         "human",
-        "dog"
+        "dog",
+        "blueMorpho"
       ],
       "deny": [],
       "place": "此刻的行路人",
@@ -1029,7 +1053,8 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
     },
     "dog": {
       "id": "dog_01",
@@ -1066,9 +1091,10 @@
         "rock",
         "gull",
         "silverfish",
-        "butterflyfish",
+        "discus",
         "human",
-        "dog"
+        "dog",
+        "blueMorpho"
       ],
       "deny": [],
       "place": "循着声音",
@@ -1105,14 +1131,98 @@
         "solid": true,
         "passPolicy": "go_around"
       },
-      "verticalControl": "none"
+      "verticalControl": "none",
+      "flightHeight": null
+    },
+    "blueMorpho": {
+      "id": "insect_blue_morpho_01",
+      "name": "蓝闪蝶",
+      "category": "insect",
+      "isAnimal": true,
+      "soundCue": null,
+      "stage": 1,
+      "tier": 0,
+      "scaleTier": "S1",
+      "mode": "fly",
+      "radius": 0.19,
+      "height": 0.14,
+      "wadeDepth": 0,
+      "surface": null,
+      "limbSwingRate": 0,
+      "activityRegion": "island_airspace",
+      "speed": 2.7,
+      "boost": 1.65,
+      "turnSpeed": 180,
+      "camera": 0.48,
+      "fov": 64,
+      "firstPerson": {
+        "eyeOffset": [
+          0,
+          0.07,
+          0
+        ],
+        "hideBody": true
+      },
+      "reach": 18,
+      "targets": [
+        "grass",
+        "rock",
+        "gull",
+        "silverfish",
+        "discus",
+        "human",
+        "dog",
+        "blueMorpho"
+      ],
+      "deny": [],
+      "place": "草叶之间",
+      "response": "",
+      "moments": {},
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1.15,
+        "contrast": 1.1,
+        "brightness": 1.02,
+        "fogMultiplier": 0.6,
+        "tint": null
+      },
+      "hearing": {
+        "airLowpassHz": 1400,
+        "underwaterLowpassHz": 360,
+        "range": 65,
+        "waterCueGain": 0.6,
+        "windGain": 0.16,
+        "distantCueGain": 1.1,
+        "heightAttenuation": true
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.18,
+            0,
+            -0.11,
+            0.18,
+            0.14,
+            0.11
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "verticalControl": "view_direction",
+      "flightHeight": 8
     }
   },
   "layout": {
     "layoutId": "river_island_v1",
     "mainIsland": "island-main",
     "initialInstance": "human-first",
-    "savePlayerAliases": {},
+    "savePlayerAliases": {
+      "butterflyfish-0": "discus-0",
+      "butterflyfish-1": "discus-1",
+      "butterflyfish-2": "discus-2",
+      "butterflyfish-3": "discus-3"
+    },
     "regions": {
       "main_land": {
         "id": "main_land",
@@ -1129,21 +1239,21 @@
           64,
           120
         ],
-        "definition": "牛轭湖（弃置的河曲）：椭圆只框定范围，只有湖床低于湖面的地方才有水；银色小鱼的水体",
+        "definition": "牛轭湖（弃置的河曲）：椭圆只框定范围，只有湖床低于湖面的地方才有水；银斧鱼的水体",
         "water": {
           "type": "enclosed",
           "surfaceY": 0.2,
           "opacity": 0.92,
           "look": {
-            "deep": "#3b7f72",
-            "shallow": "#a7d8b2",
+            "deep": "#9bc9ed",
+            "shallow": "#d4eaff",
             "clarity": 2.2,
             "flow": [
               0.12,
               0.04
             ],
-            "deepOpacity": 0.52,
-            "shallowOpacity": 0.22
+            "deepOpacity": 0.46,
+            "shallowOpacity": 0.3
           }
         }
       },
@@ -1171,21 +1281,21 @@
           60,
           38
         ],
-        "definition": "岛首低洼处的水塘（D-032，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为深色黑水",
+        "definition": "岛首低洼处的水塘（D-032，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为浅蓝色半透明水体",
         "water": {
           "type": "enclosed",
           "surfaceY": 0.2,
           "opacity": 0.92,
           "look": {
-            "deep": "#3b7f72",
-            "shallow": "#a7d8b2",
+            "deep": "#9bc9ed",
+            "shallow": "#d4eaff",
             "clarity": 2.2,
             "flow": [
               0.12,
               0.04
             ],
-            "deepOpacity": 0.52,
-            "shallowOpacity": 0.22
+            "deepOpacity": 0.46,
+            "shallowOpacity": 0.3
           }
         }
       },
@@ -1200,21 +1310,21 @@
           64,
           38
         ],
-        "definition": "岛中部南侧的林中水塘（D-032，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为深色黑水",
+        "definition": "岛中部南侧的林中水塘（D-032，地形 project/terrain/river_island.py PONDS）：椭圆只框定范围，湖床低于水面的地方才有水；与牛轭湖同为浅蓝色半透明水体",
         "water": {
           "type": "enclosed",
           "surfaceY": 0.2,
           "opacity": 0.92,
           "look": {
-            "deep": "#3b7f72",
-            "shallow": "#a7d8b2",
+            "deep": "#9bc9ed",
+            "shallow": "#d4eaff",
             "clarity": 2.2,
             "flow": [
               0.12,
               0.04
             ],
-            "deepOpacity": 0.52,
-            "shallowOpacity": 0.22
+            "deepOpacity": 0.46,
+            "shallowOpacity": 0.3
           }
         }
       },
@@ -1272,7 +1382,7 @@
       },
       "river_shallows": {
         "id": "river_shallows",
-        "definition": "主岛南岸外的浅水，蝴蝶鱼所在"
+        "definition": "主岛南岸外的浅水，七彩神仙鱼所在"
       },
       "island_airspace": {
         "id": "island_airspace",
@@ -1296,11 +1406,11 @@
           "levelM": -0.1,
           "minDepthM": 0.4,
           "look": {
-            "deep": "#58b8bd",
-            "shallow": "#c2efda",
+            "deep": "#9bc9ed",
+            "shallow": "#d4eaff",
             "clarity": 5.2,
-            "deepOpacity": 0.24,
-            "shallowOpacity": 0.1,
+            "deepOpacity": 0.46,
+            "shallowOpacity": 0.3,
             "flow": [
               1,
               0
@@ -1607,9 +1717,9 @@
         "id": "silverfish-0",
         "carrier": "island-main",
         "position": [
-          -109.0,
-          -0.82,
-          -103.0
+          -44.5,
+          -0.56,
+          -12
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1619,16 +1729,16 @@
         "id": "silverfish-4",
         "carrier": "island-main",
         "position": [
-          -60.0,
-          -0.78,
-          27.0
+          -44.5,
+          -0.56,
+          -11
         ],
         "placement": "fixed",
         "anchorId": "A04",
         "kind": "silverfish"
       },
       {
-        "id": "butterflyfish-0",
+        "id": "discus-0",
         "carrier": "island-main",
         "position": [
           150,
@@ -1637,7 +1747,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A06",
-        "kind": "butterflyfish"
+        "kind": "discus"
       },
       {
         "id": "gull-1",
@@ -1667,9 +1777,9 @@
         "id": "silverfish-1",
         "carrier": "island-main",
         "position": [
-          -74.0,
-          -1.8,
-          -73.0
+          -43.5,
+          -0.56,
+          -12
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1679,16 +1789,16 @@
         "id": "silverfish-5",
         "carrier": "island-main",
         "position": [
-          -44.0,
-          -1.46,
-          62.0
+          -43.5,
+          -0.56,
+          -11
         ],
         "placement": "fixed",
         "anchorId": "A04",
         "kind": "silverfish"
       },
       {
-        "id": "butterflyfish-1",
+        "id": "discus-1",
         "carrier": "island-main",
         "position": [
           152,
@@ -1697,7 +1807,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A06",
-        "kind": "butterflyfish"
+        "kind": "discus"
       },
       {
         "id": "gull-2",
@@ -1727,9 +1837,9 @@
         "id": "silverfish-2",
         "carrier": "island-main",
         "position": [
-          -47.0,
-          -1.73,
-          -45.0
+          -42.5,
+          -0.56,
+          -12
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1739,16 +1849,16 @@
         "id": "silverfish-6",
         "carrier": "island-main",
         "position": [
-          -58.0,
-          -1.33,
-          91.0
+          -42.5,
+          -0.56,
+          -11
         ],
         "placement": "fixed",
         "anchorId": "A04",
         "kind": "silverfish"
       },
       {
-        "id": "butterflyfish-2",
+        "id": "discus-2",
         "carrier": "island-main",
         "position": [
           154,
@@ -1757,7 +1867,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A06",
-        "kind": "butterflyfish"
+        "kind": "discus"
       },
       {
         "id": "gull-3",
@@ -1787,9 +1897,9 @@
         "id": "silverfish-3",
         "carrier": "island-main",
         "position": [
-          -35.0,
-          -1.57,
-          -11.0
+          -41.5,
+          -0.56,
+          -12
         ],
         "placement": "fixed",
         "anchorId": "A04",
@@ -1799,16 +1909,16 @@
         "id": "silverfish-7",
         "carrier": "island-main",
         "position": [
-          -108.0,
-          -0.76,
-          119.0
+          -41.5,
+          -0.56,
+          -11
         ],
         "placement": "fixed",
         "anchorId": "A04",
         "kind": "silverfish"
       },
       {
-        "id": "butterflyfish-3",
+        "id": "discus-3",
         "carrier": "island-main",
         "position": [
           156,
@@ -1817,7 +1927,7 @@
         ],
         "placement": "fixed",
         "anchorId": "A06",
-        "kind": "butterflyfish"
+        "kind": "discus"
       },
       {
         "id": "island-0",
@@ -2151,6 +2261,78 @@
         ],
         "placement": "surface",
         "kind": "grass"
+      },
+      {
+        "id": "blue-morpho-playable",
+        "carrier": "island-main",
+        "position": [
+          16.15,
+          1.4,
+          19.7
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "blueMorpho"
+      },
+      {
+        "id": "blue-morpho-playable-1",
+        "carrier": "island-main",
+        "position": [
+          18.071947428640385,
+          1.55,
+          20.379629621983845
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "blueMorpho"
+      },
+      {
+        "id": "blue-morpho-playable-2",
+        "carrier": "island-main",
+        "position": [
+          13.21100825373951,
+          1.1,
+          18.139904013701774
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "blueMorpho"
+      },
+      {
+        "id": "blue-morpho-playable-3",
+        "carrier": "island-main",
+        "position": [
+          12.800467269028054,
+          1.7,
+          19.458077511332583
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "blueMorpho"
+      },
+      {
+        "id": "blue-morpho-playable-4",
+        "carrier": "island-main",
+        "position": [
+          3.5287472068616346,
+          1.25,
+          10.61699280763918
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "blueMorpho"
+      },
+      {
+        "id": "blue-morpho-playable-5",
+        "carrier": "island-main",
+        "position": [
+          8.890181675470718,
+          1.6,
+          4.703017895127601
+        ],
+        "placement": "surface",
+        "anchorId": "A02",
+        "kind": "blueMorpho"
       }
     ],
     "scatter": [
@@ -2436,7 +2618,539 @@
         "kind": "rock"
       }
     ],
-    "ambient": []
+    "ambient": [
+      {
+        "id": "AM-GULL-0",
+        "members": [
+          "gull-0"
+        ],
+        "shape": "ellipse",
+        "center": [
+          4,
+          -8
+        ],
+        "radii": [
+          20,
+          20
+        ],
+        "periodSec": 32,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 2.5,
+          "highM": 26,
+          "lowAtDeg": 90,
+          "lowSlowdown": 0.65
+        },
+        "type": "path",
+        "animation": "climb",
+        "maxSpeedMS": 14,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-GULL-1",
+        "members": [
+          "gull-1"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -25,
+          -12
+        ],
+        "radii": [
+          44,
+          32
+        ],
+        "rotationDeg": 20,
+        "periodSec": 44,
+        "phaseDeg": 35,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 3,
+          "highM": 32,
+          "lowAtDeg": 100,
+          "lowSlowdown": 0.6
+        },
+        "type": "path",
+        "animation": "climb",
+        "maxSpeedMS": 14,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-GULL-2",
+        "members": [
+          "gull-2"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -83,
+          -65
+        ],
+        "radii": [
+          46,
+          28
+        ],
+        "periodSec": 40,
+        "phaseDeg": 50,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 3,
+          "highM": 22,
+          "lowAtDeg": 0,
+          "lowSlowdown": 0.6
+        },
+        "type": "path",
+        "animation": "climb",
+        "maxSpeedMS": 14,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-GULL-3",
+        "members": [
+          "gull-3"
+        ],
+        "shape": "ellipse",
+        "center": [
+          120,
+          -10
+        ],
+        "radii": [
+          190,
+          150
+        ],
+        "rotationDeg": 25,
+        "periodSec": 150,
+        "phaseDeg": 60,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 5,
+          "highM": 55,
+          "lowAtDeg": 30,
+          "lowSlowdown": 0.5
+        },
+        "type": "path",
+        "animation": "climb",
+        "maxSpeedMS": 14,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-GULL-4",
+        "members": [
+          "gull-4"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -100,
+          -30
+        ],
+        "radii": [
+          20,
+          20
+        ],
+        "periodSec": 32,
+        "phaseDeg": 120,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 5,
+          "highM": 35,
+          "lowAtDeg": 90,
+          "lowSlowdown": 0.65
+        },
+        "type": "path",
+        "animation": "climb",
+        "maxSpeedMS": 14,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-GULL-5",
+        "members": [
+          "gull-5"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -70,
+          -30
+        ],
+        "radii": [
+          44,
+          32
+        ],
+        "rotationDeg": 20,
+        "periodSec": 44,
+        "phaseDeg": 165,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 5,
+          "highM": 35,
+          "lowAtDeg": 100,
+          "lowSlowdown": 0.6
+        },
+        "type": "path",
+        "animation": "climb",
+        "maxSpeedMS": 14,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-GULL-6",
+        "members": [
+          "gull-6"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -40,
+          -30
+        ],
+        "radii": [
+          46,
+          28
+        ],
+        "periodSec": 40,
+        "phaseDeg": 210,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 5,
+          "highM": 35,
+          "lowAtDeg": 0,
+          "lowSlowdown": 0.6
+        },
+        "type": "path",
+        "animation": "climb",
+        "maxSpeedMS": 14,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-GULL-7",
+        "members": [
+          "gull-7"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -10,
+          -30
+        ],
+        "radii": [
+          190,
+          150
+        ],
+        "rotationDeg": 25,
+        "periodSec": 150,
+        "phaseDeg": 255,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 5,
+          "highM": 35,
+          "lowAtDeg": 30,
+          "lowSlowdown": 0.5
+        },
+        "type": "path",
+        "animation": "climb",
+        "maxSpeedMS": 14,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-HATCHET-SCHOOL",
+        "type": "path",
+        "members": [
+          "silverfish-0",
+          "silverfish-1",
+          "silverfish-2",
+          "silverfish-3",
+          "silverfish-4",
+          "silverfish-5",
+          "silverfish-6",
+          "silverfish-7"
+        ],
+        "shape": "figure8",
+        "center": [
+          -43,
+          -12
+        ],
+        "radii": [
+          10,
+          20
+        ],
+        "rotationDeg": 0,
+        "periodSec": 50,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "lake",
+          "depthM": 0.5
+        },
+        "formation": {
+          "columns": 4,
+          "spacingM": 1.0,
+          "wobbleM": 0.15
+        },
+        "animation": "move",
+        "maxSpeedMS": 5,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-0",
+        "type": "path",
+        "members": [
+          "discus-0"
+        ],
+        "shape": "ellipse",
+        "center": [
+          150,
+          305
+        ],
+        "radii": [
+          5,
+          3
+        ],
+        "rotationDeg": 0,
+        "periodSec": 34,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "river",
+          "depthM": 0.18
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-1",
+        "type": "path",
+        "members": [
+          "discus-1"
+        ],
+        "shape": "ellipse",
+        "center": [
+          152,
+          303
+        ],
+        "radii": [
+          5,
+          3
+        ],
+        "rotationDeg": 37,
+        "periodSec": 40,
+        "phaseDeg": 61,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "river",
+          "depthM": 0.18
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-2",
+        "type": "path",
+        "members": [
+          "discus-2"
+        ],
+        "shape": "ellipse",
+        "center": [
+          154,
+          301
+        ],
+        "radii": [
+          5,
+          3
+        ],
+        "rotationDeg": 74,
+        "periodSec": 38,
+        "phaseDeg": 122,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "river",
+          "depthM": 0.18
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-3",
+        "type": "path",
+        "members": [
+          "discus-3"
+        ],
+        "shape": "ellipse",
+        "center": [
+          156,
+          299
+        ],
+        "radii": [
+          5,
+          3
+        ],
+        "rotationDeg": 111,
+        "periodSec": 44,
+        "phaseDeg": 183,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "river",
+          "depthM": 0.18
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-MORPHO-0",
+        "members": [
+          "blue-morpho-playable"
+        ],
+        "shape": "ellipse",
+        "center": [
+          15.5,
+          19.7
+        ],
+        "radii": [
+          0.65,
+          0.55
+        ],
+        "periodSec": 8.72665,
+        "phaseDeg": 0.0,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 1.4,
+          "highM": 1.4
+        },
+        "type": "path",
+        "animation": "move",
+        "maxSpeedMS": 2.7,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-MORPHO-1",
+        "members": [
+          "blue-morpho-playable-1"
+        ],
+        "shape": "ellipse",
+        "center": [
+          17.8,
+          19
+        ],
+        "radii": [
+          1.6,
+          1.4
+        ],
+        "periodSec": 8.17059,
+        "phaseDeg": 80.21409131831524,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 1.55,
+          "highM": 1.55
+        },
+        "type": "path",
+        "animation": "move",
+        "maxSpeedMS": 2.7,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-MORPHO-2",
+        "members": [
+          "blue-morpho-playable-2"
+        ],
+        "shape": "ellipse",
+        "center": [
+          14.3,
+          17.9
+        ],
+        "radii": [
+          1.1,
+          1.7
+        ],
+        "periodSec": 7.61598,
+        "phaseDeg": 171.88733853924697,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 1.1,
+          "highM": 1.1
+        },
+        "type": "path",
+        "animation": "move",
+        "maxSpeedMS": 2.7,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-MORPHO-3",
+        "members": [
+          "blue-morpho-playable-3"
+        ],
+        "shape": "ellipse",
+        "center": [
+          13.2,
+          20.6
+        ],
+        "radii": [
+          1.3,
+          1.2
+        ],
+        "periodSec": 7.189,
+        "phaseDeg": 252.10142985756227,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 1.7,
+          "highM": 1.7
+        },
+        "type": "path",
+        "animation": "move",
+        "maxSpeedMS": 2.7,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-MORPHO-4",
+        "members": [
+          "blue-morpho-playable-4"
+        ],
+        "shape": "ellipse",
+        "center": [
+          5,
+          9
+        ],
+        "radii": [
+          2.5,
+          2
+        ],
+        "periodSec": 7.88354,
+        "phaseDeg": 126.05071492878113,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 1.25,
+          "highM": 1.25
+        },
+        "type": "path",
+        "animation": "move",
+        "maxSpeedMS": 2.7,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-MORPHO-5",
+        "members": [
+          "blue-morpho-playable-5"
+        ],
+        "shape": "ellipse",
+        "center": [
+          8,
+          7
+        ],
+        "radii": [
+          1.9,
+          2.6
+        ],
+        "periodSec": 6.96584,
+        "phaseDeg": 297.9380534680281,
+        "vertical": {
+          "mode": "aboveGround",
+          "lowM": 1.6,
+          "highM": 1.6
+        },
+        "type": "path",
+        "animation": "move",
+        "maxSpeedMS": 2.7,
+        "resumeAfterSec": 4
+      }
+    ]
   },
   "interactions": [
     {

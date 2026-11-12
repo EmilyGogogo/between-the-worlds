@@ -73,6 +73,12 @@ passed += run(r"""
 const kinds=Object.keys(SPECIES),used=new Set(Object.values(SPECIES).map(s=>s.category));
 assert('every configured category has a species and every species a configured category',kinds.length>0&&used.size===Object.keys(CATEGORIES).length&&[...used].every(c=>c in CATEGORIES),`${kinds.length} species, ${used.size}/${Object.keys(CATEGORIES).length} categories`);
 assert('every type has a physical instance',Object.keys(SPECIES).every(k=>W.entities.some(e=>e.kind===k)));
+const butterflies=W.entities.filter(e=>e.kind==='blueMorpho'),butterfly=W.byId.get('blue-morpho-playable');
+assert('six blue morphos survive world initialization',butterflies.length===6&&!!butterfly);
+assert('blue morpho model and wing animation are loaded',W.assets.hasModel('blueMorpho')&&!!butterfly.visual.userData.flap);
+const flap=butterfly.visual.userData.flap.value;W.update(.037,g.player,null);assert('blue morpho wings animate',butterfly.visual.userData.flap.value!==flap);
+assert('blue morpho has an ambient route',W.ambient.has(butterfly));
+
 assert('no flower or planet bodies',!W.entities.some(e=>['flower','planet','rockPlanet'].includes(e.kind)));
 const ids=W.entities.map(e=>e.id);assert('instance ids unique',new Set(ids).size===ids.length);
 assert('a new journey starts as human-first (D-017)',g.player.id==='human-first'&&g.player.kind==='human');
@@ -269,11 +275,15 @@ for(const id of ['island-main','island-0','boulder-island-0','grass-boulder-0','
 take('human-first');toggle();step(45);
 const firstYaw=g.yaw,firstPosition=W.position(g.player).clone(),firstLocal=g.player.root.position.clone();g.actions.add('move_right');step(15);g.clearInput();
 assert('first-person strafing keeps the look direction fixed',g.yaw===firstYaw&&W.position(g.player).distanceTo(firstPosition)>.1);
+assert('first-person strafing keeps body facing the view',Math.cos(g.player.heading-firstYaw)>.999);
+const backStart=W.position(g.player).clone(),backForward=backStart.clone().set(-Math.sin(firstYaw),0,-Math.cos(firstYaw));
+g.actions.add('move_back');step(15);g.clearInput();
+assert('first-person S backs away without turning the view or body',W.position(g.player).clone().sub(backStart).dot(backForward)<-.1&&g.yaw===firstYaw&&Math.cos(g.player.heading-firstYaw)>.999);
 g.player.root.position.copy(firstLocal);g.collision.refresh();
 g.yaw=.5;g.pitch=-.6;step(2);assert('ground first-person can look up',g.camera.getWorldDirection(g.camera.position.clone()).y>0);
 const before=W.position(g.player).clone();g.actions.add('move_forward');step(15);g.actions.clear();
 assert('looking up does not lift a ground body',Math.abs(g.player.root.position.y-g.groundHeight(g.player))<.001&&W.position(g.player).distanceTo(before)>0);
-g.save();assert('save records the selected perspective',JSON.parse(localStorage.getItem('between-all-things.save.v4')).cameraMode==='first_person');
+g.save();assert('save records the selected perspective',JSON.parse(localStorage.getItem('between-all-things.save.v5')).cameraMode==='first_person');
 g.cameraMode='third_person';g.restore();assert('restore retains first-person mode and look pitch',g.cameraMode==='first_person'&&g.pitch===-.6);
 g.paused=false;g.transition={opening:true,from:g.player,to:g.player};assert('view switching is ignored during transitions',!g.toggleView());g.transition=null;g.paused=true;
 assert('view switching is ignored while paused',!g.toggleView());
