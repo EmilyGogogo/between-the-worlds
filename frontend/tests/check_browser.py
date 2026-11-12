@@ -156,6 +156,8 @@ for(const kind of kinds)for(const [action,relative] of [['move_back',Math.PI],['
   g.clearInput();
 }
 W.restore(movementSnapshot);g.player=W.byId.get('human-first');g.allowed=originalAllowed;g.collision.move=originalCollisionMoveForMovement;g.unstick=originalUnstick;
+const {checkPossessionMovement}=await import('./tests/possession-movement-regressions.js');
+checkPossessionMovement(g,assert);
 // Mouse orbit updates the held movement reference; releasing/repressing uses the new view.
 g.player.heading=g.yaw;g.player.root.rotation.y=g.yaw;g.actions.add('move_left');g.move(.1);
 g.paused=false;g.dragging=true;const mouseYaw=g.yaw,movementYaw=g.movementInput.yaw;

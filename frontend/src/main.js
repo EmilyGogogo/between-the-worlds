@@ -301,15 +301,21 @@ class Game {
     const parentQ=e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
     if(first||!(x||z))this.movementInput=null;
     else if(!this.movementInput||this.movementInput.x!==x||this.movementInput.z!==z){
-      const screenDir=new THREE.Vector3(x,0,z).normalize().applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ);
-      this.movementInput={x,z,yaw:this.yaw,targetHeading:Math.atan2(-screenDir.x,-screenDir.z)};
+      const view=this.camera.getWorldDirection(new THREE.Vector3()),screenYaw=Math.atan2(-view.x,-view.z);
+      const screenDir=new THREE.Vector3(x,0,z).normalize().applyAxisAngle(UP,screenYaw).applyQuaternion(parentQ);
+      const targetHeading=Math.atan2(-screenDir.x,-screenDir.z);
+      // Project onto the carrier's surface before choosing the final camera yaw.
+      const worldDir=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,targetHeading).applyQuaternion(parentQ.clone().invert());
+      const targetYaw=Math.atan2(-worldDir.x,-worldDir.z);
+      const cameraTurn=Math.atan2(Math.sin(targetYaw-this.yaw),Math.cos(targetYaw-this.yaw));
+      this.movementInput={x,z,yaw:this.yaw,cameraTurn,targetHeading};
     }
     const dir=first?new THREE.Vector3(x,0,z):new THREE.Vector3();
     if(first&&dir.lengthSq())dir.normalize().applyAxisAngle(UP,this.yaw);
     if(s.verticalControl==='view_direction'&&z)dir.y=-z*this.climb();
     if(dir.lengthSq()>1)dir.normalize();
     e.moving=first?dir.lengthSq()>0:Boolean(this.movementInput);e.boosting=e.moving&&a.has('boost');
-    const speed=s.speed*(a.has('boost')?s.boost:1),before=e.root.position.clone(),headingBefore=e.heading;
+    const speed=s.speed*(a.has('boost')?s.boost:1),before=e.root.position.clone();
     let local,alignment=1;
     if(first){
       local=dir.applyQuaternion(parentQ).multiplyScalar(speed*dt);
@@ -321,13 +327,18 @@ class Game {
       e.heading+=THREE.MathUtils.clamp(delta,-step,step);
       if(s.mode!=='island')e.root.rotation.y=e.heading;
       alignment=Math.abs(delta)<=step?1:0;
-      local=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,e.heading).multiplyScalar(speed*dt*alignment);
-      if(s.verticalControl==='view_direction'&&z)local.y=-z*this.climb()*speed*dt*alignment;
+      local=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,e.heading).multiplyScalar(speed*dt);
+      if(s.verticalControl==='view_direction'&&z)local.y=-z*this.climb()*speed*dt;
       if(CAMERA_MODES.third_person.followBodyTurn){
-        const frame=parentQ.clone().invert(),wh=h=>{const f=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,h).applyQuaternion(frame);return Math.atan2(-f.x,-f.z);};
-        const turn=Math.atan2(Math.sin(wh(e.heading)-wh(headingBefore)),Math.cos(wh(e.heading)-wh(headingBefore)));
+        // Body alignment may start from an unrelated ambient-route heading.
+        // Turn the camera only toward the requested direction, at the same speed limit.
+        const desiredYaw=this.movementInput.yaw+this.movementInput.cameraTurn;
+        const remaining=Math.atan2(Math.sin(desiredYaw-this.yaw),Math.cos(desiredYaw-this.yaw));
+        const turn=THREE.MathUtils.clamp(remaining,-step,step);
         this.yaw+=turn;this.cameraBodyTurn+=turn;
+        if(Math.abs(remaining)>step)alignment=0;
       }
+      local.multiplyScalar(alignment);
     }else local=new THREE.Vector3();
     if(first||alignment!==0){
       this.moveBody(e,local,dt,true);

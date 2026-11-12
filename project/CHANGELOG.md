@@ -2,6 +2,14 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-12 · 修复所有实体第三人称方向偏移
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：`codex/fix-possession-forward-camera`，PR 待关联。
+- AI：Codex 负责诊断共享移动／镜头逻辑、实现修复、补充逐种回归和文档；人工复核待完成。
+- 变更与原因：鱼之外的身体也会因自动路线留下的旧朝向，使按下前进后镜头跟随错误转角，出现向左或侧向移动。第三人称按键现在读取实际显示镜头方向，身体与镜头都按当前种类转速限速对齐，旧路线朝向不计入镜头转角；持续按键锁定方向。自动路线继续在当前主体和魂穿过渡两端暂停。新增 13 种实体以及巨岩、邻岛承载体的方向回归。
+- 验证：`python3 project/check_all.py --only docs --output .work/possession-forward-docs` 通过（1990 项）；`python3 project/check_repository.py --javascript` 通过（209 个文件）；`python3 project/validate_docs.py` 通过；`git diff --check` 通过。独立隔离 Chrome 移动回归通过 1345 项（13 种实体、四种初始朝向、四方向输入、承载体和路线暂停）；全量检查首次运行通过逐种初始化和移动检查，但第二次页面重载在 90 秒等待阶段超时（Chrome 157，和既有重载限制一致）。提交前重跑 `python3 project/check_all.py`，文档检查通过，浏览器检查仍在页面重载等待 90 秒后超时。
+- 未验证项 / 风险：真实浏览器第二次重载、真人操作手感、目标设备性能和视觉资产验收仍待人工复核；移动回归通过不代表边界滑动、障碍物绕行和完整手感已由真人验收；新增用例保留真实镜头与身体移动，方向测试中解除实心阻挡并缩短岛漂移距离以排除河岸滑动。证据：本地 `.work/possession-movement-focused/browser.log`；全量日志 `.work/possession-forward-checks/browser.log`。
+
 ## 2026-11-12 · 合入蓝闪蝶与主线鸟鱼
 
 - 负责人：Codex；关联：D-035、PR #9，最终 PR 待关联，人工复核待完成。
