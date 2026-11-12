@@ -4,11 +4,12 @@
 
 ## 2026-11-12 · 修复 CI 环境路线检查的循环移动误报
 
-- 负责人：@EmilyGogogo；关联：PR #12 的浏览器失败，独立修复 PR 待关联，分支 `codex/fix-ambient-ci-regression`。
+- 负责人：@EmilyGogogo；关联：PR #12 的浏览器失败，独立修复 PR #13，分支 `codex/fix-ambient-ci-regression`。
 - AI：Codex 核对 PR 与断言、隔离浏览器复现、修复测试并验证；人工复核：待负责人复核。
 - 变更与原因：原断言以 10 秒后距离起点超过 1 m 判断自主移动，误判短半径循环路线。PR #12 的隔离 Chrome 实测 `blue-morpho-playable` 累计行进约 4.393 m，但净位移仅约 0.508 m。改为逐帧累计路程，保留全部成员、10 秒窗口及超过 1 m 的门槛，失败时输出成员 ID 和累计路程；增加绕圈回到起点、完全静止两项回归。仅修改浏览器测试与审计记录，不改游戏、数据、生成配置或 Actions 工作流；独立从 main 提交，供 PR #12 随主线更新取得修复。
 - 验证：macOS、Python 3.9.6、Chrome 157.0.8103.52、Node 24.22.2；修复前在 PR #12 的 `9dd1e9c` 隔离浏览器复现上述净位移误报。修复后从 main 基线启动真实游戏，环境路线整组 8 项通过（含碰撞、水体、群聚、受控暂停与释放后归队）；PR #12 集成副本的目标检查 4 项通过（成员完整、闭环测量、静止测量、自主移动）。`python3 project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`python3 project/check_all.py --output .work/ambient-ci-checks` 的 1790 项文档／数据检查通过，但完整浏览器在页面重载的 90 秒等待阶段超时，不能算通过；`git diff --check` 通过。本地原始工作区证据 `.work/pr12-ambient/baseline.log`、`main-focused.log`、`focused-metric.log` 与独立修复工作树 `.work/ambient-ci-checks/`。
-- 未验证项 / 风险：GitHub Actions 尚待新 PR 运行；完整浏览器本地重载超时。PR #12 原版与仅替换测试的集成副本，在单独运行整组环境检查时均另报 `gull-1 overlaps`（原版诊断日志 `.work/pr12-ambient/original-diagnostic.log`，不是本修复引入）；此游戏碰撞问题不在本 PR 修改范围，不能据目标检查通过声称 PR #12 全部通过。真人试玩、模型许可、视觉和性能不在本次测试修复的验收范围。
+- 集成验证：PR #12 副本执行 `python3 project/check_all.py --output .work/pr12-ci-integration`，1990 项文档／数据检查通过，完整浏览器同样在页面重载的 90 秒等待阶段超时（原工作区 `.work/pr12-ambient/integration-check.log`），不作为完整通过的证据。
+- 未验证项 / 风险：提交本条记录时 PR #13 的 GitHub Actions 尚待运行；完整浏览器本地重载超时。PR #12 原版与仅替换测试的集成副本，在单独运行整组环境检查时均另报 `gull-1 overlaps`（原版诊断日志 `.work/pr12-ambient/original-diagnostic.log`，不是本修复引入）；此游戏碰撞问题不在本 PR 修改范围，不能据目标检查通过声称 PR #12 全部通过。真人试玩、模型许可、视觉和性能不在本次测试修复的验收范围。
 
 ## 2026-11-09 · 统一第三人称转身移动并新增实体第一人称
 
