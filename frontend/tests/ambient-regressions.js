@@ -2,6 +2,18 @@ import { LAYOUT, SPECIES } from '../src/species.js';
 import { AmbientMotion } from '../src/ambient.js';
 import { InteractionSystem } from '../src/interactions.js';
 
+export function measureAmbientTravel(members,step,frames=300){
+  const tracks=members.map(entity=>({entity,previous:entity.root.position.clone(),distance:0}));
+  for(let frame=0;frame<frames;frame++){
+    step(1);
+    for(const track of tracks){
+      const position=track.entity.root.position;
+      track.distance+=position.distanceTo(track.previous);track.previous.copy(position);
+    }
+  }
+  return tracks.map(({entity,distance})=>({id:entity.id,distance}));
+}
+
 // Exercise the real game's save reader and movement, with its loaded GLBs and colliders.
 export function checkSaveMigration(g,assert){
   const W=g.world,original=W.serialize(),storage='between-all-things.save.v4';
