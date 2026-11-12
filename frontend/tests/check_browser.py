@@ -400,8 +400,13 @@ load()
 passed += run(r"""
 const A=W.ambient,groups=LAYOUT.ambient||[],members=groups.flatMap(gr=>gr.members.map(id=>W.byId.get(id)));
 assert('every ambient member exists and is driven by its route',groups.length>0&&members.every(e=>e&&A.has(e)));
-const start=new Map(members.map(e=>[e,e.root.position.clone()]));step(300);
-assert('unplayed ambient bodies move on their own',members.every(e=>e.root.position.distanceTo(start.get(e))>1),members.filter(e=>e.root.position.distanceTo(start.get(e))<=1).map(e=>e.id).join());
+const {measureAmbientTravel}=await import('./tests/ambient-regressions.js');
+const loop={id:'closed-loop',root:{position:g.player.root.position.clone().set(1,0,0)}},still={id:'stationary',root:{position:loop.root.position.clone()}},origin=loop.root.position.clone();let frame=0;
+const fixture=measureAmbientTravel([loop,still],()=>{frame++;const angle=frame/300*Math.PI*2;loop.root.position.set(Math.cos(angle),0,Math.sin(angle));});
+assert('ambient travel counts a closed route even when it returns to its start',loop.root.position.distanceTo(origin)<1e-6&&fixture[0].distance>1);
+assert('ambient travel does not count a stationary body as moving',fixture[1].distance===0);
+const travel=measureAmbientTravel(members,step);
+assert('unplayed ambient bodies move on their own',travel.every(record=>record.distance>1),travel.filter(record=>!(record.distance>1)).map(record=>`${record.id}: ${record.distance.toFixed(3)} m travelled`).join());
 const out=[];let spread=0;
 for(let k=0;k<40;k++){step(30);g.collision.refresh();
   for(const gr of groups){const list=gr.members.map(id=>W.byId.get(id));
