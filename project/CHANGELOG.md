@@ -2,6 +2,14 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-12 · 修复本地服务重载时模块请求被重置
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：分支 `claude/fix-serve-backlog`，PR #14。
+- AI：Claude Code（Claude Opus 5.5）负责复现、定位原因、修改 `frontend/serve.py` 并验证；人工复核待完成。
+- 变更与原因：本地完整回归多次在页面重载等待 90 秒后超时。复现时，重载后部分 ES 模块请求（`terrain.js`、`interactions.js`、`collision.js`、`audio.js`）返回 `net::ERR_CONNECTION_RESET`，服务端日志没有对应请求和异常；任一模块导入失败会让 `main.js` 无法执行，`window.__world` 不出现。Python `ThreadingHTTPServer` 默认监听队列只有 5，HTTP/1.0 每个文件新开连接，禁用缓存的重载并发请求超出队列后被 macOS 重置。`serve.py` 改为使用监听队列 128 的服务器子类；端口、目录、缓存头与 `--open` 行为不变。平时用 `serve.py` 本地游玩偶发白屏也属同一原因。
+- 验证：修改前在 macOS + Chrome 157 用独立探针（同 `check_all.py` 的启动参数与 `load()` 步骤）重载 6 次失败 3 次，仅把队列改为 128 的对照服务器 8 次全部通过；本分支修改后用实际 `serve.py` 重载 8 次全部通过。`python3 project/check_all.py --output .work/serve-backlog-checks` 通过：文档／数据 1790 项、浏览器 591 项。
+- 未验证项 / 风险：未在 Windows / Linux 及 CI 上单独复现原问题；最近资源增多是否使超时更频繁属推断，未按提交逐一核对；本分支基于 `main`，重载耗时约 11–26 秒（未修复问题外的加载性能未调查）。真人试玩不涉及。
+
 ## 2026-11-12 · 修复 CI 环境路线检查的循环移动误报
 
 - 负责人：@EmilyGogogo；关联：PR #12 的浏览器失败，独立修复 PR #13，分支 `codex/fix-ambient-ci-regression`。
