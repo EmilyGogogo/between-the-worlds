@@ -15,6 +15,12 @@ class Handler(SimpleHTTPRequestHandler):
         super().end_headers()
 
 
+class Server(ThreadingHTTPServer):
+    # The default listen backlog of 5 overflows when Chrome requests the ES module graph
+    # on reload; macOS then resets connections and one failed import stops main.js.
+    request_queue_size = 128
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=4173)
@@ -22,7 +28,7 @@ if __name__ == '__main__':
     parser.add_argument('--open', action='store_true', help='Open the experience in the default browser')
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
-    server = ThreadingHTTPServer((args.host, args.port), partial(Handler, directory=str(root)))
+    server = Server((args.host, args.port), partial(Handler, directory=str(root)))
     print(f'万物之间 → http://{args.host}:{args.port}', flush=True)
     if args.open:
         threading.Timer(.4, lambda: webbrowser.open(f'http://{args.host}:{args.port}')).start()
