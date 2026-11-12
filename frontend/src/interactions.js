@@ -50,7 +50,14 @@ export const EFFECTS={
         local=back.multiplyScalar(Math.min(1,f.speed*.5*ctx.dt/length));
       }
       target.moving=Boolean(local);
-      if(local)ctx.game.moveBody(target,local,ctx.dt);
+      if(local){
+        // Turning changes a long body's box: a blocked flee turn must not wedge it into a solid (M-01).
+        const collision=ctx.game.collision,p=target.root.position,before=p.clone(),heading=target.heading,rotation=target.root.rotation.y;
+        const clear=!collision.collides(target,ctx.world.position(target));
+        ctx.game.moveBody(target,local,ctx.dt);
+        if(clear&&collision.collides(target,ctx.world.position(target))){p.copy(before);target.heading=heading;target.root.rotation.y=rotation;}
+        collision.refreshEntity(target);
+      }
       return true;
     },
   },

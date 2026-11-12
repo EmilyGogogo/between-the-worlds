@@ -9,6 +9,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+import time
 from cdp import CDP
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -458,6 +459,10 @@ assert('ambient travel counts a closed route even when it returns to its start',
 assert('ambient travel does not count a stationary body as moving',fixture[1].distance===0);
 const travel=measureAmbientTravel(members,step);
 assert('unplayed ambient bodies move on their own',travel.every(record=>record.distance>1),travel.filter(record=>!(record.distance>1)).map(record=>`${record.id}: ${record.distance.toFixed(3)} m travelled`).join());
+// D-027: unplayed birds, fish and butterflies keep moving on their routes; none hovers behind a trunk or canopy.
+const {longestStops}=await import('./tests/ambient-regressions.js'),period=Math.max(...groups.map(gr=>gr.periodSec));
+const stops=longestStops(members,step,Math.ceil(period*30)).filter(record=>record.longest>2);
+assert(`over a full ${period} s route period no unplayed body stands still for more than 2 s (D-027)`,stops.length===0,stops.map(record=>`${record.id}: ${record.longest.toFixed(1)} s`).join());
 const out=[];let spread=0;
 for(let k=0;k<40;k++){step(30);g.collision.refresh();
   for(const gr of groups){const list=gr.members.map(id=>W.byId.get(id));
@@ -474,7 +479,21 @@ assert('the played body is not moved by its route',bird.root.position.distanceTo
 take('human-first');const left=bird.root.position.clone();step(60);const rest=bird.root.position.distanceTo(left);step(180);
 assert('a released body rests, then rejoins its route',rest<.01&&bird.root.position.distanceTo(left)>2,rest.toFixed(3));
 """)
-# Review regressions: removed save players, terrain on rejoining, and played-body collision.
+# D-035: an old sea-archipelago save and an unreadable current save must not block a new
+# river-island journey or leak old coordinates into it. Load without clearing these saves.
+c.evaluate("window.__world&&(window.__world.resetting=true);localStorage.clear();"
+           "localStorage.setItem('between-all-things.save.v4',JSON.stringify({version:4,player:'butterflyfish-0',"
+           "entities:[{id:'human-first',position:[210,-4,220]}],shown:['island:first_possess']}));"
+           "localStorage.setItem('between-all-things.save.v5','{\"version\":5,');true")
+previous = c.evaluate('performance.timeOrigin')
+c.call('Page.navigate', {'url': PAGE})
+c.wait_for(f'performance.timeOrigin!=={previous}&&!!window.__world&&!document.getElementById("enter").disabled', 90)
+passed += run(r"""
+assert('old sea and unreadable saves still open a new river-island journey (D-035)',!g.hasSave&&document.getElementById('enter-label').textContent!=='继续漫游'&&g.player.id===LAYOUT.initialInstance);
+const home=LAYOUT.instances.find(i=>i.id===LAYOUT.initialInstance).position;
+assert('the new journey does not take the old sea coordinates (D-035)',Math.hypot(g.player.root.position.x-home[0],g.player.root.position.z-home[2])<1e-6&&!g.shown.has('island:first_possess'));
+""")
+# Review regressions: river-island save rules, terrain on rejoining, and played-body collision.
 load()
 passed += run(r"""
 const {checkSaveMigration,checkAmbientCollision}=await import('./tests/ambient-regressions.js');
@@ -517,8 +536,18 @@ def key_event(code, kind='keyDown', repeat=False):
     c.call('Input.dispatchKeyEvent', {'type': kind, 'code': code, 'key': key_name,
                                      'windowsVirtualKeyCode': virtual, 'autoRepeat': repeat})
 
-def browser_assert(name, expression):
-    assert c.evaluate(expression), name
+INPUT_STATE = ("JSON.stringify((g=>({paused:g.paused,dragging:g.dragging,yaw:g.yaw,transition:!!g.transition,"
+               "locked:!!document.pointerLockElement,actions:[...g.actions],"
+               "under:(e=>e&&(e.id||e.className||e.tagName))(document.elementFromPoint(550,300))}))(window.__world))")
+
+# Leaving pointer lock fires pointerlockchange asynchronously. If it arrives after a fast
+# resume click, the game reads it as a lost lock and pauses again; wait until the game
+# has handled it (wasLocked) before the next input.
+PAUSED_UNLOCKED = 'window.__world.paused&&!document.pointerLockElement&&!window.__world.wasLocked'
+
+def browser_assert(name, expression, state=None):
+    if not c.evaluate(expression):
+        raise AssertionError(f'{name}: {c.evaluate(state)}' if state else name)
     passed.append(name)
 
 browser_assert('entry explains hidden pointer and Escape before playing',
@@ -543,16 +572,19 @@ c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 680, 'y': 400})
 browser_assert('real locked pointer movement changes the camera', f'window.__world.yaw!=={yaw_before}')
 key_event('Escape')
 key_event('Escape', 'keyUp')
-c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+c.wait_for(PAUSED_UNLOCKED, 10)
 browser_assert('Escape pauses, releases pointer, and replaces compact guide with full menu',
                "!document.getElementById('pause').hidden&&document.getElementById('control-guide').hidden")
 key_event('Escape', repeat=True)
 browser_assert('holding Escape does not toggle pause repeatedly', 'window.__world.paused')
+# Chrome refuses a new pointer lock for about a second after the user leaves it with
+# Escape; the game then falls back to drag look. Click resume as a person could, after it.
+time.sleep(1.5)
 click_at(*center('resume'))
 c.wait_for('!window.__world.paused&&!!document.pointerLockElement', 10)
 passed.append('real resume click restores exploration and pointer lock')
 c.evaluate("window.dispatchEvent(new Event('blur'));true")
-c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+c.wait_for(PAUSED_UNLOCKED, 10)
 browser_assert('focus loss pauses with an explanation and clears all input',
                "document.getElementById('pause-reason').textContent.includes('离开画面')&&window.__world.actions.size===0&&window.__world.pressedCodes.size===0")
 c.evaluate("window.dispatchEvent(new Event('focus'));true")
@@ -591,7 +623,7 @@ browser_assert('releasing W preserves held ArrowUp', "window.__world.actions.has
 key_event('ArrowUp', 'keyUp')
 browser_assert('releasing both aliases stops movement', 'window.__world.actions.size===0')
 c.evaluate('window.__world.pause();true')
-c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+c.wait_for(PAUSED_UNLOCKED, 10)
 # Deliberate browser rejection exercises the real request/catch path, not a no-op lockMouse.
 c.evaluate("document.getElementById('world').requestPointerLock=()=>Promise.reject(new DOMException('Test denial','NotAllowedError'));true")
 click_at(*center('resume'))
@@ -603,7 +635,7 @@ for event in ({'type': 'mouseMoved', 'x': 550, 'y': 300},
     c.call('Input.dispatchMouseEvent', event)
 drag_yaw = c.evaluate('window.__world.yaw')
 c.call('Input.dispatchMouseEvent', {'type': 'mouseMoved', 'x': 640, 'y': 320, 'button': 'left', 'buttons': 1})
-browser_assert('unlocked left drag changes the camera', f'window.__world.dragging&&window.__world.yaw!=={drag_yaw}')
+browser_assert('unlocked left drag changes the camera', f'window.__world.dragging&&window.__world.yaw!=={drag_yaw}', INPUT_STATE)
 c.evaluate("document.getElementById('world').dispatchEvent(new PointerEvent('pointercancel'));true")
 browser_assert('cancelled pointer stops drag look', '!window.__world.dragging')
 c.call('Input.dispatchMouseEvent', {'type': 'mouseReleased', 'x': 640, 'y': 320, 'button': 'left', 'clickCount': 1})
@@ -634,11 +666,11 @@ g.player=g.world.byId.get('gull-0');g.updateControlGuide();check('flying body sh
 g.player=from;g.updateControlGuide();check('ground body hides vertical control',document.getElementById('vertical-guide').hidden);
 g.pointerHintTime=0;g.updateControlGuide();check('compact guide stays visible without timed status',!document.getElementById('control-guide').hidden&&document.getElementById('control-status').hidden);
 g.hints={r:true,possessed:true};g.save();g.hints={};g.restore();g.updateControlGuide();check('legacy completion flags do not suppress target instruction after restore',g.hints.possessed&&hint.classList.contains('visible'));
-const human=g.world.byId.get('human-first'),home=human.home.clone(),homeRotation=[...human.homeRotation],homeBaseY=human.homeBaseY,save=JSON.parse(localStorage.getItem('between-all-things.save.v4'));
+const human=g.world.byId.get('human-first'),home=human.home.clone(),homeRotation=[...human.homeRotation],homeBaseY=human.homeBaseY,save=JSON.parse(localStorage.getItem('between-all-things.save.v5'));
 check('saved layout rotation baselines contain three finite angles',save.layout.every(record=>record.rotation.length===3&&record.rotation.every(Number.isFinite)));
 human.root.position.copy(home).add(home.clone().set(5,0,-3));human.root.rotation.y=homeRotation[1]+.3;human.baseY=homeBaseY+2;g.save();const moved=human.root.position.clone();
 const patchedHome=home.clone().add(home.clone().set(10,0,0));human.home.copy(patchedHome);human.homeRotation[1]+=.5;human.homeBaseY+=4;
-g.world.restore(JSON.parse(localStorage.getItem('between-all-things.save.v4')).entities,save.layout);
+g.world.restore(JSON.parse(localStorage.getItem('between-all-things.save.v5')).entities,save.layout);
 check('patch layout changes apply while preserving the player movement offset',human.root.position.distanceTo(moved.clone().add(home.clone().set(10,0,0)))<1e-6);
 check('patch layout changes apply while preserving the player rotation offset',Math.abs(human.root.rotation.y-(homeRotation[1]+.8))<1e-6);
 check('patch layout changes apply while preserving the player height offset',Math.abs(human.baseY-(homeBaseY+6))<1e-6);
@@ -663,7 +695,7 @@ for width, height in ((1280, 720), (1366, 768), (1920, 1080), (800, 600), (640, 
     c.call('Emulation.setDeviceMetricsOverride', {'width': width, 'height': height, 'deviceScaleFactor': DEVICE_SCALE, 'mobile': False})
     c.wait_for(f'innerWidth==={width}&&innerHeight==={height}', 10)
     c.evaluate('window.__world.pause();true')
-    c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+    c.wait_for(PAUSED_UNLOCKED, 10)
     browser_assert(f'pause menu remains within viewport at {width}x{height}', r"""(()=>{
 const r=document.querySelector('.pause-card').getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;
 })()""")
@@ -678,7 +710,7 @@ return !guide.hidden&&bounds.width>0&&bounds.width<=300&&bounds.height>0&&bounds
 })()""")
         if look_mode == 'locked':
             c.evaluate('window.__world.pause();true')
-            c.wait_for('window.__world.paused&&!document.pointerLockElement', 10)
+            c.wait_for(PAUSED_UNLOCKED, 10)
             c.evaluate('window.__world.resume(false);true')
 print('\n'.join('PASS ' + name for name in passed))
 print(f'{len(passed)} browser checks passed (0.4 baseline). Not a substitute for QA-01..QA-49 playtests.')
