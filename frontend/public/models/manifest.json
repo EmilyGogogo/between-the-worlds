@@ -1,7 +1,85 @@
 {
   "version": 4,
   "generatedFrom": "data/entities.json",
-  "environment": null,
+  "environment": {
+    "url": null,
+    "scale": 1,
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0
+    ],
+    "useAsTerrain": true,
+    "heightfield": {
+      "url": "./public/terrain/island-height.bin",
+      "groundMap": "./public/terrain/island-ground.bin",
+      "grid": [
+        1401,
+        901
+      ],
+      "size": [
+        1400,
+        900
+      ],
+      "heightRange": [
+        -9.0,
+        6.0
+      ],
+      "generator": "project/terrain/river_island.py",
+      "seed": 20261106,
+      "layers": [
+        {
+          "name": "sand",
+          "source": "Poly Haven coast_sand_01",
+          "diffuse": "./public/textures/ground/coast_sand_01_diff_1k.jpg",
+          "normal": "./public/textures/ground/coast_sand_01_nor_1k.jpg",
+          "tileM": 2.6,
+          "roughness": 0.85
+        },
+        {
+          "name": "mud",
+          "source": "Poly Haven brown_mud_02",
+          "diffuse": "./public/textures/ground/brown_mud_02_diff_1k.jpg",
+          "normal": "./public/textures/ground/brown_mud_02_nor_1k.jpg",
+          "tileM": 2.4,
+          "roughness": 0.6
+        },
+        {
+          "name": "grass",
+          "source": "Poly Haven leafy_grass",
+          "diffuse": "./public/textures/ground/leafy_grass_diff_1k.jpg",
+          "normal": "./public/textures/ground/leafy_grass_nor_1k.jpg",
+          "tileM": 2.2,
+          "roughness": 0.95
+        },
+        {
+          "name": "cracked",
+          "source": "Poly Haven mud_cracked_dry_03",
+          "diffuse": "./public/textures/ground/mud_cracked_dry_03_diff_1k.jpg",
+          "normal": "./public/textures/ground/mud_cracked_dry_03_nor_1k.jpg",
+          "tileM": 3.2,
+          "roughness": 0.9
+        },
+        {
+          "name": "litter",
+          "source": "Poly Haven forest_leaves_04",
+          "diffuse": "./public/textures/ground/forest_leaves_04_diff_1k.jpg",
+          "normal": "./public/textures/ground/forest_leaves_04_nor_1k.jpg",
+          "tileM": 2.0,
+          "roughness": 0.95
+        }
+      ],
+      "groundGrid": [
+        701,
+        451
+      ]
+    }
+  },
   "decor": [
     {
       "slotId": "env.meadow",
@@ -14,37 +92,82 @@
       ],
       "wind": true,
       "visibleUpToStage": 1,
-      "placeholder": "procedural:meadow",
+      "placeholder": "procedural:blades",
+      "placeholderStyle": "meadow",
       "scatter": {
         "carrier": "island-main",
         "seed": 7,
-        "surfaceMin": 5,
-        "surfaceMax": 43,
-        "avoidRegions": [
-          "lake"
-        ],
+        "surfaceMin": 0.35,
+        "surfaceMax": 8,
+        "groundLayer": 2,
+        "cellM": 48,
+        "drawDistanceM": 150,
         "areas": [
           {
             "center": [
-              0,
-              20
+              10,
+              15
             ],
             "size": [
-              100,
-              100
+              150,
+              150
             ],
-            "count": 45000
+            "count": 100000
           },
           {
             "center": [
-              0,
+              -140,
+              8
+            ],
+            "size": [
+              170,
+              240
+            ],
+            "count": 40000
+          },
+          {
+            "center": [
+              60,
               0
             ],
             "size": [
-              410,
-              340
+              900,
+              600
             ],
-            "count": 20000
+            "count": 70000
+          },
+          {
+            "center": [
+              -420,
+              -60
+            ],
+            "size": [
+              140,
+              110
+            ],
+            "count": 15400
+          },
+          {
+            "center": [
+              -200,
+              205
+            ],
+            "size": [
+              116,
+              88
+            ],
+            "count": 10208
+          },
+          {
+            "center": [
+              90,
+              -90
+            ],
+            "size": [
+              104,
+              76
+            ],
+            "count": 7904
           }
         ]
       },
@@ -62,21 +185,330 @@
       "wind": false,
       "visibleUpToStage": 1,
       "placeholder": "procedural:pebble",
+      "placeholderStyle": null,
       "scatter": {
         "carrier": "island-main",
         "seed": 500,
         "insideRegion": "lake",
+        "surfaceMax": 0.0,
         "areas": [
           {
             "center": [
-              -83,
-              -65
+              -70,
+              8
             ],
             "size": [
-              105,
-              55
+              128,
+              240
             ],
-            "count": 45
+            "count": 160,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              153,
+              303
+            ],
+            "size": [
+              84,
+              44
+            ],
+            "count": 180,
+            "waterType": "river"
+          }
+        ]
+      },
+      "status": "placeholder"
+    },
+    {
+      "slotId": "env.reeds",
+      "url": null,
+      "variants": [],
+      "height": 1.8,
+      "scaleRange": [
+        0.7,
+        1.3
+      ],
+      "wind": true,
+      "visibleUpToStage": 1,
+      "placeholder": "procedural:blades",
+      "placeholderStyle": "reeds",
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 71,
+        "surfaceMin": 0.1,
+        "surfaceMax": 0.9,
+        "groundLayer": 1,
+        "cellM": 48,
+        "drawDistanceM": 200,
+        "areas": [
+          {
+            "center": [
+              -70,
+              8
+            ],
+            "size": [
+              160,
+              280
+            ],
+            "count": 18000
+          },
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              1200,
+              720
+            ],
+            "count": 45000
+          }
+        ]
+      },
+      "status": "placeholder"
+    },
+    {
+      "slotId": "env.forest",
+      "url": null,
+      "variants": [],
+      "height": 20,
+      "scaleRange": [
+        1,
+        1
+      ],
+      "wind": false,
+      "visibleUpToStage": 1,
+      "placeholder": "procedural:forest",
+      "placeholderStyle": null,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 61,
+        "surfaceMin": 0.6,
+        "groundLayer": "litter",
+        "avoidRegions": [
+          "lake_shore",
+          "spawn_clearing",
+          "glade_west",
+          "glade_north",
+          "glade_east"
+        ],
+        "layers": [
+          {
+            "name": "emergent",
+            "models": [
+              "kapok"
+            ],
+            "fallback": "kapok",
+            "attempts": 1500,
+            "heightM": [
+              34,
+              46
+            ],
+            "spacingM": 60,
+            "trunk": 0.7,
+            "surfaceMin": 2.0,
+            "leanDeg": 1.5,
+            "ageSkew": 0.8
+          },
+          {
+            "name": "canopy",
+            "models": [
+              "canopy_tall"
+            ],
+            "fallback": "canopy",
+            "attempts": 60000,
+            "heightM": [
+              18,
+              30
+            ],
+            "slender": 0.85,
+            "widthScale": [
+              0.85,
+              1.2
+            ],
+            "spacingM": 13,
+            "overlap": 0.6,
+            "trunk": 0.3,
+            "leanDeg": 4,
+            "ageSkew": 1.3
+          },
+          {
+            "name": "subcanopy",
+            "models": [
+              "canopy"
+            ],
+            "fallback": "canopy",
+            "attempts": 30000,
+            "heightM": [
+              6,
+              12
+            ],
+            "slender": 0.8,
+            "widthScale": [
+              0.8,
+              1.2
+            ],
+            "spacingM": 10,
+            "overlap": 0.7,
+            "trunk": 0.3,
+            "leanDeg": 6,
+            "ageSkew": 1.4,
+            "clumpOffset": 3.7
+          },
+          {
+            "name": "palms",
+            "models": [
+              "acai"
+            ],
+            "fallback": "palm",
+            "attempts": 12000,
+            "heightM": [
+              6,
+              11
+            ],
+            "widthScale": [
+              0.85,
+              1.15
+            ],
+            "spacingM": 8,
+            "trunk": 0.45,
+            "surfaceMax": 2.4,
+            "leanDeg": 7,
+            "clumpOffset": 8.1
+          }
+        ],
+        "areas": [
+          {
+            "center": [
+              -20,
+              0
+            ],
+            "size": [
+              1120,
+              680
+            ]
+          }
+        ],
+        "vegetation": "./public/models/vegetation/vegetation.json",
+        "clumping": {
+          "scaleM": 55,
+          "clearingBelow": 0.34,
+          "strength": 0.7
+        },
+        "lodRangesM": [
+          12,
+          30,
+          75
+        ],
+        "blocksBodiesUpToM": 3
+      },
+      "status": "placeholder"
+    },
+    {
+      "slotId": "env.understory",
+      "url": null,
+      "variants": [],
+      "height": 1.4,
+      "scaleRange": [
+        0.6,
+        1.5
+      ],
+      "wind": true,
+      "visibleUpToStage": 1,
+      "placeholder": "procedural:understory",
+      "placeholderStyle": null,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 91,
+        "surfaceMin": 0.5,
+        "groundLayer": "litter",
+        "drawDistanceM": 35,
+        "avoidRegions": [
+          "lake",
+          "spawn_clearing"
+        ],
+        "areas": [
+          {
+            "center": [
+              -20,
+              0
+            ],
+            "size": [
+              1100,
+              660
+            ],
+            "count": 16000
+          }
+        ],
+        "plants": [
+          {
+            "model": "understory",
+            "weight": 1,
+            "heightM": [
+              0.7,
+              1.7
+            ],
+            "patchM": 16
+          }
+        ],
+        "lodRangesM": [
+          12,
+          35
+        ]
+      },
+      "status": "placeholder"
+    },
+    {
+      "slotId": "env.fireflies",
+      "url": null,
+      "variants": [],
+      "height": 0.05,
+      "scaleRange": [
+        1,
+        1
+      ],
+      "wind": false,
+      "visibleUpToStage": 1,
+      "placeholder": "procedural:fireflies",
+      "placeholderStyle": null,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 11,
+        "surfaceMin": 0.3,
+        "areas": [
+          {
+            "center": [
+              10,
+              18
+            ],
+            "size": [
+              130,
+              130
+            ],
+            "count": 300
+          },
+          {
+            "center": [
+              -140,
+              8
+            ],
+            "size": [
+              150,
+              220
+            ],
+            "count": 260
+          },
+          {
+            "center": [
+              70,
+              40
+            ],
+            "size": [
+              160,
+              120
+            ],
+            "count": 160
           }
         ]
       },
@@ -105,44 +537,150 @@
       "pivot": "bottom_center"
     },
     "broadleaf": {
-      "url": null,
+      "url": "./public/models/vegetation/canopy.glb",
       "variants": [],
-      "lod": [],
-      "height": 12.0,
+      "lod": [
+        {
+          "node": "lod1",
+          "distance": 51
+        },
+        {
+          "node": "lod2",
+          "distance": 92
+        }
+      ],
+      "height": 20.0,
       "rotation": [
         0,
         0,
         0
       ],
       "animations": {},
-      "colliderMode": "auto_bounds",
-      "collisionBoxes": null,
+      "colliderMode": "custom_boxes",
+      "collisionBoxes": [
+        [
+          -0.7,
+          0,
+          -0.5,
+          0.7,
+          6.2,
+          0.9
+        ],
+        [
+          -9,
+          5.8,
+          -8.5,
+          9.5,
+          20.3,
+          9.5
+        ]
+      ],
       "slotId": "slot.broadleaf",
-      "status": "placeholder",
+      "status": "integrated",
       "placeholder": "procedural:tree",
-      "placeholderStyle": "broadleaf",
-      "lux3dUsed": false,
-      "pivot": "bottom_center"
+      "placeholderStyle": "canopy",
+      "lux3dUsed": true,
+      "pivot": "file_origin"
     },
-    "pine": {
-      "url": null,
+    "palm": {
+      "url": "./public/models/vegetation/acai.glb",
       "variants": [],
-      "lod": [],
-      "height": 15.0,
+      "lod": [
+        {
+          "node": "lod1",
+          "distance": 26
+        },
+        {
+          "node": "lod2",
+          "distance": 48
+        }
+      ],
+      "height": 10.0,
       "rotation": [
         0,
         0,
         0
       ],
       "animations": {},
-      "colliderMode": "auto_bounds",
-      "collisionBoxes": null,
-      "slotId": "slot.pine",
-      "status": "placeholder",
+      "colliderMode": "custom_boxes",
+      "collisionBoxes": [
+        [
+          -1.6,
+          0,
+          -0.9,
+          1.6,
+          3.3,
+          0.7
+        ],
+        [
+          -4.2,
+          3.3,
+          -2.9,
+          4.2,
+          10.2,
+          2.7
+        ]
+      ],
+      "slotId": "slot.palm",
+      "status": "integrated",
       "placeholder": "procedural:tree",
-      "placeholderStyle": "pine",
-      "lux3dUsed": false,
-      "pivot": "bottom_center"
+      "placeholderStyle": "palm",
+      "lux3dUsed": true,
+      "pivot": "file_origin"
+    },
+    "kapok": {
+      "url": "./public/models/vegetation/kapok.glb",
+      "variants": [],
+      "lod": [
+        {
+          "node": "lod1",
+          "distance": 106
+        },
+        {
+          "node": "lod2",
+          "distance": 192
+        }
+      ],
+      "height": 42.0,
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "animations": {},
+      "colliderMode": "custom_boxes",
+      "collisionBoxes": [
+        [
+          -3.6,
+          0,
+          -1.2,
+          0.4,
+          25,
+          2.7
+        ],
+        [
+          -9,
+          0,
+          -6.5,
+          6.5,
+          4,
+          8
+        ],
+        [
+          -19,
+          24,
+          -15,
+          14,
+          42.5,
+          16.5
+        ]
+      ],
+      "slotId": "slot.kapok",
+      "status": "integrated",
+      "placeholder": "procedural:tree",
+      "placeholderStyle": "kapok",
+      "lux3dUsed": true,
+      "pivot": "file_origin"
     },
     "rock": {
       "url": null,
@@ -200,7 +738,7 @@
       "slotId": "slot.island",
       "status": "placeholder",
       "placeholder": "procedural:island",
-      "placeholderStyle": "dome",
+      "placeholderStyle": "river",
       "lux3dUsed": false,
       "pivot": "sea_level_center"
     },
@@ -320,6 +858,27 @@
       "placeholderStyle": "dog",
       "lux3dUsed": false,
       "pivot": "bottom_center"
+    },
+    "blueMorpho": {
+      "url": "./public/models/blue-morpho-flight-v002.glb",
+      "variants": [],
+      "lod": [],
+      "height": 0.04,
+      "rotation": [
+        -1.5707963267948966,
+        0,
+        0
+      ],
+      "animations": {},
+      "colliderMode": "manual",
+      "collisionBoxes": null,
+      "slotId": "slot.blueMorpho",
+      "status": "integrated",
+      "placeholder": "procedural:insect",
+      "placeholderStyle": "morpho",
+      "lux3dUsed": false,
+      "pivot": "bottom_center",
+      "proceduralAnimation": "morpho_wings"
     }
   }
 }

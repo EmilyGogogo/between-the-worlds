@@ -2,6 +2,17 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-12 · PR #12 同步已合并的 CI 检查修复
+
+- 负责人：@EmilyGogogo；关联：PR #12、已合并 PR #13，分支 `codex/river-island-review`。
+- AI：Codex 确认远端状态、合入 main、处理文档冲突并运行自动检查；人工复核：待负责人复核。
+- 变更与原因：按用户要求，将 main 的 `5630513` 合入 PR #12 的 `9dd1e9c`，接入 PR #13 的环境体累计路程检查与闭环／静止回归。保留两边审计及历史变更记录；不改玩法、路线、资产、生成配置或 CI 工作流，不混入其他工作区尚未提交的服务修改。
+- 验证：本次合并工作树中，`python3 project/validate_docs.py` 1996 项通过；`python3 project/check_repository.py --javascript` 检查 208 个文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；隔离 Chrome 157.0.8103.52 的目标环境路线检查 4 项通过。按标准入口执行 `python3 project/check_all.py --output .work/pr12-main-update-checks`，执行时的文档／数据检查 1991 项通过（随后补回历史记录后单独重跑为 1996 项），完整浏览器在 `check_browser.py:230` 页面重载处等待 90 秒后超时，未通过。`git diff --cached --check` 通过，无未解决冲突，游戏代码、数据、资产与工作流相对合并前未改动；原始日志在本次工作树 `.work/pr12-main-update-checks/`。
+- 未验证项 / 风险：本条提交时，新提交的远端 CI 待运行。首次同步后的重载超时及此前局部复现的 `gull-1 overlaps` 保留为历史记录，最新运行结果见下方补充；本次同步不放宽断言或擅自改变游戏、存档规则，真人试玩、许可及性能仍未验收。
+
+- 同步补充：等待期间 main 又合入 PR #14（`e744bc6`）；继续合入其 `frontend/serve.py` 监听队列修复与原始变更记录，游戏和测试断言保持不变。此为同步已合并的主线提交，不取用其他工作区未提交文件。
+- 补充验证：`python3 project/check_repository.py --javascript` 检查 208 个文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`python3 project/check_all.py --output .work/pr12-latest-main-checks` 的 1996 项文档／数据检查通过，本次浏览器越过重载及整组环境路线检查，随后在 `check_browser.py:479` 的 `checkSaveMigration()` 失败：`restore retains world progress when butterflyfish-0 becomes discus-0 (W-04)`。整套浏览器仍未通过；不将之前的蝴蝶位移误报或重载超时继续当成本次失败点。日志保留在本次工作树 `.work/pr12-latest-main-checks/`；旧存档检查失败留待单独处理。
+
 ## 2026-11-12 · 修复本地服务重载时模块请求被重置
 
 - 负责人：@EmilyGogogo（待人工复核）；关联：分支 `claude/fix-serve-backlog`，PR #14。
@@ -18,6 +29,62 @@
 - 验证：macOS、Python 3.9.6、Chrome 157.0.8103.52、Node 24.22.2；修复前在 PR #12 的 `9dd1e9c` 隔离浏览器复现上述净位移误报。修复后从 main 基线启动真实游戏，环境路线整组 8 项通过（含碰撞、水体、群聚、受控暂停与释放后归队）；PR #12 集成副本的目标检查 4 项通过（成员完整、闭环测量、静止测量、自主移动）。`python3 project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`python3 project/check_all.py --output .work/ambient-ci-checks` 的 1790 项文档／数据检查通过，但完整浏览器在页面重载的 90 秒等待阶段超时，不能算通过；`git diff --check` 通过。本地原始工作区证据 `.work/pr12-ambient/baseline.log`、`main-focused.log`、`focused-metric.log` 与独立修复工作树 `.work/ambient-ci-checks/`。
 - 集成验证：PR #12 副本执行 `python3 project/check_all.py --output .work/pr12-ci-integration`，1990 项文档／数据检查通过，完整浏览器同样在页面重载的 90 秒等待阶段超时（原工作区 `.work/pr12-ambient/integration-check.log`），不作为完整通过的证据。
 - 未验证项 / 风险：提交本条记录时 PR #13 的 GitHub Actions 尚待运行；完整浏览器本地重载超时。PR #12 原版与仅替换测试的集成副本，在单独运行整组环境检查时均另报 `gull-1 overlaps`（原版诊断日志 `.work/pr12-ambient/original-diagnostic.log`，不是本修复引入）；此游戏碰撞问题不在本 PR 修改范围，不能据目标检查通过声称 PR #12 全部通过。真人试玩、模型许可、视觉和性能不在本次测试修复的验收范围。
+
+## 2026-11-12 · 修复所有实体第三人称方向偏移
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：`codex/fix-possession-forward-camera`，PR 待关联。
+- AI：Codex 负责诊断共享移动／镜头逻辑、实现修复、补充逐种回归和文档；人工复核待完成。
+- 变更与原因：鱼之外的身体也会因自动路线留下的旧朝向，使按下前进后镜头跟随错误转角，出现向左或侧向移动。第三人称按键现在读取实际显示镜头方向，身体与镜头都按当前种类转速限速对齐，旧路线朝向不计入镜头转角；持续按键锁定方向。自动路线继续在当前主体和魂穿过渡两端暂停。新增 13 种实体以及巨岩、邻岛承载体的方向回归。
+- 验证：`python3 project/check_all.py --only docs --output .work/possession-forward-docs` 通过（1990 项）；`python3 project/check_repository.py --javascript` 通过（209 个文件）；`python3 project/validate_docs.py` 通过；`git diff --check` 通过。独立隔离 Chrome 移动回归通过 1345 项（13 种实体、四种初始朝向、四方向输入、承载体和路线暂停）；全量检查首次运行通过逐种初始化和移动检查，但第二次页面重载在 90 秒等待阶段超时（Chrome 157，和既有重载限制一致）。提交前重跑 `python3 project/check_all.py`，文档检查通过，浏览器检查仍在页面重载等待 90 秒后超时。
+- 未验证项 / 风险：真实浏览器第二次重载、真人操作手感、目标设备性能和视觉资产验收仍待人工复核；移动回归通过不代表边界滑动、障碍物绕行和完整手感已由真人验收；新增用例保留真实镜头与身体移动，方向测试中解除实心阻挡并缩短岛漂移距离以排除河岸滑动。证据：本地 `.work/possession-movement-focused/browser.log`；全量日志 `.work/possession-forward-checks/browser.log`。
+
+## 2026-11-12 · 合入蓝闪蝶与主线鸟鱼
+
+- 负责人：Codex；关联：D-035、PR #9，最终 PR 待关联，人工复核待完成。
+- AI：Codex 负责选择性移植模型、翅膀与活动路线，适配河心岛、整合主线鸟鱼并验证。
+- 变更与原因：创作者要求纳入蓝闪蝶；从 #9 引入 Hyper3D Rodin 模型和程序翅膀，六只个体在初遇圈低飞，离地限高 8 m。当前河心岛环境与已确认水色保留；蝴蝶鱼由七彩神仙鱼替换，海鸥与银斧鱼采用 main 模型和动作，增加旧鱼存档映射。
+- 验证：生成运行配置；文档与数据校验 1990 项通过，源码语法检查 207 个文件通过，工具单元测试 15 项通过；隔离浏览器首轮检查通过，包括六只蓝闪蝶、模型和翅膀动画，但后续页面重载超时，完整回归未通过。
+- 未验证项 / 风险：模型公开发布许可、真人试玩、动作与目标设备性能待确认。
+
+## 2026-11-11 · 核对双视角操作并修正第一人称合并遗漏
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：`codex/river-island-review`、D-035，PR 待关联。
+- AI：Codex 负责源码对比、修复与回归验证。
+- 变更与原因：按创作者再次确认的合同，保留第三人称按键起始画面方向锁定、转身后前进与镜头跟转；第一人称身体朝向视线，A/D 横移、S 后退时不朝移动方向掉头，鸟鱼按第一人称真实俯仰角升降，鼠标俯仰上限使用当前视角配置；岛第一人称不旋转整座地形。补充第一人称横移／后退朝向断言，并将视角存档检查修正为当前 v5。
+- 验证：`python3 project/check_repository.py --javascript` 检查 206 个 first-party 文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`python3 project/validate_docs.py` 通过 1888 项；`git diff --check` 通过。`python3 project/check_all.py` 的文档模块通过，但隔离浏览器在重载等待阶段超时，浏览器行为回归未完成。
+- 未验证项 / 风险：浏览器回归未完成，第一人称后退及鸟鱼上下移动尚无浏览器运行证据；鸟鱼模型整合尚未包含在本条修复内；真人操作手感待试玩。
+
+## 2026-11-11 · 水体调浅并加强水面存在感
+
+- 负责人：@EmilyGogogo（人工复核待完成）；关联：`codex/river-island-review`，PR 待关联。
+- AI：Codex 负责定位水色、调整源数据、同步运行配置与验证；用户在会话中明确要求调浅水色并将透明度调到最透明。
+- 变更与原因：此前主河道深／浅水不透明度为 0.24／0.10，牛轭湖及两片水塘仍为 0.52／0.22，可能遮住水下内容；上一轮改为 0 后水面又完全不可感知。用户反馈 0.28／0.14 仍像没有水，本轮四处水体深／浅水不透明度统一提高到 0.46／0.30，保留当前不透明度，水色由浅青色改为更偏蓝的浅蓝色 #9bc9ed／#d4eaff，在能感知水面的同时降低对水下内容的遮挡。水域位置、深度、游泳与鱼的活动区不变。
+- 验证：`python3 project/sync_runtime.py` 完成；`python3 project/validate_docs.py` 通过 1888 项；`git diff --check` 通过；实际请求 4173 服务的运行配置，上一轮确认四处水体深／浅水不透明度均为 0.28／0.14；本轮蓝色色值同步及文档校验待执行。本轮仅调整数据，未重跑代码回归；此前浏览器回归在页面重载阶段超时，本轮视觉效果尚未验收。
+- 未验证项 / 风险：实际清澈度仍需在浏览器中从岸边和水下试玩确认；真人试玩与目标设备性能未验证。
+
+## 2026-11-11 · 统一所有实体的第三人称正方向操作
+
+- 负责人：Codex；关联：D-035；当前 worktree 仍为 detached HEAD，未推送或合并受保护的 `main`。
+- AI：Codex 负责按创作者追加要求调整移动、镜头跟转、规则、验收与回归；人工复核尚未完成。
+- 变更与原因：第三人称下所有实体依据按键开始时的画面方向移动：W 向画面前方前进，A/D 转向画面左／右并沿该方向前进，S 先转身约 180° 后前进；持续按键锁定目标方向，镜头跟随实际转角。第一人称保留 W 前进、A/D 横移、S 后退及鼠标视线控制。
+- 验证：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1888 项；`python3 project/check_repository.py --javascript` 检查 206 个 first-party 文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。隔离浏览器回归未能启动，本机服务端口绑定返回 `PermissionError: [Errno 1] Operation not permitted`，浏览器连接被拒绝。
+- 未验证项 / 风险：未在真实浏览器确认不同实体的转身手感、岛屿朝向、水中人物动作及河水视觉效果；真人试玩未做。
+
+## 2026-11-11 · 提高河流水体通透度并校正河鱼可见性
+
+- 负责人：Codex；关联：D-035；当前 worktree 仍为 detached HEAD，未推送或合并受保护的 `main`。
+- AI：Codex 负责水体外观参数、河鱼位置检查、运行配置同步与验证；人工复核尚未完成。
+- 变更与原因：按创作者要求让河水更清澈，将主河道深／浅水不透明度调整为 `0.24`／`0.10`，颜色调整为浅青绿色，清晰度从 `3.4` 提高到 `5.2`；蝴蝶鱼保持在主岛南岸外的河水中，并将其高度从约 `-0.9 m` 抬到 `-0.62 m` 以靠近水面、提高可见性。银色小鱼仍位于牛轭湖，不移动到主河道。
+- 验证：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1888 项；`python3 project/check_repository.py --javascript` 检查 206 个 first-party 文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。隔离浏览器回归未能启动，本机服务端口绑定返回 `PermissionError: [Errno 1] Operation not permitted`，浏览器连接被拒绝。
+- 未验证项 / 风险：仍需在实际浏览器从岸边和水下分别确认鱼、河底卵石和浅色水体的遮挡关系；牛轭湖保持较深的黑水外观，银色小鱼可见性需单独试玩。
+
+## 2026-11-11 · 河心岛 PR 审查与 Main 合并收口
+
+- 负责人：Codex；关联：D-035，当前 worktree 的本地合并提交 `28d82c6`；最终是否合并受保护的 `main` 仍由 @EmilyGogogo 审核。
+- AI：Codex 负责 PR diff 审查、冲突解决、双视角与布局存档实现、河流水体和游泳表现调整、数据同步与检查；人工复核尚未完成。
+- 变更与原因：河心岛是一次特殊的大环境替换，存档新增 `layoutId=river_island_v1` 与布局基线；旧海岛存档和缺少基线的旧记录失效。以后普通布局更新仍可按保存的基线映射位移、旋转和高度偏移。保留当前 12 个实体、鱼种、实例 ID 和引用，不引入 Main 的 `fish_discus_01` 替换蝴蝶鱼；双视角决策重新编号为 D-035，补齐所有实体第一人称眼位、V 键和第三人称跟转。河流与封闭水体改为浅色、低不透明度、高透明度；水底卵石装饰槽现在分别在牛轭湖与南岸河床按实际水体判定生成。人物入水时保持游泳动作并在出水后恢复陆地动作。
+- 验证：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1888 项文档／数据检查；`python3 -m unittest discover -s project/tests -v` 15 项通过；`python3 project/check_repository.py` 检查 206 个文件、0 错误；`git diff --check` 通过。隔离 Chrome 浏览器回归已运行，但未完成：运行过程中发现并修正人类第三人称转向及转向后镜头避障，随后 Chrome 在重载场景时超时；Node.js 缺失，仓库 JS 语法专项检查未运行。
+- 未验证项 / 风险：本轮尚未在真实浏览器逐帧确认清澈河水下鱼、`env.pebbles` 礁石和人物游泳姿态的遮挡效果；游泳 GLB 的动作轨道和不同水深岸边过渡仍需 QA-23；需要补跑浏览器回归后再声称游戏内视觉验收通过。
 
 ## 2026-11-09 · 统一第三人称转身移动并新增实体第一人称
 
@@ -100,6 +167,22 @@
   - 海鸥翅根在扇翅时有轻微鼓起、双脚下垂；新手能否发现低飞海鸥、目标设备帧率、QA-31～QA-34、QA-48 待真人验收。
 - 回退：删除 `ambient` 段即恢复静止的鸟鱼；槽 `url` 改回 v002 或 `null` 并重跑同步即回退模型；种类与数量按本条恢复，或直接 revert 本 PR。
 
+## 2026-11-08 · 疏林、草地空地与林中水塘
+
+- 负责人：@yidi0522；关联：D-032，分支 `feat/amazon-river-island`，PR 待关联。
+- AI：Claude（Claude Code）负责地形脚本修改与重新生成（本机 Blender 5.2.3 后台）、数据调整、截图核对、测试与文档；人工复核：创作者在会话中提出要求，尚未试玩本轮结果；完整 diff 待负责人复核。
+- 变更与原因：创作者认可 Aholo 树的样子，但要求树木至少砍半、保留探索感，并留出纯草地和纯水域。布景林约 7,200 → 3,200 棵（`env.forest` 各层 `spacingM` 放大、`clumping.clearingBelow` 0.18 → 0.34）；`anchors.json` 中 `forest-broadleaf` 70 → 35、`forest-palm` 60 → 30、`forest-kapok` 14 → 7。`project/terrain/river_island.py` 新增 `GLADES`（三块草地空地）与 `PONDS`（岛首水塘扩大加深、岛中部南侧新增水塘），重新生成 `frontend/public/terrain/`；`anchors.json` 新增 `glade_west`、`glade_north`、`glade_east` 与封闭黑水水体 `pond_west`、`pond_south`，三组可魂穿树木避开它们；`env.meadow` 新增三块空地的草叶区域，`env.understory` 50,000 → 16,000 次尝试。
+- 验证：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1811 项；`python3 project/check_all.py` 连续三次运行，第一次 1 项界面检查（未锁定指针时左键拖动转镜头）失败，后两次 140 项全部通过，判断为偶发，与本次改动无关；GPU 无头 Chrome 截图核对俯瞰、空地、水塘与林内：开局约 81 万、林内约 124 万三角面（含阴影）。
+- 未验证项 / 风险：真人试玩未做，林子是否“好走”需要实际走一圈；目标设备帧率未测；水塘是否需要鱼或其他生物未定；重新生成地形后出生点高度变化约 1 cm。团队共同确认待填写。回退时撤销本条的地形脚本、地形文件、数据与文档。
+
+## 2026-11-08 · 雨林树木改用 Aholo 模型
+
+- 负责人：@yidi0522；关联：D-031，分支 `feat/amazon-river-island`（与下两条同一分支、未提交），PR 待关联。
+- AI：Claude（Claude Code）负责 Lux3D 生成（创作者确认提示词与参数后提交）、Blender 处理脚本、前端按距离分档绘制、碰撞调整、测试、数据与文档；人工复核：创作者在会话中确认了提示词与生成结果，尚未试玩本轮结果；完整 diff 待负责人复核。
+- 变更与原因：创作者试玩 D-030 后反馈扫描树晕、不高清，魂穿的树几乎走不动，走路时树会随机消失，要求改用 Aholo 文生 3D 的树，并区分装饰树与可魂穿的树。用 Lux3D 国内版 G1 文生 3D 生成吉贝木棉、林冠阔叶树、阿萨伊棕榈丛、林下灌丛 4 个模型（原件与记录在 `assets/lux3d/LUX3D-vegetation-rainforest/`）。`project/vegetation/build_vegetation.py` 改为把原件处理成同一文件内的三档网格（lod0～lod2）与 16×3 视角替身，另做一个树干拉长的林冠变体；输出 `frontend/public/models/vegetation/`（约 15 MB，旧的 Poly Haven 植被文件移除）。`frontend/src/vegetation.js` 新增 `LodField`：每棵布景树按与视点的距离只放进一档（12／30／75 m，逐株略有伸缩，视点每移动 3 m 重选），替身不再在着色器里按距离丢弃。三个树槽改为加载 Aholo 模型（`pivot: file_origin`、文件内 `lod` 节点、按新模型实测的自定义碰撞盒）；`assets.js` 支持 `lod[].node` 与 `file_origin`，移除扫描树占位。布景树干只挡 3 m 以下的身体（`blocksBodiesUpToM`），魂穿的树可穿过布景林。两岸林线改用 Aholo 替身。林下灌丛改为单一 Aholo 模型两档网格。草上露珠去掉透射：透射让整个场景在有草的画面里每帧多画一遍（同一林内视角实测从约 370 万降到约 177 万三角面）。
+- 验证：macOS（Apple Silicon）、Python 3.9.6、Chrome 156、Blender 5.2.3：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1797 项；`python3 project/check_all.py` 通过文档检查与 140 项隔离 Chrome 浏览器检查（新增 5 项：Aholo 模型加载、三个树槽带三档 LOD、魂穿的树穿过布景树干、近处与大尺度时每棵布景树只画一档）；`python3 -m unittest discover -s project/tests` 14 项通过；`git diff --check` 通过。GPU 无头 Chrome 截图见 `assets/lux3d/LUX3D-vegetation-rainforest/evidence/`：开局约 170 万、林内 157–177 万三角面（含阴影），其中布景林约 54 万。
+- 未验证项 / 风险：目标设备帧率未测；没有连续行走与魂穿移动的录像，“树不再消失”由机制与检查保证，未经真人试玩确认；Lux3D 任务号未留存，积分只核对了前两个任务（各 20）；Lux3D 用户协议与活动素材条款未查阅；中、低两档减面后叶片边缘较尖，只在 12 m 外使用；能魂穿的树穿过布景林是 AI 提出的做法，待创作者确认。团队共同确认待填写。回退时成组撤销本条的源码、数据、植被文件与文档，并从 stash 或上一条的文件恢复 Poly Haven 植被。
+
 ## 2026-11-07 · 接入人物模型
 
 - 负责人：@EmilyGogogo；关联：分支 `codex/character-a-standard-v001`，PR 待关联。
@@ -114,6 +197,23 @@
 - 追加验证：`python project/check_all.py --no-pointer-lock --output .work/character-motion-safe` 通过 1662 项文档数据检查及 87 项部分浏览器检查，覆盖动作水平轨道、受阻停止与部分位移；跳过真实指针锁定及其后的检查。`python project/check_repository.py --javascript` 通过 65 个文件；工具单元测试 14 项通过。首次沙箱运行因临时目录权限失败，随后在沙箱外完成。未进行真人试玩或目标设备帧率测量。
 - 验证：冲刺及朝向调整后 `python project/sync_runtime.py`、文档数据校验（1662 项）、`python project/check_repository.py --javascript`（65 个文件、0 错误）及工具单元测试（14 项）通过；静态检查确认步行与冲刺文件骨骼和动作轨道名称一致。此前 `python project/check_all.py` 两次未完成：第一次在多次加载后等待页面超时，第二次在真实按键移动的 5 秒等待处超时。本轮为避免再次限制用户鼠标，未运行会真实请求指针锁定的隔离浏览器回归；新增冲刺断言尚未执行，不能宣称浏览器验收通过。
 - 未验证项 / 风险：模型 217488 三角面，高于 L1 动物 30000 预算；动作切换、轴向、碰撞、真人试玩、目标机性能及 QA-31～34 待验收；回退可撤销本任务提交并恢复人槽占位。
+
+## 2026-11-06 · 实拍扫描雨林、树木错落分布与收窄河道
+
+- 负责人：@yidi0522；关联：D-030，分支 `feat/amazon-river-island`（与下一条同一分支、未提交），PR 待关联。
+- AI：Claude（Claude Code）负责植被处理脚本（在本机 Blender 5.2.3 后台运行）、前端替身着色器与分布算法、两岸林线、性能与测试工具调整、数据与文档；人工复核：创作者在会话中给出两张参考图（河心岛旁的大片森林；岛内精细的林间水景），尚未试玩本轮结果；完整 diff 待负责人复核。
+- 变更与原因：创作者要求岛上树木“错落有致，类似真实雨林”，成为岛时看出是河心岛、旁边是更大的森林。新增 `project/vegetation/build_vegetation.py`：读取 8 个 Poly Haven CC0 扫描（3 种阔叶树、5 种林下植物），树干减面、去掉被叶子遮住的细枝，叶子换成从扫描本身渲染的叶簇卡片，并烘焙 8 方向 × 3 仰角的颜色与法线替身；两种树拉长主干作林冠树；输出到 `frontend/public/models/vegetation/`（约 11 MB）。新增 `frontend/src/vegetation.js`（加载、叶片透光、替身着色器、按距离交接）。`env.forest` 改为四层：噪声场成林与林窗、每层间距、小树多大树少、逐株倾斜胖瘦色差；50 m 内完整树每移动 5 m 重选，外侧替身，交接距离逐株不同；全岛替身每种树一次绘制。`env.understory` 改为扫描植物成片生长；`env.meadow` 加密、草叶更细。两岸改为替身树林线（河岸密、内陆疏、零星露生树），林冠面延伸约 2.6 km，按 300 m 分段、`bankTreeDistanceM`（2600 m）外不画。河道半宽 1150 → 640 m，三座邻岛横向坐标移入河道（150、-170、-120）。可魂穿雨林阔叶树的占位外形改用扫描林冠树，70 m 外换替身。林地落叶层降低饱和度。修正布景避让半径：碰撞盒是方的，避让圆改到盒角，否则加密后随机吉贝木棉全部在出生时被移除。浏览器检查改为 `?debug&render=0`（游戏照常运行、不绘制画面）：软件渲染下这片森林每帧需数秒，检查只读状态不读像素。
+- 验证：macOS（Apple Silicon）、Python 3.9.6、Chrome 156：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1767 项；`python3 project/check_all.py --output /tmp/btw-veg/checks` 通过文档检查与 135 项隔离 Chrome 浏览器检查；`python3 -m unittest discover -s project/tests` 14 项通过；`git diff --check` 通过。另用 GPU 无头 Chrome 截取鸟瞰、低空、林内、牛轭湖、河面与开局画面核对外观（仅本地 /tmp，未入库）；本机 GPU 开局画面约 150 万三角面、千余次绘制，其中地形约 38 万、可魂穿实体约 66 万、布景约 52 万。
+- 未验证项 / 风险：目标设备（集成显卡笔记本）帧率未测；浏览器检查不再覆盖实际绘制，着色器编译错误只能靠截图或真人发现；软件渲染下单帧仍需数秒。扫描树原型是较矮的滨海树种，拉长主干后接近但不等于亚马逊林冠树；吉贝木棉与棕榈仍是程序占位；水面倒影、林间光束等参考图 2 的效果未做；岩丘占位巨岩仍突兀。团队共同确认待填写。回退时成组撤销本条的源码、数据、植被文件与文档，河道半宽回到 1150 m、邻岛回到原坐标。
+
+## 2026-11-06 · 亚马逊河心岛、雨林三层树与昼夜季节
+
+- 负责人：@yidi0522；关联：D-027、D-028、D-029，分支 `feat/amazon-river-island`，PR 待关联；取代未合并的 PR #4（上一版海岛地形）。
+- AI：Claude（Claude Code）负责地形生成脚本（在本机 Blender 5.2.3 中经 MCP for Blender 运行）、前端地形／水／天空／雨林实现、数据迁移、文档与回归检查；人工复核：创作者在会话中试玩上一轮半成品，要求删去 V 键视角切换、夜晚变亮变短、昼夜与季节放慢、去掉松树改做雨林三层树；完整 diff 与真人试玩待负责人复核。
+- 变更与原因：创作者要求主岛做成逼真的亚马逊河心岛，成为岛时看见大河与两岸雨林，而非星球与围成一圈的邻岛。主岛改由 `project/terrain/river_island.py` 程序生成 1 m 高度场与地表分层权重图（种子 20261106，含水力侵蚀；未描图、未调用付费生成），`terrain.js` 分块按距离降细节，五层 Poly Haven CC0 地表贴图按权重与明度混合；`water.js` 读取高度场画深浅、岸边泡沫与雨点涟漪；`banks.js` 生成两岸雨林；`sky.js` 实现昼夜（20 分钟、夜晚 20%、月光夜色）、雨季／旱季（80 分钟）、阵雨、河雾与萤火虫。海改为 `river` 水体与河道，邻岛沿河排列，岛只在河道内漂移；山湖改为牛轭湖（椭圆内仅湖床低于湖面处有水），鱼、鸟、林地与观察点按新地形重新摆放，海鸥抬高到林冠之上。松树改为阿萨伊棕榈，阔叶树改为 20 m 雨林阔叶树，新增 42 m 吉贝木棉；`env.forest` 布景树（树干为静态障碍）、`env.understory`、`env.reeds`、`env.fireflies` 新增为装饰槽。存档版本升到 5，避免旧海岛存档让实体悬空。验证器改为要求唯一 `river` 与河道，新增 W-09／W-10 与 QA-48～QA-50。移除松柏引文（不再适合棕榈）。新增地表贴图约 6.3 MB、高度场 2.5 MB、权重图 1.3 MB。
+- 验证：macOS（Apple Silicon）、Python 3.9、Chrome（SwiftShader 软件渲染）：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1762 项文档／数据检查；`python3 project/check_all.py` 结果见 PR 说明。另用无头 Chrome 截取开局、林地、吉贝木棉视角、岛屿视角、夜晚与雨天画面核对外观（仅本地，未入库）。
+- 未验证项 / 风险：目标设备（普通笔记本）帧率未测，布景树与地表混合在集成显卡上的开销是主要风险，可调 `env.forest` 的 `drawDistanceM`、数量与 `env.understory` 数量；完整 20 分钟昼夜与 80 分钟季节未真人连续试玩；岩丘 70 m 占位巨岩在低平河心岛上显得突兀，未改；三种树均为程序占位；JS 语法检查需 Node，本机未安装；团队共同确认待填写。回退时成组撤销本条关联的源码、数据、生成文件、贴图与规则修改，存档版本回到 4。
+
 ## 2026-11-04 · 入场引导与紧凑常驻操作提示
 
 - 负责人：@EmilyGogogo；关联：D-024，分支 `codex/onboarding-controls-plan`，PR 待关联。

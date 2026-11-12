@@ -3,6 +3,8 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { clone } from 'three/addons/utils/SkeletonUtils.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { SPECIES, TUNING, mulberry32 } from './species.js';
+import { canopyMaterial } from './banks.js';
+import { loadVegetation } from './vegetation.js';
 
 const standard = (color, extra={}) => new THREE.MeshStandardMaterial({color,roughness:.9,...extra});
 const yellowMat = standard('#bca15d');
@@ -17,6 +19,28 @@ const barkMat=standard('#aaa38c',{map:barkTex,bumpMap:barkTex,bumpScale:.06});
 const rockMat=standard('#7b7f70');
 const sphereGeo=new THREE.SphereGeometry(1,16,12);
 const rockGeo=new THREE.IcosahedronGeometry(1,2);
+
+const WING_SHADER=`
+uniform float flapAngle;
+varying float vWingUnderside;
+float wingAngle(vec3 p){return -sign(p.x)*smoothstep(0.06,0.21,abs(p.x))*flapAngle;}
+vec3 turnWing(vec3 p,float a){float c=cos(a),s=sin(a);return vec3(c*p.x+s*p.z,p.y,-s*p.x+c*p.z);}
+`;
+function animateMorpho(model,root){
+  const flap={value:0};root.userData.flap=flap;
+  model.traverse(object=>{
+    if(!object.isMesh)return;
+    object.frustumCulled=false;object.material=object.material.clone();
+    object.material.onBeforeCompile=shader=>{
+      shader.uniforms.flapAngle=flap;
+      shader.vertexShader=WING_SHADER+shader.vertexShader
+        .replace('#include <beginnormal_vertex>',`#include <beginnormal_vertex>\nobjectNormal=turnWing(objectNormal,wingAngle(position));`)
+        .replace('#include <begin_vertex>',`#include <begin_vertex>\nvWingUnderside=smoothstep(0.08,0.22,abs(position.x))*smoothstep(0.15,0.75,-normal.z);\nfloat hinge=sign(position.x)*0.06;\nvec3 pivot=vec3(hinge,0.,0.);\ntransformed=pivot+turnWing(position-pivot,wingAngle(position));`);
+      shader.fragmentShader='varying float vWingUnderside;\n'+shader.fragmentShader
+        .replace('#include <map_fragment>',`#include <map_fragment>\nfloat wingTone=dot(diffuseColor.rgb,vec3(0.2126,0.7152,0.0722));\nvec3 brownWing=vec3(0.23,0.103,0.038)*(0.43+2.3*wingTone);\ndiffuseColor.rgb=mix(diffuseColor.rgb,brownWing,vWingUnderside);`);
+    };
+  });
+}
 
 function foliageTexture(pine=false){
   const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),r=mulberry32(pine?129:82);
@@ -66,7 +90,9 @@ function plant(seed){
     const m=mesh(blade(.3+r()*.4,.018+r()*.027,(r()-.5)*.6),mats[i%4],root,(r()-.5)*.22,0,(r()-.5)*.22);
     m.rotation.y=r()*Math.PI*2;m.rotation.z=(r()-.5)*.32;
   }
-  const dew=new THREE.MeshPhysicalMaterial({color:'#e5f2d4',transmission:.75,roughness:.05,ior:1.33,thickness:.04,transparent:true,opacity:.8});
+  // Glossy, see-through dew without transmission: a transmissive material makes the renderer
+  // draw the whole scene once more whenever a grass plant is on screen.
+  const dew=new THREE.MeshPhysicalMaterial({color:'#e5f2d4',roughness:.05,clearcoat:1,transparent:true,opacity:.55});
   mesh(sphereGeo,dew,root,.09,.47,.04,.026,.034,.026);
   mesh(sphereGeo,dew,root,-.06,.3,-.08,.014);
   mergePlant(root);root.userData.sway=.09;return root;
@@ -121,6 +147,17 @@ function bird(style){
   }
   for(let side of [-1,1])mesh(sphereGeo,white,root,side*.09,.13,.51,.07,.025,tern?.35:.22).rotation.y=side*.15;
   root.userData.bird=true;return root;
+}
+function insect(){
+  const root=new THREE.Group(),body=standard('#272a2a'),wing=standard('#287db0',{side:THREE.DoubleSide});
+  mesh(sphereGeo,body,root,0,.035,0,.025,.025,.12);
+  for(const side of [-1,1]){
+    const pivot=new THREE.Group();root.add(pivot);
+    const shape=new THREE.Shape();shape.moveTo(0,-.09);shape.bezierCurveTo(.22,-.2,.22,.12,0,.1);shape.closePath();
+    const panel=mesh(new THREE.ShapeGeometry(shape,12),wing,pivot);panel.rotation.x=-Math.PI/2;panel.scale.x=side;
+    root.userData[side===1?'rightWing':'leftWing']=pivot;
+  }
+  root.userData.insect=true;return root;
 }
 function fish(style){
   const root=new THREE.Group(),butterfly=style==='butterfly';
@@ -182,6 +219,168 @@ function dome(s){
   const [rx,h,rz]=s.surface?.radii||[s.radius,s.height,s.radius];
   const root=new THREE.Group();mesh(new THREE.SphereGeometry(1,32,20),standard('#819364',{roughness:1}),root,0,0,0,rx,h,rz);return root;
 }
+
+// --- Rainforest trees (D-030): three layers. Emergent kapok above the canopy, canopy broadleaf,
+// açaí palm clumps in the understory. Bark merges into one draw, leaves are one instanced draw.
+function canvasTexture(w,h,draw,color=true){
+  const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'));
+  const t=new THREE.CanvasTexture(c);if(color)t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;return t;
+}
+// A pinnate frond (palm or fern) drawn along the texture's height: rachis plus drooping leaflets.
+function frondTexture(seed,{leaflets=34,width=.9,colors=['#3d5a24','#4e6b2b','#334f20']}={}){
+  return canvasTexture(128,512,x=>{
+    const r=mulberry32(seed);x.lineCap='round';
+    for(let i=0;i<leaflets;i++){const y=20+i*(470/leaflets),len=(1-Math.abs(i/leaflets-.45)*1.2)*60*width+12;
+      for(const side of [-1,1]){x.strokeStyle=colors[(i+side+3)%colors.length];x.lineWidth=3+r()*2;x.beginPath();x.moveTo(64,y);x.quadraticCurveTo(64+side*len*.6,y+6,64+side*len,y+16+r()*14);x.stroke();}}
+    x.strokeStyle='#5d5a32';x.lineWidth=4;x.beginPath();x.moveTo(64,0);x.lineTo(64,512);x.stroke();
+  });
+}
+const frondMats={palm:frondTexture(7),fern:frondTexture(13,{leaflets:26,width:.8,colors:['#4f7a2c','#5f8a34','#3f6526']})};
+for(const k of Object.keys(frondMats))frondMats[k]=new THREE.MeshStandardMaterial({map:frondMats[k],alphaTest:.3,side:THREE.DoubleSide,roughness:.85,color:'#e4ead8'});
+// An arching strip from the origin along +X; length L, width W, rise and droop shape the arc.
+function frondGeometry(L,W,rise=.45,droop=.85,rows=12){
+  const pos=[],uv=[],idx=[];
+  for(let i=0;i<=rows;i++){const t=i/rows,x=L*t,y=L*(rise*t-droop*t*t),w=W*(.35+.65*Math.sin(Math.PI*Math.min(1,t*1.15)));
+    pos.push(x,y-w*.12,-w/2,x,y-w*.12,w/2);uv.push(0,1-t,1,1-t);   // edges hang a little (V section)
+    pos[pos.length-5]+=w*.12;
+    if(i<rows){const n=i*2;idx.push(n,n+2,n+1,n+1,n+2,n+3);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g;
+}
+const greyBarkMat=standard('#c4c0b0',{map:barkTex,bumpMap:barkTex,bumpScale:.08});
+const palmBarkMat=standard('#9c9a84',{map:barkTex,bumpMap:barkTex,bumpScale:.04});
+const lianaMat=standard('#3f4a2a');
+const tropicalLeafMat=new THREE.MeshStandardMaterial({map:foliageTexture(false),color:'#8fae6e',emissive:'#20360f',emissiveIntensity:.16,alphaTest:.15,alphaToCoverage:true,side:THREE.DoubleSide,roughness:.9});
+function mergeBark(root,mat){
+  root.updateMatrixWorld(true);const byMat=new Map();
+  for(const child of [...root.children])if(child.isMesh&&!child.userData.keep){const g=child.geometry.clone().applyMatrix4(child.matrix);const m=child.material;if(!byMat.has(m))byMat.set(m,[]);byMat.get(m).push(g);root.remove(child);}
+  for(const [m,list] of byMat){const merged=mergeGeometries(list.map(g=>g.index?g.toNonIndexed():g));mesh(merged,m,root);}
+}
+function leafCards(root,cards,material){
+  const dummy=new THREE.Object3D(),leaves=new THREE.InstancedMesh(cardGeometry,material,cards.length),r=mulberry32(cards.length);
+  cards.forEach((c,i)=>{dummy.position.set(c.x,c.y,c.z);dummy.rotation.set(c.rx,c.ry,c.rz);dummy.scale.setScalar(c.size);dummy.updateMatrix();leaves.setMatrixAt(i,dummy.matrix);leaves.setColorAt(i,new THREE.Color().setScalar(.72+r()*.34));});
+  leaves.castShadow=true;leaves.receiveShadow=true;root.add(leaves);
+}
+// Açaí: a clump of slender stems, each with a green crown shaft and arching pinnate fronds.
+function palm(seed){
+  const root=new THREE.Group(),r=mulberry32(seed),stems=3+Math.floor(r()*3),fronds=new THREE.Group();
+  for(let k=0;k<stems;k++){
+    const a=r()*6.28,off=k?.5+r()*.7:0,h=(k?6.5+r()*2.5:9.2),lean=k?.12+r()*.12:.03;
+    const base=new THREE.Vector3(Math.cos(a)*off,0,Math.sin(a)*off),top=base.clone().add(new THREE.Vector3(Math.cos(a)*h*lean,h,Math.sin(a)*h*lean));
+    const mid=base.clone().lerp(top,.5).add(new THREE.Vector3(Math.cos(a)*h*lean*.25,0,Math.sin(a)*h*lean*.25));
+    branch(root,base,mid,.14,.12,palmBarkMat);branch(root,mid,top,.12,.1,palmBarkMat);
+    branch(root,top,top.clone().add(new THREE.Vector3(0,1.1,0)),.13,.09,standard('#5e7a3a'));   // crown shaft
+    const crown=top.clone().add(new THREE.Vector3(0,1.05,0)),n=9+Math.floor(r()*4);
+    for(let i=0;i<n;i++){
+      const f=new THREE.Mesh(frondGeometry(2.6+r()*.8,1.15,.55+r()*.2,.8+r()*.3),frondMats.palm);
+      f.position.copy(crown);f.rotation.set((r()-.5)*.2,i/n*6.28+r()*.3,0);f.castShadow=true;fronds.add(f);
+    }
+    if(r()<.6){const fruit=new THREE.Mesh(new THREE.SphereGeometry(.22,8,6),standard('#2e1b2c'));fruit.position.copy(top).add(new THREE.Vector3(.18,.15,0));fruit.scale.set(1,1.6,1);root.add(fruit);}
+  }
+  mergeBark(root);
+  fronds.updateMatrixWorld(true);const merged=mergeGeometries(fronds.children.map(m=>m.geometry.clone().applyMatrix4(m.matrixWorld)));
+  mesh(merged,frondMats.palm,root);root.userData.sway=.012;return root;
+}
+// Kapok (Ceiba): plank buttresses, a straight pale trunk and a flat umbrella crown above the canopy.
+function kapok(seed){
+  const root=new THREE.Group(),r=mulberry32(seed),H=31,cards=[];
+  for(let i=0;i<6;i++){
+    const a=i/6*6.28+r()*.4,len=2.4+r()*1.6,hgt=2.4+r()*1.4,shape=new THREE.Shape();
+    shape.moveTo(0,0);shape.lineTo(len,0);shape.quadraticCurveTo(len*.25,hgt*.15,0,hgt);shape.closePath();
+    const g=new THREE.ExtrudeGeometry(shape,{depth:.22,bevelEnabled:false,curveSegments:6});g.translate(.6,0,-.11);
+    const m=mesh(g,greyBarkMat,root);m.rotation.y=a;
+  }
+  branch(root,new THREE.Vector3(0,0,0),new THREE.Vector3(.3,H*.55,0),1.45,1.15,greyBarkMat);
+  branch(root,new THREE.Vector3(.3,H*.55,0),new THREE.Vector3(0,H,.2),1.15,.85,greyBarkMat);
+  const limbs=6+Math.floor(r()*2);
+  for(let i=0;i<limbs;i++){
+    const a=i/limbs*6.28+r()*.5,rad=9+r()*5,y0=H-2+r()*3,start=new THREE.Vector3(0,y0,0),end=new THREE.Vector3(Math.cos(a)*rad,y0+3.5+r()*3,Math.sin(a)*rad);
+    const elbow=start.clone().lerp(end,.5).add(new THREE.Vector3(0,1.4,0));
+    branch(root,start,elbow,.55,.36,greyBarkMat);branch(root,elbow,end,.36,.14,greyBarkMat);
+    for(let k=0;k<3;k++){const tw=end.clone().add(new THREE.Vector3((r()-.5)*5,1+r()*1.5,(r()-.5)*5));branch(root,elbow.clone().lerp(end,.6),tw,.16,.05,greyBarkMat);
+      for(let n=0;n<42;n++){const u=r()*6.28,d=Math.sqrt(r())*4.8;cards.push({x:tw.x+Math.cos(u)*d,y:tw.y+(r()-.3)*1.6,z:tw.z+Math.sin(u)*d,size:1.7+r()*1.4,rx:-1.3+r()*.6,ry:r()*6.28,rz:(r()-.5)*.6});}}
+    if(r()<.7){const top=elbow.clone().lerp(end,.4+r()*.3);branch(root,top,top.clone().add(new THREE.Vector3((r()-.5)*1.5,-(12+r()*14),(r()-.5)*1.5)),.06,.05,lianaMat);}   // hanging lianas
+    if(r()<.6){const e=mesh(new THREE.ConeGeometry(.6,.9,7),standard('#55702f'),root);e.position.copy(start.clone().lerp(elbow,.8)).y+=.6;e.rotation.x=Math.PI;e.userData.keep=true;}   // bromeliad
+  }
+  mergeBark(root);leafCards(root,cards,tropicalLeafMat);root.userData.sway=.002;return root;
+}
+// Canopy broadleaf: a tall bare trunk forking under a broad, flat-topped crown.
+function canopyTree(seed){
+  const root=new THREE.Group(),r=mulberry32(seed),H=11+r()*2.5,cards=[];
+  branch(root,new THREE.Vector3(),new THREE.Vector3(.4,H,-.2),.85,.5);
+  const forks=4+Math.floor(r()*2);
+  for(let i=0;i<forks;i++){
+    const a=i/forks*6.28+r()*.6,rad=3.5+r()*2.8,start=new THREE.Vector3(.4,H-1.2-r()*1.5,-.2),end=new THREE.Vector3(Math.cos(a)*rad,H+4+r()*3,Math.sin(a)*rad);
+    branch(root,start,end,.42,.16);
+    for(let k=0;k<2;k++){const tw=end.clone().add(new THREE.Vector3((r()-.5)*3.5,.8+r()*1.8,(r()-.5)*3.5));branch(root,end,tw,.15,.05);
+      for(let n=0;n<60;n++){const u=r()*6.28,v=Math.acos(2*r()-1),d=Math.cbrt(r())*3.3;cards.push({x:tw.x+Math.sin(v)*Math.cos(u)*d,y:tw.y+.4+Math.cos(v)*d*.6,z:tw.z+Math.sin(v)*Math.sin(u)*d,size:1.5+r()*1.2,rx:r()*3,ry:r()*6.28,rz:r()*3});}}
+    if(r()<.45){const top=start.clone().lerp(end,.7);branch(root,top,top.clone().add(new THREE.Vector3(0,-(6+r()*6),0)),.05,.04,lianaMat);}
+  }
+  mergeBark(root);leafCards(root,cards,tropicalLeafMat);root.userData.sway=.003;return root;
+}
+// Background forest (env.forest): each tree style flattened into one geometry per material, so a
+// whole cell of trees is one instanced draw per part. `far` is a cheap crown-and-trunk stand-in.
+// A lumpy crown: several overlapping lobes, so far trees read as foliage rather than domes.
+const blobGeometry=(()=>{const r=mulberry32(77),lobes=[];
+  for(let i=0;i<6;i++){const g=new THREE.IcosahedronGeometry(.52+r()*.18,0),a=i/6*6.28,d=i?.46:0;g.translate(Math.cos(a)*d,(r()-.3)*.35+(i?0:.2),Math.sin(a)*d);lobes.push(g);}
+  return mergeGeometries(lobes);})(),stickGeometry=new THREE.CylinderGeometry(.5,.7,1,6);stickGeometry.translate(0,.5,0);
+const blobCanopyMat=canopyMaterial(),stickMat=standard('#4f473a');
+export function forestTemplates(){
+  const flatten=root=>{
+    root.updateMatrixWorld(true);const byMat=new Map(),m=new THREE.Matrix4();
+    root.traverse(o=>{
+      if(!o.isMesh)return;const list=byMat.get(o.material)||[];byMat.set(o.material,list);
+      const base=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();
+      for(const key of Object.keys(base.attributes))if(!['position','normal','uv'].includes(key))base.deleteAttribute(key);
+      if(o.isInstancedMesh)for(let i=0;i<o.count;i++){o.getMatrixAt(i,m);list.push(base.clone().applyMatrix4(m.clone().premultiply(o.matrixWorld)));}
+      else list.push(base.applyMatrix4(o.matrixWorld));
+    });
+    return [...byMat].map(([material,list])=>({geometry:mergeGeometries(list),material}));
+  };
+  const box=root=>new THREE.Box3().setFromObject(root);
+  return {
+    canopy:[11,23].map(seed=>{const t=canopyTree(seed),b=box(t);return {parts:flatten(t),height:b.max.y,crown:[(b.max.x-b.min.x)/2,(b.max.z-b.min.z)/2],crownBase:b.max.y*.42};}),
+    palm:[5,17].map(seed=>{const t=palm(seed),b=box(t);return {parts:flatten(t),height:b.max.y,crown:[2.4,2.4],crownBase:b.max.y*.68};}),
+    kapok:[3].map(seed=>{const t=kapok(seed),b=box(t);return {parts:flatten(t),height:b.max.y,crown:[(b.max.x-b.min.x)/2,(b.max.z-b.min.z)/2],crownBase:b.max.y*.66};}),
+    far:{blob:{geometry:blobGeometry,material:blobCanopyMat},stick:{geometry:stickGeometry,material:stickMat}},
+  };
+}
+// Forest floor (env.understory): a fern rosette and a leafy shrub, each one merged geometry.
+export function understoryModels(){
+  const fern=new THREE.Group(),r=mulberry32(5);
+  for(let i=0;i<9;i++){const f=new THREE.Mesh(frondGeometry(.9+r()*.4,.42,.9,.95,8));f.rotation.set(0,i/9*6.28+r()*.3,0);f.position.y=.02;fern.add(f);}
+  fern.updateMatrixWorld(true);
+  const shrub=new THREE.Group(),cards=[];
+  for(let n=0;n<26;n++){const u=r()*6.28,v=Math.acos(2*r()-1),d=Math.cbrt(r())*.7;const c=new THREE.Mesh(cardGeometry);c.position.set(Math.sin(v)*Math.cos(u)*d,.75+Math.cos(v)*d*.7,Math.sin(v)*Math.sin(u)*d);c.rotation.set(r()*3,r()*6.28,r()*3);c.scale.setScalar(.45+r()*.3);shrub.add(c);}
+  shrub.updateMatrixWorld(true);
+  const merge=g=>mergeGeometries(g.children.map(m=>m.geometry.clone().applyMatrix4(m.matrixWorld)));
+  return [{geometry:merge(fern),material:frondMats.fern,weight:.6},{geometry:merge(shrub),material:tropicalLeafMat,weight:.4}];
+}
+
+// A low river island seen from the water: sandy margins, muddy banks and clumps of forest
+// around its rim. The middle stays open, where the bodies it carries stand (W-05).
+const riverIslandCanopy=canopyMaterial();
+function riverIsland(s,seed){
+  const [rx,h,rz]=s.surface?.radii||[s.radius,s.height,s.radius],r=mulberry32(seed),root=new THREE.Group();
+  const rings=36,segments=120,pos=[],col=[],idx=[],sand=new THREE.Color('#b9a37c'),mud=new THREE.Color('#5d4a33'),grass=new THREE.Color('#5d6d33');
+  const lobes=[...Array(5)].map(()=>[r()*6.28,.04+r()*.07,2+Math.floor(r()*4)]);
+  const edge=a=>1+lobes.reduce((sum,[ph,amp,k])=>sum+Math.sin(a*k+ph)*amp,0);
+  for(let i=0;i<=rings;i++)for(let j=0;j<segments;j++){
+    const t=i/rings*1.12,a=j/segments*Math.PI*2,e=edge(a),x=Math.cos(a)*rx*t*e,z=Math.sin(a)*rz*t*e;
+    const inside=Math.max(0,1-t*t),y=t<1?h*Math.sqrt(inside):-3*(t-1)/.12;
+    pos.push(x,y,z);const c=t>.93?sand.clone().lerp(mud,THREE.MathUtils.clamp((t-.99)*30,0,1)):grass.clone().lerp(sand,THREE.MathUtils.clamp((t-.8)*6,0,1));col.push(c.r,c.g,c.b);
+  }
+  for(let i=0;i<rings;i++)for(let j=0;j<segments;j++){const a=i*segments+j,b=i*segments+(j+1)%segments,c=a+segments,d=b+segments;idx.push(a,c,b,b,c,d);}
+  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));geo.setIndex(idx);geo.computeVertexNormals();
+  mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1}),root);
+  const crowns=[],crownGeo=new THREE.IcosahedronGeometry(1,1),m=new THREE.Matrix4(),q=new THREE.Quaternion(),v=new THREE.Vector3(),sc=new THREE.Vector3();
+  for(let k=0;k<160;k++){
+    const a=r()*Math.PI*2,t=.62+r()*.3,e=edge(a),x=Math.cos(a)*rx*t*e,z=Math.sin(a)*rz*t*e,ground=h*Math.sqrt(Math.max(0,1-t*t)),w=12+r()*14,top=ground+18+r()*22;
+    // Each clump is a mass of forest from just above the ground to its crown line.
+    crowns.push(m.compose(v.set(x,(ground+2+top)/2,z),q.identity(),sc.set(w,(top-ground-2)/2,w*(.8+r()*.4))).clone());
+  }
+  const canopy=new THREE.InstancedMesh(crownGeo,riverIslandCanopy,crowns.length);crowns.forEach((mat,i)=>canopy.setMatrixAt(i,mat));canopy.castShadow=true;canopy.receiveShadow=true;root.add(canopy);
+  return root;
+}
 // Any body without a generator still gets a visible, correctly sized stand-in.
 function generic(s){
   const root=new THREE.Group(),r=Math.max(.05,s.radius*.7),h=Math.max(s.height-2*r,0);
@@ -192,12 +391,13 @@ function generic(s){
 // and picks a look with "placeholderStyle"; a new category can add one here.
 const PLACEHOLDERS={
   grass:(style,seed)=>plant(seed),
-  tree:(style,seed)=>tree(style,seed),
+  tree:(style,seed)=>style==='palm'?palm(seed):style==='kapok'?kapok(seed):style==='canopy'?canopyTree(seed):tree(style,seed),
   rock:(style,seed)=>style==='hill'?hill(seed):makeRock(seed),
-  island:(style,seed,s)=>dome(s),
+  island:(style,seed,s)=>style==='river'?riverIsland(s,seed):dome(s),
   human:()=>human(),
   dog:()=>dog(),
   bird:style=>bird(style),
+  insect:()=>insect(),
   fish:style=>fish(style),
 };
 export function registerPlaceholder(name,make){PLACEHOLDERS[name]=make;}
@@ -221,6 +421,9 @@ export class AssetLibrary {
     const jobs=[];
     for(const [kind,entry] of Object.entries(this.manifest.species||{}))jobs.push(this.loadSlot(kind,entry).then(list=>{if(list.length)this.templates.set(kind,list);}));
     for(const slot of this.manifest.decor||[])jobs.push(this.loadSlot(slot.slotId,slot).then(list=>{if(list.length)this.decorTemplates.set(slot.slotId,list);}));
+    // Aholo rainforest models for the scenery forest and floor (env.forest, env.understory).
+    const vegetationUrl=(this.manifest.decor||[]).map(s=>s.scatter?.vegetation).find(Boolean);
+    if(vegetationUrl)jobs.push(loadVegetation(vegetationUrl,this.loader).then(v=>{this.vegetation=v;}).catch(e=>{this.errors.push(`vegetation ${vegetationUrl}: ${e.message}`);console.warn('Vegetation models unavailable; procedural trees kept.',e);}));
     await Promise.all(jobs);
   }
   load(url){return Promise.race([this.loader.loadAsync(url),timeout()]);}
@@ -232,7 +435,8 @@ export class AssetLibrary {
       try{
         const gltf=await this.load(merged.url);
         const [idle,run,swim]=await Promise.all([merged.idleUrl?this.load(merged.idleUrl):null,merged.runUrl?this.load(merged.runUrl):null,merged.swimUrl?this.load(merged.swimUrl):null]);
-        const lod=await Promise.all((merged.lod||[]).map(async level=>({distance:level.distance,gltf:await this.load(level.url)})));
+        // LOD levels come from their own files, or name a node of the main file (`node`).
+        const lod=await Promise.all((merged.lod||[]).map(async level=>({distance:level.distance,node:level.node,gltf:level.url?await this.load(level.url):null})));
         return {gltf,idle,run,swim,entry:merged,lod,weight:merged.weight??1};
       }catch(e){this.errors.push(`${name} ${merged.url}: ${e.message}`);console.warn(`Asset ${name} kept its placeholder:`,e);return null;}
     }));
@@ -250,17 +454,27 @@ export class AssetLibrary {
     model.updateMatrixWorld(true);
     const bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
     const factor=(entry.height||height)/Math.max(size.y,.0001);
-    // Bodies stand on their base; islands keep the file's own sea-level origin (L-05).
-    const baseY=entry.pivot==='sea_level_center'?0:bounds.min.y;
-    model.scale.multiplyScalar(factor);model.position.set(-center.x*factor,-baseY*factor,-center.z*factor);
+    // Bodies stand on their base; islands keep the file's own sea-level origin (L-05); a file
+    // whose origin already marks the base (a trunk that is not the middle of its crown) keeps it.
+    model.scale.multiplyScalar(factor);
+    if(entry.pivot==='file_origin')model.position.set(0,0,0);
+    else{const baseY=entry.pivot==='sea_level_center'?0:bounds.min.y;model.position.set(-center.x*factor,-baseY*factor,-center.z*factor);}
   }
   make(kind,seed){
     const list=this.templates.get(kind);
     if(!list)return makeProcedural(kind,seed,this.manifest.species?.[kind]);
     const template=this.pick(list,mulberry32(seed)),entry=template.entry;
     const root=new THREE.Group(),model=clone(template.gltf.scene);
+    if(entry.proceduralAnimation==='morpho_wings')animateMorpho(model,root);
     this.fit(model,entry,SPECIES[kind].height);
-    if(template.lod.length){
+    const inFile=template.lod.filter(level=>level.node);
+    if(inFile.length){
+      // Levels inside the file: `lod0` near, then the named nodes; all share the file's fit.
+      const lod=new THREE.LOD(),near=model.getObjectByName('lod0');
+      near.parent.add(lod);lod.addLevel(near,0);
+      for(const level of inFile){const far=model.getObjectByName(level.node);if(far)lod.addLevel(far,level.distance);}
+      root.add(model);
+    }else if(template.lod.length){
       // Far away, a simpler model stands in (LOD); the full model keeps the animation.
       const lod=new THREE.LOD();lod.addLevel(model,0);
       for(const level of template.lod){const far=level.gltf.scene.clone();this.fit(far,entry,SPECIES[kind].height);lod.addLevel(far,level.distance);}

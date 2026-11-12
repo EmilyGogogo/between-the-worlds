@@ -128,6 +128,9 @@ def main():
         if e['locomotion'] == 'fly':  # M-04: every flyer names its airspace
             air = region_doc.get(e.get('activityRegion'), {})
             check(all(k in air for k in ['center', 'radius', 'maxY', 'minClearanceM']), f'{eid}: activityRegion must be an airspace with center, radius, maxY, minClearanceM')
+        if 'flightHeightM' in e:
+            height = e['flightHeightM']
+            check(e['locomotion'] == 'fly' and isinstance(height, (int, float)) and not isinstance(height, bool) and height > 0, f'{eid}: flightHeightM must be positive and belong to a flyer')
         check('isAnimal' not in e, f'{eid}: isAnimal belongs to the category')
         check('allowedTargets' not in e, f'{eid}: relations come from scaleTier, not allowedTargets (D-021)')
         low, high = tiers[e['scaleTier']]['referenceSizeM']
@@ -170,16 +173,19 @@ def main():
         check(isinstance(a['variants'], list), f'{eid}: variants must be a list')
         check(a['placeholder'].startswith('procedural:'), f'{eid}: placeholder must name a generator')
         sources = [a['url']] if a['url'] else []
+        if a.get('proceduralAnimation'):
+            check(a['proceduralAnimation'] == 'morpho_wings' and e['runtimeKind'] == 'blueMorpho' and bool(a['url']) and not a['animations'], f'{eid}: procedural animation needs the blue morpho model and no clip mappings')
         for variant in a['variants']:
             check(isinstance(variant, str) or bool(variant.get('url')), f'{eid}: each variant needs a url')
             sources.append(variant if isinstance(variant, str) else variant.get('url'))
-        check(isinstance(a['lod'], list) and all(isinstance(l.get('distance'), (int, float)) and l.get('url') for l in a['lod']), f'{eid}: lod levels need url and distance')
+        check(isinstance(a['lod'], list) and all(isinstance(l.get('distance'), (int, float)) and (l.get('url') or l.get('node')) for l in a['lod']), f'{eid}: lod levels need a url or node, and a distance')
         if categories[e['category']]['isAnimal']:
             check({'idle', 'move'} <= set(a['requiredAnimationRoles']), f'{eid}: animals need idle and move (L-05)')
         if sources:
             check(a['status'] in SLOT_STATES[3:], f'{eid}: model set but slot not integrated')
-            check(set(a['requiredAnimationRoles']) <= set(a['animations']), f'{eid}: missing animation mapping')
-            for url in sources + [l['url'] for l in a['lod']] + [a[key] for key in ('idleUrl', 'runUrl', 'swimUrl') if a.get(key)]:
+            procedural = a.get('proceduralAnimation') == 'morpho_wings'
+            check(procedural or set(a['requiredAnimationRoles']) <= set(a['animations']), f'{eid}: missing animation mapping')
+            for url in sources + [l['url'] for l in a['lod'] if l.get('url')] + [a[key] for key in ('idleUrl', 'runUrl', 'swimUrl') if a.get(key)]:
                 if url and not url.startswith('http'):
                     check((ROOT / 'frontend' / url.removeprefix('./')).exists(), f'{eid}: asset file missing: {url}')
         else:
@@ -205,9 +211,9 @@ def main():
 
     # D-029: both camera modes are configured for every body; islands retain terrain.
     modes = entity_doc['cameraModes']
-    check(modes['default'] == 'third_person' and modes['decision'] == 'D-029', 'Camera defaults must follow D-029')
-    check(modes['third_person']['vision'] == {'grayscale': 0, 'saturation': 1, 'contrast': 1, 'brightness': 1, 'fogMultiplier': 1, 'tint': None}, 'Third-person vision must be full colour (D-029)')
-    check(modes['third_person']['followBodyTurn'] is True, 'Third-person camera must follow body turns (D-029)')
+    check(modes['default'] == 'third_person' and modes['decision'] == 'D-035', 'Camera defaults must follow D-035')
+    check(modes['third_person']['vision'] == {'grayscale': 0, 'saturation': 1, 'contrast': 1, 'brightness': 1, 'fogMultiplier': 1, 'tint': None}, 'Third-person vision must be full colour (D-035)')
+    check(modes['third_person']['followBodyTurn'] is True, 'Third-person camera must follow body turns (D-035)')
     for e in entity_list:
         first = e['camera']['firstPerson']
         offset = first['eyeOffset']
@@ -215,14 +221,14 @@ def main():
         check(0 < offset[1] <= e['body']['height'], f'{e["id"]}: eye must lie within body height')
         check(first['hideBody'] == (e['category'] != 'island'), f'{e["id"]}: first-person visibility must preserve island terrain')
 
-    # Input (D-007, D-029)
+    # Input (D-007, D-035)
     inputs = read_json('input-map.json')
     codes = [code for b in inputs['bindings'] for code in b['codes']]
     check(len(codes) == len(set(codes)), 'Duplicate active key binding')
     for code in ['KeyE', 'Space', 'ControlLeft', 'ControlRight']:
         check(code not in codes, f'{code} must stay unbound (I-02/I-03)')
     check(next(b for b in inputs['bindings'] if b['action'] == 'possess')['codes'] == ['KeyR'], 'R must be exclusive')
-    check(next(b for b in inputs['bindings'] if b['action'] == 'toggle_view')['codes'] == ['KeyV'], 'V toggles camera mode (D-029)')
+    check(next(b for b in inputs['bindings'] if b['action'] == 'toggle_view')['codes'] == ['KeyV'], 'V toggles camera mode (D-035)')
 
     # Layout (W-08): named instances and scatter groups, read at runtime.
     layout = read_json('anchors.json')
@@ -232,14 +238,19 @@ def main():
     unique(layout['instances'], 'id', 'instance ID')
     unique(layout['scatter'], 'id', 'scatter group ID')
     regions = {r['id'] for r in layout['regions']}
-    # Water bodies (M-04): data-driven; exactly one sea, enclosed bodies need a shape and surface.
+    # Water bodies (M-04): data-driven; exactly one river (D-030), enclosed bodies need a shape and surface.
     num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
     waters = [r for r in layout['regions'] if r.get('water')]
-    seas = [r for r in waters if r['water'].get('type') == 'sea']
-    check(len(seas) == 1 and all(num(seas[0]['water'].get(k)) for k in ['levelM', 'minDepthM']), 'Need exactly one sea region with levelM and minDepthM')
+    rivers = [r for r in waters if r['water'].get('type') == 'river']
+    check(len(rivers) == 1 and all(num(rivers[0]['water'].get(k)) for k in ['levelM', 'minDepthM']), 'Need exactly one river region with levelM and minDepthM')
+    corridor = rivers[0].get('corridor', {}) if rivers else {}
+    check(all(num(corridor.get(k)) and corridor[k] > 0 for k in ['halfWidthM', 'lengthM']) and num(corridor.get('bankClearanceM')), 'River needs a corridor with halfWidthM, lengthM and bankClearanceM')
     for r in waters:
         w = r['water']
-        check(w.get('type') in {'sea', 'enclosed'}, f'{r["id"]}: water.type must be sea or enclosed')
+        check(w.get('type') in {'river', 'enclosed'}, f'{r["id"]}: water.type must be river or enclosed')
+        for k in ['deep', 'shallow']:
+            c = w.get('look', {}).get(k)
+            check(c is None or (isinstance(c, str) and len(c) == 7 and c.startswith('#')), f'{r["id"]}: water colour {k} must be #rrggbb')
         if w.get('type') == 'enclosed':
             check(r.get('shape') == 'ellipse' and len(r.get('center', [])) == 2 and len(r.get('radii', [])) == 2 and all(num(v) and v > 0 for v in r.get('radii', [])),
                   f'{r["id"]}: enclosed water needs an ellipse with center and positive radii')
@@ -251,7 +262,7 @@ def main():
     for a in anchors.values():
         check(set(a['safeFor']) <= entity_ids, f'Unknown safe type at {a["id"]}')
         check(len(a['position']) == 3 and all(isinstance(v, (int, float)) and math.isfinite(v) for v in a['position']), f'Invalid position at {a["id"]}')
-    known = {'ocean'}
+    known = {'river'}
     for i in layout['instances']:  # carriers must come first
         check(i['type'] in entities, f'Broken instance type: {i["id"]}')
         check(i['carrier'] in known, f'{i["id"]}: carrier {i["carrier"]} must be listed before it')
@@ -273,6 +284,9 @@ def main():
     for slot in decor_slots:
         check(slot['scatter']['carrier'] in instances, f'{slot["slotId"]}: unknown carrier')
         check(set(slot['scatter'].get('avoidRegions', [])) | ({slot['scatter']['insideRegion']} if slot['scatter'].get('insideRegion') else set()) <= regions, f'{slot["slotId"]}: unknown region')
+        if slot.get('placeholder') == 'procedural:pebble':
+            for area in slot['scatter'].get('areas', []):
+                check(area.get('waterType') in {'river', 'enclosed'}, f'{slot["slotId"]}: pebble areas must name a water type')
     placed = {i['type'] for i in layout['instances']} | {g['type'] for g in layout['scatter']}
     check(placed == entity_ids, f'Every body type needs individuals in the world: missing {sorted(entity_ids - placed)}')
     for e in entity_list:

@@ -5,34 +5,12 @@
     "reviewState": "creator_directed",
     "runtimeBinding": "integrated",
     "integrationEvidence": "sync_runtime.py → game.json／manifest.json → species.js、main.js、world.js、assets.js、interactions.js、audio.js；frontend/tests/check_browser.py（2026-11-01）",
-    "note": "唯一身体配置源：categories（类别）、scaleTiers（魂穿尺度档，D-021）、entities（种类与资产槽）、environmentSlots（世界与装饰槽）。魂穿关系由 scaleTier 推导，不再手写 allowedTargets。全部模型仍为程序化占位。"
+    "note": "唯一身体配置源：categories（类别）、scaleTiers（魂穿尺度档，D-021）、entities（种类与资产槽）、environmentSlots（世界与装饰槽）。魂穿关系由 scaleTier 推导，不再手写 allowedTargets。人、雨林树木、海鸥、银斧鱼与七彩神仙鱼已接入模型；其余槽按各自 asset 状态，来源与验收缺口见资产台账。"
   },
   "units": {
     "distance": "m",
     "time": "s",
     "angles": "deg"
-  },
-  "cameraModes": {
-    "default": "third_person",
-    "decision": "D-029",
-    "third_person": {
-      "movement": "camera_relative_face_travel",
-      "followBodyTurn": true,
-      "fovDeg": 48,
-      "vision": {
-        "grayscale": 0,
-        "saturation": 1,
-        "contrast": 1,
-        "brightness": 1,
-        "fogMultiplier": 1,
-        "tint": null
-      }
-    },
-    "first_person": {
-      "movement": "camera_relative_look_heading",
-      "vision": "current_body",
-      "hearing": "current_body"
-    }
   },
   "scaleLayers": [
     {
@@ -43,7 +21,7 @@
       "cameraLookAhead": 0.65,
       "cameraTerrainFloor": true,
       "cameraCollision": true,
-      "fogDensity": 0.004,
+      "fogDensity": 0.0016,
       "localSun": true,
       "focusHeightRatio": 0.44,
       "possessMinPitch": null
@@ -56,7 +34,7 @@
       "cameraLookAhead": 0.45,
       "cameraTerrainFloor": true,
       "cameraCollision": true,
-      "fogDensity": 0.004,
+      "fogDensity": 0.0016,
       "localSun": true,
       "focusHeightRatio": 0.44,
       "possessMinPitch": null
@@ -69,7 +47,7 @@
       "cameraLookAhead": 0.22,
       "cameraTerrainFloor": false,
       "cameraCollision": true,
-      "fogDensity": 0.00085,
+      "fogDensity": 0.0006,
       "localSun": true,
       "focusHeightRatio": 0.35,
       "possessMinPitch": null
@@ -82,10 +60,10 @@
       "cameraLookAhead": 0.22,
       "cameraTerrainFloor": false,
       "cameraCollision": false,
-      "fogDensity": 0.00015,
+      "fogDensity": 0.0002,
       "localSun": false,
       "focusHeightRatio": 0.44,
-      "possessMinPitch": 0.52
+      "possessMinPitch": 0.34
     }
   ],
   "scaleLayerFields": {
@@ -123,16 +101,16 @@
       "name": "林冠",
       "referenceSizeM": [
         5,
-        30
+        50
       ],
       "viewLiftEyeHeightM": 15,
-      "examples": "阔叶树、松树"
+      "examples": "吉贝木棉、雨林阔叶树、阿萨伊棕榈"
     },
     {
       "id": "S4",
       "name": "地貌",
       "referenceSizeM": [
-        30,
+        50,
         300
       ],
       "viewLiftEyeHeightM": 60,
@@ -215,7 +193,7 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            0.42,
+            0.35,
             0
           ],
           "hideBody": true
@@ -279,11 +257,11 @@
     },
     {
       "id": "tree_broadleaf_01",
-      "name": "阔叶树",
+      "name": "雨林阔叶树",
       "category": "tree",
       "runtimeKind": "broadleaf",
       "stage": 1,
-      "habitat": "land",
+      "habitat": "rainforest_canopy",
       "implementationStatus": "playtest_placeholder_runtime_0.3",
       "ruleClass": "MUST",
       "locomotion": "ground",
@@ -292,12 +270,12 @@
       "acceleration": 10,
       "turnSpeedDegPerSec": 180,
       "boostMultiplier": 2.7,
-      "observationRange": 225.0,
-      "possessionRange": 150.0,
+      "observationRange": 270.0,
+      "possessionRange": 180.0,
       "scaleTier": "S3",
       "uniqueAbility": {
         "id": "canopy_sight",
-        "text": "树冠高度视角：越过草地与灌木看见林间远处；体积大、移动时枝叶摇曳，必须绕开岩石与其他树",
+        "text": "林冠层：伞形树冠连成一片绿顶，越过林下的棕榈与蕨类看见林间远处；体积大、必须绕开岩石与其他树",
         "reviewState": "creator_confirmed",
         "implementationStatus": "partial"
       },
@@ -325,21 +303,21 @@
       },
       "camera": {
         "mode": "third_person",
-        "distance": 29.0,
-        "height": 5.28,
+        "distance": 46.0,
+        "height": 8.8,
         "fovDeg": 48,
         "firstPerson": {
           "eyeOffset": [
             0,
-            10.8,
+            10.0,
             0
           ],
           "hideBody": true
         }
       },
       "body": {
-        "height": 12.0,
-        "collisionRadius": 3.4,
+        "height": 20.0,
+        "collisionRadius": 5.0,
         "wadeDepthM": 0.6
       },
       "collision": {
@@ -347,18 +325,18 @@
           [
             -0.7,
             0,
-            -0.7,
+            -0.5,
             0.7,
-            7,
-            0.7
+            6.2,
+            0.9
           ],
           [
-            -4,
-            5,
-            -4,
-            4,
-            11.5,
-            4
+            -9,
+            5.8,
+            -8.5,
+            9.5,
+            20.3,
+            9.5
           ]
         ],
         "solid": true,
@@ -366,33 +344,58 @@
       },
       "asset": {
         "slotId": "slot.broadleaf",
-        "status": "placeholder",
-        "url": null,
+        "status": "integrated",
+        "url": "./public/models/vegetation/canopy.glb",
         "variants": [],
-        "height": 12.0,
+        "height": 20.0,
         "rotation": [
           0,
           0,
           0
         ],
-        "pivot": "bottom_center",
+        "pivot": "file_origin",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
         "animations": {},
         "requiredAnimationRoles": [],
         "rigSource": null,
-        "colliderMode": "auto_bounds",
-        "collisionBoxes": null,
-        "lod": [],
+        "colliderMode": "custom_boxes",
+        "collisionBoxes": [
+          [
+            -0.7,
+            0,
+            -0.5,
+            0.7,
+            6.2,
+            0.9
+          ],
+          [
+            -9,
+            5.8,
+            -8.5,
+            9.5,
+            20.3,
+            9.5
+          ]
+        ],
+        "lod": [
+          {
+            "node": "lod1",
+            "distance": 51
+          },
+          {
+            "node": "lod2",
+            "distance": 92
+          }
+        ],
         "placeholder": "procedural:tree",
-        "placeholderStyle": "broadleaf",
+        "placeholderStyle": "canopy",
         "finalSource": "Aholo Lux3D",
-        "lux3dUsed": false,
-        "plannedModelPath": "frontend/public/models/broadleaf-v1.glb",
+        "lux3dUsed": true,
         "ledgerId": "PLAN-tree_broadleaf_01",
         "fallbackLedgerId": "PH-tree_broadleaf_01"
       },
-      "place": "林间的呼吸",
+      "place": "林冠之下",
       "safeAnchors": [],
       "acceptanceIds": [
         "QA-17",
@@ -401,12 +404,12 @@
       ]
     },
     {
-      "id": "tree_pine_01",
-      "name": "松树",
+      "id": "tree_palm_01",
+      "name": "阿萨伊棕榈",
       "category": "tree",
-      "runtimeKind": "pine",
+      "runtimeKind": "palm",
       "stage": 1,
-      "habitat": "land",
+      "habitat": "floodplain_understory",
       "implementationStatus": "playtest_placeholder_runtime_0.3",
       "ruleClass": "MUST",
       "locomotion": "ground",
@@ -420,7 +423,7 @@
       "scaleTier": "S3",
       "uniqueAbility": {
         "id": "canopy_sight",
-        "text": "树冠高度视角：越过草地与灌木看见林间远处；体积大、移动时枝叶摇曳，必须绕开岩石与其他树",
+        "text": "林下层：细高的树干与羽状叶，在潮湿的低地与水边成丛；从林下仰看高处，体积细长、必须绕开其他树",
         "reviewState": "creator_confirmed",
         "implementationStatus": "partial"
       },
@@ -448,74 +451,263 @@
       },
       "camera": {
         "mode": "third_person",
-        "distance": 34.0,
-        "height": 6.6,
+        "distance": 24.0,
+        "height": 4.4,
         "fovDeg": 48,
         "firstPerson": {
           "eyeOffset": [
             0,
-            13.5,
+            5.0,
             0
           ],
           "hideBody": true
         }
       },
       "body": {
-        "height": 15.0,
-        "collisionRadius": 3.5,
+        "height": 10.0,
+        "collisionRadius": 2.6,
         "wadeDepthM": 0.6
       },
       "collision": {
         "boxes": [
           [
-            -0.6,
+            -1.6,
             0,
-            -0.6,
-            0.6,
-            13,
-            0.6
+            -0.9,
+            1.6,
+            3.3,
+            0.7
           ],
           [
-            -3.8,
-            3,
-            -3.8,
-            3.8,
-            14,
-            3.8
+            -4.2,
+            3.3,
+            -2.9,
+            4.2,
+            10.2,
+            2.7
           ]
         ],
         "solid": true,
         "passPolicy": "go_around"
       },
       "asset": {
-        "slotId": "slot.pine",
-        "status": "placeholder",
-        "url": null,
+        "slotId": "slot.palm",
+        "status": "integrated",
+        "url": "./public/models/vegetation/acai.glb",
         "variants": [],
-        "height": 15.0,
+        "height": 10.0,
         "rotation": [
           0,
           0,
           0
         ],
-        "pivot": "bottom_center",
+        "pivot": "file_origin",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
         "animations": {},
         "requiredAnimationRoles": [],
         "rigSource": null,
-        "colliderMode": "auto_bounds",
-        "collisionBoxes": null,
-        "lod": [],
+        "colliderMode": "custom_boxes",
+        "collisionBoxes": [
+          [
+            -1.6,
+            0,
+            -0.9,
+            1.6,
+            3.3,
+            0.7
+          ],
+          [
+            -4.2,
+            3.3,
+            -2.9,
+            4.2,
+            10.2,
+            2.7
+          ]
+        ],
+        "lod": [
+          {
+            "node": "lod1",
+            "distance": 26
+          },
+          {
+            "node": "lod2",
+            "distance": 48
+          }
+        ],
         "placeholder": "procedural:tree",
-        "placeholderStyle": "pine",
+        "placeholderStyle": "palm",
         "finalSource": "Aholo Lux3D",
-        "lux3dUsed": false,
-        "plannedModelPath": "frontend/public/models/pine-v1.glb",
-        "ledgerId": "PLAN-tree_pine_01",
-        "fallbackLedgerId": "PH-tree_pine_01"
+        "lux3dUsed": true,
+        "ledgerId": "PLAN-tree_palm_01",
+        "fallbackLedgerId": "PH-tree_palm_01"
       },
-      "place": "山风经过",
+      "place": "林下的阴凉",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-17",
+        "QA-20",
+        "QA-31"
+      ]
+    },
+    {
+      "id": "tree_kapok_01",
+      "name": "吉贝木棉",
+      "category": "tree",
+      "runtimeKind": "kapok",
+      "stage": 1,
+      "habitat": "rainforest_emergent",
+      "implementationStatus": "scaffolded_placeholder",
+      "ruleClass": "MUST",
+      "locomotion": "ground",
+      "verticalControl": "none",
+      "moveSpeed": 24.0,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 2.7,
+      "observationRange": 450.0,
+      "possessionRange": 300.0,
+      "scaleTier": "S3",
+      "uniqueAbility": {
+        "id": "emergent_sight",
+        "text": "露生层：板根撑起笔直的巨干，伞状树冠高出整片林冠，看见河道与对岸雨林；体积巨大、必须绕开其他树",
+        "reviewState": "creator_confirmed",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "scale_soundscape",
+        "reviewState": "creator_confirmed",
+        "summary": "非动物不做色觉滤镜；以尺度对应的声音层次区分",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1,
+          "contrast": 1,
+          "brightness": 1,
+          "fogMultiplier": 1,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 900,
+          "underwaterLowpassHz": 360,
+          "range": 60,
+          "waterCueGain": 0.5,
+          "windGain": 0.17,
+          "distantCueGain": 1,
+          "heightAttenuation": false
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 96.0,
+        "height": 18.5,
+        "fovDeg": 48,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            21.0,
+            0
+          ],
+          "hideBody": true
+        }
+      },
+      "body": {
+        "height": 42.0,
+        "collisionRadius": 9.0,
+        "wadeDepthM": 0.6
+      },
+      "collision": {
+        "boxes": [
+          [
+            -3.6,
+            0,
+            -1.2,
+            0.4,
+            25,
+            2.7
+          ],
+          [
+            -9,
+            0,
+            -6.5,
+            6.5,
+            4,
+            8
+          ],
+          [
+            -19,
+            24,
+            -15,
+            14,
+            42.5,
+            16.5
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.kapok",
+        "status": "integrated",
+        "url": "./public/models/vegetation/kapok.glb",
+        "variants": [],
+        "height": 42.0,
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "pivot": "file_origin",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [],
+        "rigSource": null,
+        "colliderMode": "custom_boxes",
+        "collisionBoxes": [
+          [
+            -3.6,
+            0,
+            -1.2,
+            0.4,
+            25,
+            2.7
+          ],
+          [
+            -9,
+            0,
+            -6.5,
+            6.5,
+            4,
+            8
+          ],
+          [
+            -19,
+            24,
+            -15,
+            14,
+            42.5,
+            16.5
+          ]
+        ],
+        "lod": [
+          {
+            "node": "lod1",
+            "distance": 106
+          },
+          {
+            "node": "lod2",
+            "distance": 192
+          }
+        ],
+        "placeholder": "procedural:tree",
+        "placeholderStyle": "kapok",
+        "finalSource": "Aholo Lux3D",
+        "lux3dUsed": true,
+        "ledgerId": "PLAN-tree_kapok_01",
+        "fallbackLedgerId": "PH-tree_kapok_01"
+      },
+      "place": "雨林之上",
       "safeAnchors": [],
       "acceptanceIds": [
         "QA-17",
@@ -577,7 +769,7 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            1.6,
+            1.0,
             0
           ],
           "hideBody": true
@@ -630,7 +822,7 @@
         "ledgerId": "PLAN-rock_coast_01",
         "fallbackLedgerId": "PH-rock_coast_01"
       },
-      "place": "潮汐的边缘",
+      "place": "水线的边缘",
       "safeAnchors": [],
       "acceptanceIds": [
         "QA-17",
@@ -692,7 +884,7 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            56.0,
+            35.0,
             0
           ],
           "hideBody": true
@@ -767,7 +959,7 @@
       "category": "island",
       "runtimeKind": "island",
       "stage": 3,
-      "habitat": "sea",
+      "habitat": "river",
       "implementationStatus": "playtest_placeholder_runtime_0.3",
       "ruleClass": "MUST",
       "locomotion": "island",
@@ -781,7 +973,7 @@
       "scaleTier": "S5",
       "uniqueAbility": {
         "id": "drift_and_carry",
-        "text": "在海上漂移并携带岛上的全部存在；看见群岛与海；小尺度细节隐藏但状态保留",
+        "text": "在大河上顺流或逆流漂移，携带岛上的全部存在；看见河道、两岸雨林与沿河的其他岛；小尺度细节隐藏但状态保留",
         "reviewState": "creator_directed",
         "implementationStatus": "partial"
       },
@@ -809,40 +1001,40 @@
       },
       "camera": {
         "mode": "third_person",
-        "distance": 1450.0,
+        "distance": 950.0,
         "height": 37.4,
         "fovDeg": 48,
         "firstPerson": {
           "eyeOffset": [
             0,
-            80.75,
+            20.0,
             0
           ],
           "hideBody": false
         }
       },
       "body": {
-        "height": 85.0,
-        "collisionRadius": 480.0,
+        "height": 40.0,
+        "collisionRadius": 560.0,
         "wadeDepthM": 0,
         "surface": {
           "type": "dome",
           "radii": [
-            330,
-            65,
-            260
+            560,
+            6,
+            340
           ]
         }
       },
       "collision": {
         "boxes": [
           [
-            -480,
-            -45,
-            -410,
-            480,
-            90,
-            410
+            -575,
+            -10,
+            -345,
+            600,
+            45,
+            350
           ]
         ],
         "solid": true,
@@ -869,14 +1061,14 @@
         "collisionBoxes": null,
         "lod": [],
         "placeholder": "procedural:island",
-        "placeholderStyle": "dome",
+        "placeholderStyle": "river",
         "finalSource": "Aholo Lux3D",
         "lux3dUsed": false,
         "plannedModelPath": "frontend/public/models/island-v1.glb",
         "ledgerId": "PLAN-island_01",
         "fallbackLedgerId": "PH-island_01"
       },
-      "place": "潮汐之间",
+      "place": "大河之中",
       "safeAnchors": [],
       "acceptanceIds": [
         "QA-14",
@@ -1137,7 +1329,7 @@
       "category": "fish",
       "runtimeKind": "discus",
       "stage": 1,
-      "habitat": "lake",
+      "habitat": "river",
       "implementationStatus": "playtest_placeholder_runtime_0.3",
       "ruleClass": "MUST",
       "locomotion": "swim",
@@ -1244,7 +1436,7 @@
         "ledgerId": "LUX3D-fish_discus_01",
         "fallbackLedgerId": "PH-fish_discus_01"
       },
-      "place": "湖底的树根之间",
+      "place": "河湾浅水",
       "safeAnchors": [],
       "acceptanceIds": [
         "QA-17",
@@ -1307,7 +1499,7 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            1.6275,
+            0.875,
             0
           ],
           "hideBody": true
@@ -1350,7 +1542,12 @@
         "pivot": "bottom_center",
         "upAxis": "+Y",
         "forwardAxis": "-Z",
-        "animations": {"idle": "model-action", "move": "model-action", "run": "model-action", "swim": "model-action"},
+        "animations": {
+          "idle": "model-action",
+          "move": "model-action",
+          "run": "model-action",
+          "swim": "model-action"
+        },
         "requiredAnimationRoles": [
           "idle",
           "move"
@@ -1430,7 +1627,7 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            0.64,
+            0.4,
             0
           ],
           "hideBody": true
@@ -1495,13 +1692,140 @@
         "QA-19",
         "QA-31"
       ]
+    },
+    {
+      "id": "insect_blue_morpho_01",
+      "name": "蓝闪蝶",
+      "category": "insect",
+      "runtimeKind": "blueMorpho",
+      "stage": 1,
+      "habitat": "meadow",
+      "activityRegion": "island_airspace",
+      "implementationStatus": "integrated_pending_acceptance",
+      "ruleClass": "MUST",
+      "locomotion": "fly",
+      "verticalControl": "view_direction",
+      "moveSpeed": 2.7,
+      "acceleration": 10,
+      "turnSpeedDegPerSec": 180,
+      "boostMultiplier": 1.65,
+      "observationRange": 18,
+      "possessionRange": 18,
+      "scaleTier": "S1",
+      "scaleTierReason": "蓝闪蝶为近地小型飞行身体",
+      "uniqueAbility": {
+        "id": "low_flight",
+        "text": "在草叶间低空飞行，以近地尺度观察环境",
+        "reviewState": "creator_directed_pending_team",
+        "implementationStatus": "partial"
+      },
+      "perception": {
+        "basis": "art_direction",
+        "reviewState": "creator_directed_pending_team",
+        "summary": "暂沿用海鸥感知档案；色彩更饱满、远景更清楚，听觉效果待试玩确认",
+        "vision": {
+          "grayscale": 0,
+          "saturation": 1.15,
+          "contrast": 1.1,
+          "brightness": 1.02,
+          "fogMultiplier": 0.6,
+          "tint": null
+        },
+        "hearing": {
+          "airLowpassHz": 1400,
+          "underwaterLowpassHz": 360,
+          "range": 65,
+          "waterCueGain": 0.6,
+          "windGain": 0.16,
+          "distantCueGain": 1.1,
+          "heightAttenuation": true
+        }
+      },
+      "camera": {
+        "mode": "third_person",
+        "distance": 0.48,
+        "height": 0.16,
+        "fovDeg": 64,
+        "firstPerson": {
+          "eyeOffset": [
+            0,
+            0.07,
+            0
+          ],
+          "hideBody": true
+        }
+      },
+      "body": {
+        "height": 0.14,
+        "collisionRadius": 0.19,
+        "wadeDepthM": 0
+      },
+      "collision": {
+        "boxes": [
+          [
+            -0.18,
+            0,
+            -0.11,
+            0.18,
+            0.14,
+            0.11
+          ]
+        ],
+        "solid": true,
+        "passPolicy": "go_around"
+      },
+      "asset": {
+        "slotId": "slot.blueMorpho",
+        "status": "integrated",
+        "url": "./public/models/blue-morpho-flight-v002.glb",
+        "variants": [],
+        "height": 0.04,
+        "rotation": [
+          -1.5707963267948966,
+          0,
+          0
+        ],
+        "pivot": "bottom_center",
+        "upAxis": "+Y",
+        "forwardAxis": "-Z",
+        "animations": {},
+        "requiredAnimationRoles": [
+          "idle",
+          "move"
+        ],
+        "rigSource": "procedural_shader",
+        "colliderMode": "manual",
+        "collisionBoxes": null,
+        "lod": [],
+        "placeholder": "procedural:insect",
+        "placeholderStyle": "morpho",
+        "finalSource": "Hyper3D Rodin",
+        "lux3dUsed": false,
+        "plannedModelPath": "frontend/public/models/blue-morpho-flight-v002.glb",
+        "ledgerId": "PREVIEW-blue-morpho",
+        "fallbackLedgerId": "PH-insect_blue_morpho_01",
+        "proceduralAnimation": "morpho_wings"
+      },
+      "place": "草叶之间",
+      "safeAnchors": [],
+      "acceptanceIds": [
+        "QA-01",
+        "QA-23",
+        "QA-25",
+        "QA-30",
+        "QA-31",
+        "QA-34",
+        "QA-48",
+        "QA-49"
+      ],
+      "flightHeightM": 8
     }
   ],
   "environmentSlots": [
     {
       "slotId": "env.world",
-      "name": "整片世界（可选）",
-      "status": "placeholder",
+      "name": "整片世界（主岛地形）",
+      "status": "integrated",
       "url": null,
       "scale": 1,
       "position": [
@@ -1517,7 +1841,72 @@
       "useAsTerrain": true,
       "runtimeRead": true,
       "placeholder": "procedural:createTerrain",
-      "note": "整片 GLB 替换主岛地表；水域、出生点、实例锚点仍须人工配置"
+      "note": "主岛为亚马逊河心岛：Blender 中由 project/terrain/river_island.py 程序生成 1 m 高度场与地表分层权重图（不描图、不调用付费生成）。游戏读取高度场分块绘制，五层 Poly Haven CC0 地表贴图按权重混合；水域、出生点与实例锚点仍在 anchors.json 配置。缺失或加载失败时回退到程序占位岛（L-03）",
+      "ledgerId": "BLENDER-env.world-river-island",
+      "heightfield": {
+        "url": "./public/terrain/island-height.bin",
+        "groundMap": "./public/terrain/island-ground.bin",
+        "grid": [
+          1401,
+          901
+        ],
+        "size": [
+          1400,
+          900
+        ],
+        "heightRange": [
+          -9.0,
+          6.0
+        ],
+        "generator": "project/terrain/river_island.py",
+        "seed": 20261106,
+        "layers": [
+          {
+            "name": "sand",
+            "source": "Poly Haven coast_sand_01",
+            "diffuse": "./public/textures/ground/coast_sand_01_diff_1k.jpg",
+            "normal": "./public/textures/ground/coast_sand_01_nor_1k.jpg",
+            "tileM": 2.6,
+            "roughness": 0.85
+          },
+          {
+            "name": "mud",
+            "source": "Poly Haven brown_mud_02",
+            "diffuse": "./public/textures/ground/brown_mud_02_diff_1k.jpg",
+            "normal": "./public/textures/ground/brown_mud_02_nor_1k.jpg",
+            "tileM": 2.4,
+            "roughness": 0.6
+          },
+          {
+            "name": "grass",
+            "source": "Poly Haven leafy_grass",
+            "diffuse": "./public/textures/ground/leafy_grass_diff_1k.jpg",
+            "normal": "./public/textures/ground/leafy_grass_nor_1k.jpg",
+            "tileM": 2.2,
+            "roughness": 0.95
+          },
+          {
+            "name": "cracked",
+            "source": "Poly Haven mud_cracked_dry_03",
+            "diffuse": "./public/textures/ground/mud_cracked_dry_03_diff_1k.jpg",
+            "normal": "./public/textures/ground/mud_cracked_dry_03_nor_1k.jpg",
+            "tileM": 3.2,
+            "roughness": 0.9
+          },
+          {
+            "name": "litter",
+            "source": "Poly Haven forest_leaves_04",
+            "diffuse": "./public/textures/ground/forest_leaves_04_diff_1k.jpg",
+            "normal": "./public/textures/ground/forest_leaves_04_nor_1k.jpg",
+            "tileM": 2.0,
+            "roughness": 0.95
+          }
+        ],
+        "groundGrid": [
+          701,
+          451
+        ]
+      }
     },
     {
       "slotId": "env.meadow",
@@ -1525,8 +1914,8 @@
       "status": "placeholder",
       "url": null,
       "runtimeRead": true,
-      "placeholder": "procedural:meadow",
-      "note": "成片草地装饰，不可魂穿。占位时每个实例是一根草叶；换成 GLB 草丛后，count 表示放多少丛，应相应调小",
+      "placeholder": "procedural:blades",
+      "note": "成片草地装饰，不可魂穿。占位时每个实例是一根草叶，只长在地表权重图的草地层（groundLayer 2），按 48 m 网格分块并在 drawDistanceM 外隐藏；换成 GLB 草丛后，count 表示放多少丛，应相应调小",
       "variants": [],
       "height": 0.45,
       "scaleRange": [
@@ -1538,45 +1927,90 @@
       "scatter": {
         "carrier": "island-main",
         "seed": 7,
-        "surfaceMin": 5,
-        "surfaceMax": 43,
-        "avoidRegions": [
-          "lake"
-        ],
+        "surfaceMin": 0.35,
+        "surfaceMax": 8,
+        "groundLayer": 2,
+        "cellM": 48,
+        "drawDistanceM": 150,
         "areas": [
           {
             "center": [
-              0,
-              20
+              10,
+              15
             ],
             "size": [
-              100,
-              100
+              150,
+              150
             ],
-            "count": 45000
+            "count": 100000
           },
           {
             "center": [
-              0,
+              -140,
+              8
+            ],
+            "size": [
+              170,
+              240
+            ],
+            "count": 40000
+          },
+          {
+            "center": [
+              60,
               0
             ],
             "size": [
-              410,
-              340
+              900,
+              600
             ],
-            "count": 20000
+            "count": 70000
+          },
+          {
+            "center": [
+              -420,
+              -60
+            ],
+            "size": [
+              140,
+              110
+            ],
+            "count": 15400
+          },
+          {
+            "center": [
+              -200,
+              205
+            ],
+            "size": [
+              116,
+              88
+            ],
+            "count": 10208
+          },
+          {
+            "center": [
+              90,
+              -90
+            ],
+            "size": [
+              104,
+              76
+            ],
+            "count": 7904
           }
         ]
-      }
+      },
+      "placeholderStyle": "meadow"
     },
     {
       "slotId": "env.pebbles",
-      "name": "湖底卵石（装饰）",
+      "name": "水底卵石（装饰）",
       "status": "placeholder",
       "url": null,
       "runtimeRead": true,
       "placeholder": "procedural:pebble",
-      "note": "湖底卵石装饰，不可魂穿",
+      "note": "水底卵石装饰，不可魂穿；只放在实际水体床面，包含牛轭湖与南岸清澈河道",
       "variants": [],
       "height": 0.5,
       "scaleRange": [
@@ -1589,29 +2023,355 @@
         "carrier": "island-main",
         "seed": 500,
         "insideRegion": "lake",
+        "surfaceMax": 0.0,
         "areas": [
           {
             "center": [
-              -83,
-              -65
+              -70,
+              8
             ],
             "size": [
-              105,
-              55
+              128,
+              240
             ],
-            "count": 45
+            "count": 160,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              153,
+              303
+            ],
+            "size": [
+              84,
+              44
+            ],
+            "count": 180,
+            "waterType": "river"
           }
         ]
       }
     },
     {
+      "slotId": "env.reeds",
+      "name": "水边芦苇（装饰）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": true,
+      "placeholder": "procedural:blades",
+      "placeholderStyle": "reeds",
+      "note": "水线附近的高秆草丛，不可魂穿；只长在地表权重图的湿泥层（groundLayer 1）、略高于水面的地方",
+      "variants": [],
+      "height": 1.8,
+      "scaleRange": [
+        0.7,
+        1.3
+      ],
+      "wind": true,
+      "visibleUpToStage": 1,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 71,
+        "surfaceMin": 0.1,
+        "surfaceMax": 0.9,
+        "groundLayer": 1,
+        "cellM": 48,
+        "drawDistanceM": 200,
+        "areas": [
+          {
+            "center": [
+              -70,
+              8
+            ],
+            "size": [
+              160,
+              280
+            ],
+            "count": 18000
+          },
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              1200,
+              720
+            ],
+            "count": 45000
+          }
+        ]
+      }
+    },
+    {
+      "slotId": "env.forest",
+      "name": "成片雨林（布景树）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": true,
+      "placeholder": "procedural:forest",
+      "note": "不可魂穿的成片雨林，四层错落：露生层吉贝木棉、林冠层（Aholo 林冠阔叶树在 Blender 中拉长树干的变体）、亚林冠层阔叶树、水边低地的阿萨伊棕榈丛，全部来自 Aholo Lux3D 文生 3D（project/vegetation/build_vegetation.py 处理为三档网格与远景替身）。噪声场决定成片林与林窗，每层各自保持间距，小树多大树少，每棵略有倾斜、胖瘦与色差。按与视点的距离逐棵选档：lodRangesM 内依次画原始精度、中精度、低精度网格，更远处与大尺度时画替身；每棵树同一时刻只在一档，视点每移动 3 m 重选，交接距离每棵略有不同。布景树避开岛上的身体；树干只挡 blocksBodiesUpToM（3 m）以下的小身体（人、狗、草），能魂穿的树可以穿过布景林，保留移动空间（D-031）。模型缺失时回退为程序树（只画近处）",
+      "variants": [],
+      "height": 20,
+      "scaleRange": [
+        1,
+        1
+      ],
+      "wind": false,
+      "visibleUpToStage": 1,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 61,
+        "surfaceMin": 0.6,
+        "groundLayer": "litter",
+        "avoidRegions": [
+          "lake_shore",
+          "spawn_clearing",
+          "glade_west",
+          "glade_north",
+          "glade_east"
+        ],
+        "layers": [
+          {
+            "name": "emergent",
+            "models": [
+              "kapok"
+            ],
+            "fallback": "kapok",
+            "attempts": 1500,
+            "heightM": [
+              34,
+              46
+            ],
+            "spacingM": 60,
+            "trunk": 0.7,
+            "surfaceMin": 2.0,
+            "leanDeg": 1.5,
+            "ageSkew": 0.8
+          },
+          {
+            "name": "canopy",
+            "models": [
+              "canopy_tall"
+            ],
+            "fallback": "canopy",
+            "attempts": 60000,
+            "heightM": [
+              18,
+              30
+            ],
+            "slender": 0.85,
+            "widthScale": [
+              0.85,
+              1.2
+            ],
+            "spacingM": 13,
+            "overlap": 0.6,
+            "trunk": 0.3,
+            "leanDeg": 4,
+            "ageSkew": 1.3
+          },
+          {
+            "name": "subcanopy",
+            "models": [
+              "canopy"
+            ],
+            "fallback": "canopy",
+            "attempts": 30000,
+            "heightM": [
+              6,
+              12
+            ],
+            "slender": 0.8,
+            "widthScale": [
+              0.8,
+              1.2
+            ],
+            "spacingM": 10,
+            "overlap": 0.7,
+            "trunk": 0.3,
+            "leanDeg": 6,
+            "ageSkew": 1.4,
+            "clumpOffset": 3.7
+          },
+          {
+            "name": "palms",
+            "models": [
+              "acai"
+            ],
+            "fallback": "palm",
+            "attempts": 12000,
+            "heightM": [
+              6,
+              11
+            ],
+            "widthScale": [
+              0.85,
+              1.15
+            ],
+            "spacingM": 8,
+            "trunk": 0.45,
+            "surfaceMax": 2.4,
+            "leanDeg": 7,
+            "clumpOffset": 8.1
+          }
+        ],
+        "areas": [
+          {
+            "center": [
+              -20,
+              0
+            ],
+            "size": [
+              1120,
+              680
+            ]
+          }
+        ],
+        "vegetation": "./public/models/vegetation/vegetation.json",
+        "clumping": {
+          "scaleM": 55,
+          "clearingBelow": 0.34,
+          "strength": 0.7
+        },
+        "lodRangesM": [
+          12,
+          30,
+          75
+        ],
+        "blocksBodiesUpToM": 3
+      }
+    },
+    {
+      "slotId": "env.understory",
+      "name": "林下蕨类与灌丛（装饰）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": true,
+      "placeholder": "procedural:understory",
+      "note": "雨林最低一层：Aholo Lux3D 文生 3D 的蕨类与大叶芋混生灌丛（project/vegetation/build_vegetation.py 减为两档网格），成小片生长，不可魂穿、不挡路；只长在地表权重图的落叶层，lodRangesM 内画高精度、drawDistanceM 内画低精度，更远处不画；模型缺失时回退为程序蕨类与灌丛",
+      "variants": [],
+      "height": 1.4,
+      "scaleRange": [
+        0.6,
+        1.5
+      ],
+      "wind": true,
+      "visibleUpToStage": 1,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 91,
+        "surfaceMin": 0.5,
+        "groundLayer": "litter",
+        "drawDistanceM": 35,
+        "avoidRegions": [
+          "lake",
+          "spawn_clearing"
+        ],
+        "areas": [
+          {
+            "center": [
+              -20,
+              0
+            ],
+            "size": [
+              1100,
+              660
+            ],
+            "count": 16000
+          }
+        ],
+        "plants": [
+          {
+            "model": "understory",
+            "weight": 1,
+            "heightM": [
+              0.7,
+              1.7
+            ],
+            "patchM": 16
+          }
+        ],
+        "lodRangesM": [
+          12,
+          35
+        ]
+      }
+    },
+    {
+      "slotId": "env.fireflies",
+      "name": "萤火虫（装饰）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": true,
+      "placeholder": "procedural:fireflies",
+      "note": "夜里在草地与牛轭湖岸边发光，下雨时减少；不可魂穿",
+      "variants": [],
+      "height": 0.05,
+      "scaleRange": [
+        1,
+        1
+      ],
+      "wind": false,
+      "visibleUpToStage": 1,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 11,
+        "surfaceMin": 0.3,
+        "areas": [
+          {
+            "center": [
+              10,
+              18
+            ],
+            "size": [
+              130,
+              130
+            ],
+            "count": 300
+          },
+          {
+            "center": [
+              -140,
+              8
+            ],
+            "size": [
+              150,
+              220
+            ],
+            "count": 260
+          },
+          {
+            "center": [
+              70,
+              40
+            ],
+            "size": [
+              160,
+              120
+            ],
+            "count": 160
+          }
+        ]
+      }
+    },
+    {
+      "slotId": "env.banks",
+      "name": "两岸雨林（布景）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": false,
+      "placeholder": "procedural:banks.js",
+      "note": "沿河两岸的雨林墙与露生大树，按 anchors.json 河道 corridor 生成；不可魂穿，非模型槽，如改用模型另行登记"
+    },
+    {
       "slotId": "env.sky_water",
-      "name": "天空与水面",
+      "name": "天空、水面与天气",
       "status": "shader",
       "url": null,
       "runtimeRead": false,
-      "placeholder": "shader:world.js",
-      "note": "着色器表现，非模型槽；如改用 HDRI 或贴图另行登记"
+      "placeholder": "shader:sky.js, water.js",
+      "note": "着色器表现，非模型槽：天空含昼夜、星月、云与雨（sky.js）；河水与牛轭湖读取主岛高度场计算深浅、岸边泡沫与雨点涟漪（water.js）；颜色在 anchors.json 水体的 look 字段"
     }
   ],
   "categories": {
@@ -1670,6 +2430,36 @@
       "placeholder": "fish",
       "soundCue": null,
       "release": "0.3"
+    },
+    "insect": {
+      "name": "昆虫",
+      "isAnimal": true,
+      "placeholder": "insect",
+      "soundCue": null,
+      "release": "0.4",
+      "decision": "D-035"
+    }
+  },
+  "cameraModes": {
+    "default": "third_person",
+    "decision": "D-035",
+    "third_person": {
+      "movement": "camera_relative_face_travel",
+      "followBodyTurn": true,
+      "fovDeg": 48,
+      "vision": {
+        "grayscale": 0,
+        "saturation": 1,
+        "contrast": 1,
+        "brightness": 1,
+        "fogMultiplier": 1,
+        "tint": null
+      }
+    },
+    "first_person": {
+      "movement": "camera_relative_look_heading",
+      "vision": "current_body",
+      "hearing": "current_body"
     }
   }
 }

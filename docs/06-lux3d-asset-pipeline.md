@@ -2,7 +2,7 @@
 
 版本：0.4-review · 2026-11-01。规则：L-01～L-07。扩展方法汇总见 [数据与扩展指南](../data/README.md)。资产台账：[asset-ledger.csv](../data/asset-ledger.csv)。
 
-**当前事实：人槽已接入用户提供的绑骨 GLB，来源和授权待核实；海鸥（`slot.gull` v003，v002 保留回退；写实版 v001 只保留原件与记录）、银斧鱼（`slot.silverfish`）、七彩神仙鱼（`slot.discus`）已接入 Lux3D 国内版生成、Blender 绑骨与动作的模型（来源链见 `assets/lux3d/LUX3D-*`，生成任务记录待补、未通过 QA-31～QA-34 验收）；其余资产槽仍为程序化占位。** 下文是替换合同，不代表资产已经验收。
+**当前事实：人槽已接入用户提供的绑骨 GLB，来源和授权待核实；雨林的三个树槽（`slot.kapok`、`slot.broadleaf`、`slot.palm`）与布景植被（`env.forest`、`env.understory`、两岸林线）已导入 Lux3D 产物（D-031，状态 `integrated`，未验收）；其余资产槽仍为程序化占位。** 下文是替换合同，不代表资产已经验收。
 
 ## 思路
 
@@ -42,13 +42,13 @@ Lux3D 生成（文字／图片）→ 下载原始文件 → Blender 修整：比
 | `variants` | 更多模型：路径，或可覆盖 `height`／`rotation`／`animations`／`collisionBoxes`／`lod`／`weight` 的对象；按个体 ID 固定分配 | `["./public/models/gull-b.glb"]` |
 | `height` | 目标高度（米）；导入器按此等比缩放 | `0.65` |
 | `rotation` | 轴向纠正，XYZ 弧度 | `[0, 0, 0]` |
-| `pivot`／`upAxis`／`forwardAxis` | 原点、向上、朝前约定 | `bottom_center`、`+Y`、`-Z` |
+| `pivot`／`upAxis`／`forwardAxis` | 原点、向上、朝前约定；`file_origin` 保留文件原点（树干不在树冠正中时，原点标在树干底部） | `bottom_center`、`+Y`、`-Z` |
 | `animations` | 动作角色 → GLB 内真实动作名 | `{"idle": "Glide", "move": "Flap"}` |
 | `requiredAnimationRoles` | 该种类必须提供的动作角色 | `["idle", "move"]` |
 | `rigSource` | 骨骼来源：`aholo`、`blender` 或 `null` | `aholo` |
 | `colliderMode` | `auto_bounds`（按包围盒）或 `custom_boxes` | `auto_bounds` |
 | `collisionBoxes` | 自定义碰撞盒，局部米制 `[minX,minY,minZ,maxX,maxY,maxZ]` 列表 | `null` |
-| `lod` | 远景简化模型列表，超过 `distance` 米时换上 | `[{"url": "./public/models/gull-far.glb", "distance": 60}]` |
+| `lod` | 远景简化模型列表，超过 `distance` 米时换上；`node` 代替 `url` 时取主文件里同名的节点（主文件的近景节点名为 `lod0`） | `[{"url": "./public/models/gull-far.glb", "distance": 60}]`、`[{"node": "lod1", "distance": 50}]` |
 | `placeholderStyle` | 占位外形的样式（同一类别的生成器内区分，如 `pine`、`butterfly`） | `gull` |
 | `placeholder` | 当前占位的来源 | `procedural:gull` |
 | `lux3dUsed` | 真实 Lux3D 产物已进入槽且台账有来源与导入证据时设为 `true`，不代表验收通过 | `false` |
@@ -113,7 +113,9 @@ assets/lux3d/<asset_id>/
   evidence/    游戏内截图、运行片段、版本对应说明
 ```
 
-人模型原始文件目前保留在 `assets/lux3d/character/`：`character-原始.glb`、`animation-步行A.glb`、`animation-冲刺.glb`、`animation-游泳.glb` 分别对应运行时的静态、步行、冲刺和游泳模型。游戏读取 `frontend/public/models/` 中的副本；调整源文件后需核对并同步副本。具体生成过程、授权和证据链待补齐。台账中没有证据的字段留空，不填写虚构的日期、任务 ID 或 `lux3d_used=true`。
+人模型原始文件目前保留在 `assets/lux3d/character/`：`character-原始.glb`、`animation-步行A.glb`、`animation-冲刺.glb`、`animation-游泳.glb` 分别对应运行时的静态、步行、冲刺和游泳模型。游戏读取 `frontend/public/models/` 中的副本；调整源文件后需核对并同步副本。具体生成过程、授权和证据链待补齐。
+
+现有实例：`assets/lux3d/LUX3D-vegetation-rainforest/`（input、raw、evidence；Blender 处理是可重跑的脚本 `project/vegetation/build_vegetation.py`，没有单独的 edit 目录）。台账中没有证据的字段留空，不填写虚构的日期、任务 ID 或 `lux3d_used=true`。
 
 ## 整片世界替换
 
