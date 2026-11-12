@@ -477,11 +477,12 @@ const resumeFrames=Math.round((A.state.get(bird).group.resumeAfterSec??4)*30);
 take('human-first');const left=bird.root.position.clone();step(Math.floor(resumeFrames/2));const rest=bird.root.position.distanceTo(left);step(Math.ceil(resumeFrames/2)+120);
 assert('a released body rests, then rejoins its route',rest<.01&&bird.root.position.distanceTo(left)>2,rest.toFixed(3));
 """)
-# A body turned against a scenery trunk can leave it, and recovery clears trunks (M-02, M-06).
+# Bodies turned against a scenery trunk or a solid box can leave it, and recovery clears
+# trunks (M-02, M-06).
 load()
 passed += run(r"""
-const {checkTrunkTurnEscape}=await import('./tests/collision-regressions.js');
-checkTrunkTurnEscape(g,assert);
+const {checkTrunkTurnEscape,checkTurnEscapeAllKinds}=await import('./tests/collision-regressions.js');
+checkTrunkTurnEscape(g,assert);checkTurnEscapeAllKinds(g,assert);
 """)
 # Review regressions: removed save players, terrain on rejoining, and played-body collision.
 load()

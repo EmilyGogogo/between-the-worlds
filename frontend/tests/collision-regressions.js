@@ -48,3 +48,46 @@ export function checkTrunkTurnEscape(g,assert){
     C.refresh();g.snapCamera=true;g.updateCamera(0);
   }
 }
+
+// Every body kind (islands drift instead) stopped against a scenery trunk or a solid box,
+// then turned by the third-person keys or the first-person view, can move away at once:
+// no step sinks deeper and no stuck recovery is needed (M-02, M-06).
+export function checkTurnEscapeAllKinds(g,assert){
+  const W=g.world,C=g.collision,snapshot=W.serialize(),player=g.player,mode=g.cameraMode,yaw=g.yaw,pitch=g.pitch,obstacles=W.obstacles,move=C.move,repair=C.repair;
+  const depth=e=>C.penetration(e,W.position(e,new THREE.Vector3()));
+  let repairs=0,deeper=0,subject=null;
+  C.repair=function(e){repairs++;return repair.call(C,e);};
+  C.move=(e,delta)=>{const before=e===subject?depth(e):0,result=move.call(C,e,delta);if(e===subject&&before>0)deeper=Math.max(deeper,depth(e)-before);return result;};
+  const tick=frames=>{for(let i=0;i<frames;i++){g.move(1/60);g.updateCamera(1/60);}};
+  try{
+    for(const kind of Object.keys(SPECIES).filter(k=>SPECIES[k].mode!=='island')){
+      const s=SPECIES[kind],e=W.entities.find(x=>x.kind===kind&&x.root.parent===W.islandRoot)||W.entities.find(x=>x.kind===kind),parent=e.root.parent;
+      const trunks=parent===W.islandRoot&&s.stage<=1&&s.height<=W.obstacleBodyHeight;
+      for(const obstacle of trunks?['trunk','box']:['box']){
+        W.restore(snapshot);C.refresh();W.obstacles=[];C.grid=null;subject=e;
+        const local=C.localBoxes(e).reduce((all,b)=>all.union(b),new THREE.Box3()),half=Math.max(local.max.x,-local.min.x,local.max.z,-local.min.z);
+        const p=e.root.position,size=obstacle==='trunk'?.4:Math.max(.6,half*.5),reach=half+size+3,front=new THREE.Vector3(p.x,p.y,p.z-reach);
+        // Only the test obstacle blocks, straight ahead along the carrier's -z.
+        C.records=C.records.filter(r=>C.related(e,r.entity));
+        if(obstacle==='trunk')W.obstacles=[{x:front.x,z:front.z,r:size,top:p.y+1000}];
+        else{const box=new THREE.Box3(new THREE.Vector3(front.x-size,p.y-50,front.z-size),new THREE.Vector3(front.x+size,p.y+s.height+50,front.z+size));
+          C.records.push({entity:W.entities.find(x=>x!==e&&!C.related(e,x)),parent,frameBox:box,box:box.clone().applyMatrix4(parent.matrixWorld)});}
+        const forward=new THREE.Vector3(0,0,-1).applyQuaternion(parent.getWorldQuaternion(new THREE.Quaternion()));
+        const reset=state=>{if(state){p.copy(state.p);e.heading=state.heading;}else e.heading=0;e.root.rotation.y=e.heading;e.root.updateWorldMatrix(true,true);
+          g.player=e;g.transition=null;g.cameraMode='third_person';g.clearInput();g.yaw=Math.atan2(-forward.x,-forward.z);g.pitch=0;g.snapCamera=true;g.updateCamera(0);g.stuck={time:0,anchor:null};repairs=0;deeper=0;};
+        reset();g.actions.add('move_forward');tick(Math.ceil(3/s.speed*90)+60);
+        const state={p:p.clone(),heading:e.heading},gap=Math.hypot(p.x-front.x,p.z-front.z);
+        assert(`${kind} stops against a ${obstacle}`,gap>size&&gap<reach-.05,gap.toFixed(2));
+        for(const [view,action,turn] of [['third_person','move_left',0],['first_person','move_back',Math.PI/4]]){
+          reset(state);g.cameraMode=view;if(turn){g.yaw+=turn;tick(60);}
+          const start=p.clone();g.actions.add(action);tick(90);const moved=Math.hypot(p.x-start.x,p.z-start.z);
+          assert(`${kind} turned at a ${obstacle} (${view} ${action}) leaves without recovery`,moved>Math.min(1,s.speed*.5)&&!repairs&&deeper<=1e-6,`moved ${moved.toFixed(2)}, repairs ${repairs}, deeper ${deeper.toFixed(4)}`);
+        }
+      }
+    }
+  }finally{
+    C.move=move;C.repair=repair;W.obstacles=obstacles;C.grid=null;subject=null;
+    W.restore(snapshot);g.clearInput();g.player=player;g.cameraMode=mode;g.yaw=yaw;g.pitch=pitch;
+    C.refresh();g.snapCamera=true;g.updateCamera(0);
+  }
+}
