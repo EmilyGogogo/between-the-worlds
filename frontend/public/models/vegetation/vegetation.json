@@ -1,0 +1,142 @@
+{
+  "models": {
+    "kapok": {
+      "source": "Aholo Lux3D G1 text-to-3D (1-kapok.glb)",
+      "prompt": "一棵巨大的亚马逊吉贝木棉，灰白色笔直高大的树干，根部有明显的板状支撑根，顶部是宽阔扁平的伞状树冠，枝上挂着藤蔓和附生植物，单棵树，无地面",
+      "height": 15.0,
+      "crownRadius": 6.514,
+      "crownBase": 9.0,
+      "rawTriangles": 43752,
+      "impostor": {
+        "center": [
+          -1.0108,
+          7.5,
+          0.2489
+        ],
+        "half": 9.1348,
+        "headings": 16,
+        "elevations": [
+          4.0,
+          32.0,
+          62.0
+        ],
+        "frame": 256,
+        "color": "kapok-impostor.webp",
+        "normal": "kapok-impostor-n.webp"
+      },
+      "triangles": [
+        26000,
+        10000,
+        2500
+      ],
+      "model": "kapok.glb"
+    },
+    "canopy": {
+      "source": "Aholo Lux3D G1 text-to-3D (2-canopy.glb)",
+      "prompt": "一棵热带雨林阔叶乔木，修长的深色树干，上部分叉，树冠层层叠叠、浓密，叶片清晰，单棵树，无地面",
+      "height": 8.0,
+      "crownRadius": 3.602,
+      "crownBase": 2.56,
+      "rawTriangles": 37066,
+      "impostor": {
+        "center": [
+          0.0891,
+          4.0,
+          0.1195
+        ],
+        "half": 4.4662,
+        "headings": 16,
+        "elevations": [
+          4.0,
+          32.0,
+          62.0
+        ],
+        "frame": 256,
+        "color": "canopy-impostor.webp",
+        "normal": "canopy-impostor-n.webp"
+      },
+      "triangles": [
+        24000,
+        9000,
+        1800
+      ],
+      "model": "canopy.glb"
+    },
+    "canopy_tall": {
+      "source": "Aholo Lux3D G1 text-to-3D (2-canopy.glb)",
+      "prompt": "（同 canopy，树冠以下的树干在 Blender 中拉长 2.6 倍）",
+      "height": 12.096,
+      "crownRadius": 3.602,
+      "crownBase": 6.532,
+      "rawTriangles": 37066,
+      "impostor": {
+        "center": [
+          0.0891,
+          6.048,
+          0.1195
+        ],
+        "half": 6.2712,
+        "headings": 16,
+        "elevations": [
+          4.0,
+          32.0,
+          62.0
+        ],
+        "frame": 256,
+        "color": "canopy_tall-impostor.webp",
+        "normal": "canopy_tall-impostor-n.webp"
+      },
+      "triangles": [
+        24000,
+        9000,
+        1800
+      ],
+      "model": "canopy_tall.glb"
+    },
+    "acai": {
+      "source": "Aholo Lux3D G1 text-to-3D (3-acai.glb)",
+      "prompt": "一丛4株阿萨伊棕榈，细长弯曲的树干，顶部是下垂的羽状叶，单丛，无地面",
+      "height": 4.5,
+      "crownRadius": 2.046,
+      "crownBase": 1.35,
+      "rawTriangles": 44980,
+      "impostor": {
+        "center": [
+          0.0036,
+          2.25,
+          -0.0599
+        ],
+        "half": 2.5265,
+        "headings": 16,
+        "elevations": [
+          4.0,
+          32.0,
+          62.0
+        ],
+        "frame": 256,
+        "color": "acai-impostor.webp",
+        "normal": "acai-impostor-n.webp"
+      },
+      "triangles": [
+        26000,
+        7999,
+        1500
+      ],
+      "model": "acai.glb"
+    },
+    "understory": {
+      "source": "Aholo Lux3D G1 text-to-3D (4-understory.glb)",
+      "prompt": "一丛热带蕨类和大叶芋混生的灌丛，低矮茂密，无地面",
+      "height": 0.397,
+      "crownRadius": 0.312,
+      "crownBase": 0.238,
+      "rawTriangles": 33102,
+      "triangles": [
+        6000,
+        2000
+      ],
+      "model": "understory.glb"
+    }
+  },
+  "generator": "project/vegetation/build_vegetation.py"
+}

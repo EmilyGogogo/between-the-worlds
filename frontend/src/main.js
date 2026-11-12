@@ -1,14 +1,17 @@
 import * as THREE from 'three';
 import { AssetLibrary } from './assets.js';
-import { World, terrainHeight, PLANET_RADIUS } from './world.js';
+import { World, terrainHeight, PLANET_RADIUS, loadTerrainField } from './world.js';
+import { Atmosphere } from './sky.js';
 import { SPECIES,SCALE_TIERS,TUNING,LAYOUT,CAMERA_MODES,loadRuntimeConfig,actionForCode,canEmbody,layerOf } from './species.js';
 import { InteractionSystem } from './interactions.js';
 import { WorldCollision } from './collision.js';
 import { Ambience } from './audio.js';
 
 const $=id=>document.getElementById(id);
-// 0.3 baseline save; earlier prototype saves (planets, companions) are ignored (W-04).
-const STORAGE='between-all-things.save.v4';
+// River-island save (D-027); saves from the sea archipelago or earlier prototypes are
+// ignored, since their positions belong to another terrain (W-04).
+const STORAGE='between-all-things.save.v5';
+const SAVE_VERSION=5;
 const SOUND='between-all-things.sound';
 const UP=new THREE.Vector3(0,1,0);
 const v1=new THREE.Vector3(),v2=new THREE.Vector3(),v3=new THREE.Vector3();
@@ -19,15 +22,12 @@ const tune=(key,fallback)=>TUNING[key]?.value??fallback;
 const LEVEL_PITCH=.3;
 let game;
 
-function viewOf(kind,mode){
-  const s=SPECIES[kind],first=mode==='first_person';
-  return {...(first?s.vision:CAMERA_MODES.third_person.vision),fov:first?s.fov:CAMERA_MODES.third_person.fovDeg,hearing:s.hearing,tintAmount:first&&s.vision.tint?1:0};
-}
+function viewOf(kind,mode='third_person'){const s=SPECIES[kind],first=mode==='first_person';return {...(first?s.vision:CAMERA_MODES.third_person.vision),fov:first?s.fov:CAMERA_MODES.third_person.fovDeg,hearing:s.hearing,tintAmount:first&&s.vision.tint?1:0};}
 function blendView(a,b,f){
   const out={hearing:{}};
   for(const key of ['grayscale','saturation','contrast','brightness','fogMultiplier','fov'])out[key]=lerp(a[key],b[key],f);
   for(const key of Object.keys(b.hearing))out.hearing[key]=typeof b.hearing[key]==='number'?lerp(a.hearing[key],b.hearing[key],f):(f<.5?a.hearing[key]:b.hearing[key]);
-  out.tint=b.tint||a.tint;out.tintAmount=lerp(a.tintAmount,b.tintAmount,f);
+  out.tint=b.tint||a.tint;out.tintAmount=(a.tint?1-f:0)+(b.tint?f:0);
   return out;
 }
 
@@ -37,13 +37,14 @@ class Game {
     this.scene.fog=new THREE.FogExp2('#bac9b5',.004);
     this.camera=new THREE.PerspectiveCamera(48,innerWidth/innerHeight,.025,400000);
     this.camera.position.set(25,14,55);this.camera.lookAt(-5,6,-15);
-    this.scene.add(new THREE.HemisphereLight('#dfe8d9','#75804e',1.8));
+    this.hemi=new THREE.HemisphereLight('#dfe8d9','#75804e',1.8);this.scene.add(this.hemi);
     this.sun=new THREE.DirectionalLight('#fff0d0',2.5);this.sun.position.set(-60,110,35);this.sun.castShadow=true;this.sun.shadow.mapSize.set(2048,2048);Object.assign(this.sun.shadow.camera,{left:-70,right:70,top:70,bottom:-70,near:.5,far:450});this.sun.shadow.normalBias=.08;this.sun.shadow.bias=-.0002;this.scene.add(this.sun,this.sun.target);
-    this.world=new World(this.scene,assets);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.world.collision=this.collision;
-    this.world.moveBody=(entity,delta,dt)=>this.moveBody(entity,delta,dt);this.interactions=new InteractionSystem(this);
+    // Day, night, seasons and rain (D-028) light the world and its water.
+    this.atmosphere=new Atmosphere(this.scene,{sun:this.sun,hemi:this.hemi,renderer});
+    this.world=new World(this.scene,assets,this.atmosphere);this.collision=new WorldCollision(this.world);this.world.prune(this.collision);this.world.collision=this.collision;this.world.moveBody=(entity,delta,dt)=>this.moveBody(entity,delta,dt);this.interactions=new InteractionSystem(this);
     this.player=this.world.byId.get(LAYOUT.initialInstance);this.target=null;this.candidate=null;this.candidateTime=0;this.targetInfo=null;
-    this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;this.cameraMode=CAMERA_MODES.default;this.cameraBodyTurn=0;
-    this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;
+    this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
+    this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;this.cameraMode=CAMERA_MODES.default;this.cameraBodyTurn=0;this.movementInput=null;
     this.hints={};this.pointerHintTime=0;this.lastResponse=-90;this.responseTimer=0;this.shown=new Set();this.pendingMoment=null;
     this.stuck={time:0,anchor:null};this.audio=new Ambience();this.filter='';
     this.hasSave=this.restore();this.view=viewOf(this.player.kind,this.cameraMode);
@@ -130,8 +131,7 @@ class Game {
     if(state===this.controlGuideState)return;this.controlGuideState=state;
     $('control-guide').hidden=!active;
     $('look-guide').textContent=locked?'鼠标环视':'左键拖动环视';
-    $('movement-label').textContent='移动';
-    $('pause-movement-label').textContent='前 / 后 / 左 / 右';
+    $('movement-label').textContent='移动'; $('pause-movement-label').textContent='前 / 后 / 左 / 右';
     $('view-label').textContent=this.cameraMode==='first_person'?'第一人称':'第三人称';
     $('move-guide').classList.toggle('unavailable',Boolean(this.transition));
     $('possess-guide').classList.toggle('unavailable',Boolean(this.transition));
@@ -147,15 +147,7 @@ class Game {
   updatePresence(){const s=SPECIES[this.player.kind];$('body-name').textContent=s.name;$('body-place').textContent=s.place;}
   pitchMin(){return this.cameraMode==='first_person'?-1.35:SPECIES[this.player.kind].verticalControl==='view_direction'?-.45:.06;}
   pitchMax(){return this.cameraMode==='first_person'?1.35:1.16;}
-  toggleView(){
-    if(!this.started||this.paused||this.transition)return false;
-    const first=this.cameraMode!=='first_person';
-    this.cameraMode=first?'first_person':'third_person';
-    // Keep the look direction approximately level when changing camera conventions.
-    this.pitch=clamp(first?(this.pitch-LEVEL_PITCH)*1.6:this.pitch/1.6+LEVEL_PITCH,this.pitchMin(),this.pitchMax());
-    this.zoom=1;this.target=null;this.candidate=null;this.targetInfo=null;this.clearInput();
-    this.viewBlend={from:this.view,elapsed:0};this.snapCamera=true;this.updateCamera(0);this.updateControlGuide();this.save();return true;
-  }
+  toggleView(){if(!this.started||this.paused||this.transition)return false;const first=this.cameraMode!=='first_person';this.cameraMode=first?'first_person':'third_person';this.pitch=clamp(first?(this.pitch-LEVEL_PITCH)*1.6:this.pitch/1.6+LEVEL_PITCH,this.pitchMin(),this.pitchMax());this.zoom=1;this.target=null;this.candidate=null;this.targetInfo=null;this.clearInput();this.snapCamera=true;this.updateControlGuide();this.save();return true;}
   // Looking up while moving forward rises, looking down dives (I-02).
   climb(){return -Math.sin(this.cameraMode==='first_person'?this.pitch:(this.pitch-LEVEL_PITCH)*1.6);}
 
@@ -164,7 +156,7 @@ class Game {
     if(this.transition||!this.target)return false;
     const target=this.target;this.collision.refresh();this.updateLift();
     if(!this.evaluate(target,this.camera.position,this.camera.getWorldDirection(v2))){this.target=null;this.candidate=null;return false;}
-    const minPitch=layerOf(target.kind).possessMinPitch;if(this.cameraMode==='third_person'&&minPitch!=null)this.pitch=Math.max(this.pitch,minPitch);
+    const minPitch=layerOf(target.kind).possessMinPitch;if(minPitch!=null)this.pitch=Math.max(this.pitch,minPitch);
     this.transition={from:this.player,to:target,start:this.camera.position.clone(),startFocus:this.focusGoal.clone(),elapsed:0,duration:tune('possessionDurationSec',2.4)};
     this.player.moving=false;this.target=null;this.candidate=null;this.zoom=1;this.clearInput();
     document.body.classList.add('transitioning');this.updateControlGuide();this.audio.chime();return true;
@@ -306,47 +298,62 @@ class Game {
     const e=this.player,s=SPECIES[e.kind],a=this.actions;
     const x=Number(a.has('move_right'))-Number(a.has('move_left')),z=Number(a.has('move_back'))-Number(a.has('move_forward'));
     const first=this.cameraMode==='first_person';
-    // Camera follow must not feed its own rotation back into a held direction.
+    const parentQ=e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
     if(first||!(x||z))this.movementInput=null;
-    else if(!this.movementInput||this.movementInput.x!==x||this.movementInput.z!==z)this.movementInput={x,z,yaw:this.yaw};
-    const dir=new THREE.Vector3(x,0,z);if(dir.lengthSq())dir.normalize();dir.applyAxisAngle(UP,this.movementInput?.yaw??this.yaw);
+    else if(!this.movementInput||this.movementInput.x!==x||this.movementInput.z!==z){
+      const view=this.camera.getWorldDirection(new THREE.Vector3()),screenYaw=Math.atan2(-view.x,-view.z);
+      const screenDir=new THREE.Vector3(x,0,z).normalize().applyAxisAngle(UP,screenYaw).applyQuaternion(parentQ);
+      const targetHeading=Math.atan2(-screenDir.x,-screenDir.z);
+      // Project onto the carrier's surface before choosing the final camera yaw.
+      const worldDir=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,targetHeading).applyQuaternion(parentQ.clone().invert());
+      const targetYaw=Math.atan2(-worldDir.x,-worldDir.z);
+      const cameraTurn=Math.atan2(Math.sin(targetYaw-this.yaw),Math.cos(targetYaw-this.yaw));
+      this.movementInput={x,z,yaw:this.yaw,cameraTurn,targetHeading};
+    }
+    const dir=first?new THREE.Vector3(x,0,z):new THREE.Vector3();
+    if(first&&dir.lengthSq())dir.normalize().applyAxisAngle(UP,this.yaw);
     if(s.verticalControl==='view_direction'&&z)dir.y=-z*this.climb();
     if(dir.lengthSq()>1)dir.normalize();
-    e.moving=dir.lengthSq()>0;e.boosting=e.moving&&a.has('boost');
-    const speed=s.speed*(a.has('boost')?s.boost:1),parentQ=e.root.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
-    const before=e.root.position.clone();
-    const local=dir.applyQuaternion(parentQ),headingBefore=e.heading;
-    const facing=first?new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ):local;
-    if(first||local.lengthSq())this.faceDirection(e,facing,dt);
-    if(!first&&CAMERA_MODES.third_person.followBodyTurn){
-      const frame=parentQ.clone().invert(),worldHeading=heading=>{
-        const forward=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,heading).applyQuaternion(frame);
-        return Math.atan2(-forward.x,-forward.z);
-      };
-      const difference=worldHeading(e.heading)-worldHeading(headingBefore),turn=Math.atan2(Math.sin(difference),Math.cos(difference));
-      this.yaw+=turn;this.cameraBodyTurn+=turn;
+    e.moving=first?dir.lengthSq()>0:Boolean(this.movementInput);e.boosting=e.moving&&a.has('boost');
+    const speed=s.speed*(a.has('boost')?s.boost:1),before=e.root.position.clone();
+    let local,alignment=1;
+    if(first){
+      local=dir.applyQuaternion(parentQ).multiplyScalar(speed*dt);
+      const facing=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,this.yaw).applyQuaternion(parentQ);
+      this.faceDirection(e,facing,dt);
+    }else if(this.movementInput){
+      const delta=Math.atan2(Math.sin(this.movementInput.targetHeading-e.heading),Math.cos(this.movementInput.targetHeading-e.heading));
+      const step=THREE.MathUtils.degToRad(s.turnSpeed)*dt;
+      e.heading+=THREE.MathUtils.clamp(delta,-step,step);
+      if(s.mode!=='island')e.root.rotation.y=e.heading;
+      alignment=Math.abs(delta)<=step?1:0;
+      local=new THREE.Vector3(0,0,-1).applyAxisAngle(UP,e.heading).multiplyScalar(speed*dt);
+      if(s.verticalControl==='view_direction'&&z)local.y=-z*this.climb()*speed*dt;
+      if(CAMERA_MODES.third_person.followBodyTurn){
+        // Body alignment may start from an unrelated ambient-route heading.
+        // Turn the camera only toward the requested direction, at the same speed limit.
+        const desiredYaw=this.movementInput.yaw+this.movementInput.cameraTurn;
+        const remaining=Math.atan2(Math.sin(desiredYaw-this.yaw),Math.cos(desiredYaw-this.yaw));
+        const turn=THREE.MathUtils.clamp(remaining,-step,step);
+        this.yaw+=turn;this.cameraBodyTurn+=turn;
+        if(Math.abs(remaining)>step)alignment=0;
+      }
+      local.multiplyScalar(alignment);
+    }else local=new THREE.Vector3();
+    if(first||alignment!==0){
+      this.moveBody(e,local,dt,true);
+      if(s.mode!=='island')this.unstick(e,dt);
     }
-    // A third-person body turns towards its destination before walking away from it.
-    const alignment=first||!local.lengthSq()?1:Math.max(0,Math.cos(Math.atan2(-local.x,-local.z)-e.heading));
-    this.moveBody(e,local.multiplyScalar(speed*dt*alignment),dt,true);
-    if(s.mode!=='island')this.unstick(e,dt);
     const distance=e.root.position.distanceTo(before);
     e.movementRatio=e.moving&&dt>0?Math.min(1,distance/(speed*dt)):0;
     e.animationMoving=e.movementRatio>.01;
   }
-  faceDirection(e,local,dt){
-    if(!local.x&&!local.z)return;
-    const s=SPECIES[e.kind],angle=Math.atan2(-local.x,-local.z),difference=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading));
-    const limit=THREE.MathUtils.degToRad(s.turnSpeed)*dt;
-    e.heading+=clamp(difference,-limit,limit);
-    // Rotating an island's root would also rotate all its inhabitants and terrain.
-    if(s.mode!=='island')e.root.rotation.y=e.heading;
-  }
+  faceDirection(e,facing,dt){const s=SPECIES[e.kind];const desired=Math.atan2(-facing.x,-facing.z);const delta=Math.atan2(Math.sin(desired-e.heading),Math.cos(desired-e.heading));e.heading+=THREE.MathUtils.clamp(delta,-THREE.MathUtils.degToRad(s.turnSpeed)*dt,THREE.MathUtils.degToRad(s.turnSpeed)*dt);if(s.mode!=='island')e.root.rotation.y=e.heading;}
   // Moves any body (the player's, or one answering an interaction) by a delta in its
   // carrier's frame: soft activity areas first, then solid collision (M-01～M-08).
   moveBody(e,local,dt,keepHeading=false){
     const s=SPECIES[e.kind];
-    if(!keepHeading)this.faceDirection(e,local,dt);
+    if((local.x||local.z)&&!keepHeading){const angle=Math.atan2(-local.x,-local.z);e.heading+=Math.atan2(Math.sin(angle-e.heading),Math.cos(angle-e.heading))*Math.min(1,dt*5);if(s.mode!=='island')e.root.rotation.y=e.heading;}
     if(s.mode==='island'){this.moveIsland(e,local);return;}
     if(s.mode==='ground')local.y=0;
     const p=e.root.position;
@@ -368,11 +375,13 @@ class Game {
     const p=e.root.position;
     if(e.root.parent!==this.world.islandRoot){p.y=Math.max(p.y,this.groundHeight(e)+.2);return;}
     if(s.mode==='swim'){const w=this.world.water(p.x,p.z);if(w)p.y=clamp(p.y,w.floor+s.height*.3,Math.max(w.floor+s.height*.3,w.surface-s.height*.7));}
-    if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion];p.y=clamp(p.y,this.world.height(p.x,p.z)+air.minClearanceM,tune('flightCeilingM',air.maxY));}
+    if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion];p.y=clamp(p.y,this.world.height(p.x,p.z)+air.minClearanceM,Math.min(tune('flightCeilingM',air.maxY),this.world.height(p.x,p.z)+(s.flightHeight??Infinity)));}
   }
+  // Islands drift along the river between its forested banks (M-04, D-027).
   moveIsland(e,local){
     const p=e.root.position;p.add(local);
-    const limit=PLANET_RADIUS*.76,rad=Math.hypot(p.x,p.z);if(rad>limit){p.x*=limit/rad;p.z*=limit/rad;}
+    const corridor=this.world.river.corridor,s=SPECIES[e.kind],side=corridor.halfWidthM-s.surface?.radii?.[2]*1.15-corridor.bankClearanceM,end=corridor.lengthM/2-s.radius*1.2;
+    p.x=clamp(p.x,-end,end);p.z=clamp(p.z,-side,side);
     p.y=Math.sqrt(Math.max(0,PLANET_RADIUS**2-p.x*p.x-p.z*p.z));
     e.root.quaternion.setFromUnitVectors(UP,p.clone().normalize());
     this.resolveLargeBodies(e);
@@ -406,75 +415,54 @@ class Game {
     const ahead=dist*layer.cameraLookAhead;
     const aim=focus.clone().add(new THREE.Vector3(-Math.sin(this.yaw)*ahead,0,-Math.cos(this.yaw)*ahead));
     aim.y+=dist*(.35-this.pitch)*.6;
-    this.constrainThirdPersonCamera(subject,focus,desired);
+    if(layer.cameraTerrainFloor&&subject.root.parent===this.world.islandRoot&&!first){
+      const local=this.world.islandRoot.worldToLocal(desired.clone()),floor=this.world.height(local.x,local.z)+.25;
+      if(local.y<floor){local.y=floor;desired.copy(this.world.islandRoot.localToWorld(local));}
+    }
+    if(layer.cameraCollision&&!first)desired.copy(this.collision.cameraPosition(focus,desired,subject,tune('cameraCollisionPaddingM',.1)));
+    if(first){desired.copy(this.firstPersonEye(subject));const look=new THREE.Vector3(-Math.sin(this.yaw)*Math.cos(this.pitch),-Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch));aim.copy(desired).add(look);}
     const bound=Math.hypot(s.radius,s.height*.5);
     const viewDistance=desired.distanceTo(focus),maxAimAngle=Math.max(.025,THREE.MathUtils.degToRad(this.camera.fov)*.5-Math.asin(Math.min(.95,bound/viewDistance))-.035);
     const offset=aim.clone().sub(focus),angle=focus.clone().sub(desired).angleTo(aim.clone().sub(desired));
-    if(angle>maxAimAngle)aim.copy(focus).addScaledVector(offset,maxAimAngle/angle*.94);
-    if(first){
-      desired.copy(this.firstPersonEye(subject));
-      aim.copy(desired).add(new THREE.Vector3(-Math.sin(this.yaw)*Math.cos(this.pitch),-Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch)));
-    }
+    if(!first&&angle>maxAimAngle)aim.copy(focus).addScaledVector(offset,maxAimAngle/angle*.94);
     let f=1;
     if(tr){
       tr.elapsed+=dt;const t=clamp(tr.elapsed/tr.duration,0,1);f=smooth(t);
       this.camera.position.lerpVectors(tr.start,desired,f);this.focusGoal.lerpVectors(tr.startFocus,aim,f);
-    }else if(first||this.snapCamera){this.camera.position.copy(desired);this.focusGoal.copy(aim);}
-    else{
-      // Body turns already have a speed limit. Apply that same turn to the live
-      // orbit and aim before smoothing translation, so short taps turn the view now.
-      if(bodyTurn){
-        this.camera.position.sub(focus).applyAxisAngle(UP,bodyTurn).add(focus);
-        this.focusGoal.sub(focus).applyAxisAngle(UP,bodyTurn).add(focus);
-      }
-      this.camera.position.lerp(desired,1-Math.exp(-dt*7));this.focusGoal.lerp(aim,1-Math.exp(-dt*9));
-      this.constrainThirdPersonCamera(subject,focus,this.camera.position);
-    }
-    this.snapCamera=false;
+    }else if(first||this.snapCamera){this.camera.position.copy(desired);this.focusGoal.copy(aim);this.snapCamera=false;}
+    else{if(bodyTurn){this.camera.position.sub(focus).applyAxisAngle(UP,bodyTurn).add(focus);this.focusGoal.sub(focus).applyAxisAngle(UP,bodyTurn).add(focus);if(layer.cameraCollision)this.camera.position.copy(this.collision.cameraPosition(focus,this.camera.position,subject,tune('cameraCollisionPaddingM',.1)));}this.camera.position.lerp(desired,1-Math.exp(-dt*7));this.focusGoal.lerp(aim,1-Math.exp(-dt*9));}
     // Perception blends continuously during the hand-over, never at commit.
     this.view=tr?blendView(viewOf(tr.from.kind,this.cameraMode),viewOf(tr.to.kind,this.cameraMode),f):viewOf(this.player.kind,this.cameraMode);
-    if(this.viewBlend){
-      this.viewBlend.elapsed+=dt;const mix=clamp(this.viewBlend.elapsed/tune('perceptionCrossfadeSec',1.2),0,1);
-      this.view=blendView(this.viewBlend.from,this.view,smooth(mix));if(mix===1)this.viewBlend=null;
-    }
     this.camera.fov=this.view.fov;
-    this.camera.near=first?Math.min(.025,s.height*.03):Math.max(.025,this.camera.position.distanceTo(this.focusGoal)/6000);this.camera.updateProjectionMatrix();this.camera.lookAt(this.focusGoal);
+    this.camera.near=first ? .025 : Math.max(.025,this.camera.position.distanceTo(this.focusGoal)/6000);this.camera.updateProjectionMatrix();this.camera.lookAt(this.focusGoal);
     const localEye=this.world.islandRoot.worldToLocal(this.camera.position.clone());
     const pool=this.world.water(localEye.x,localEye.z);
     const underwater=(pool?.type==='enclosed'&&localEye.y<pool.surface)||this.world.planetRoot.worldToLocal(this.camera.position.clone()).length()<PLANET_RADIUS+this.world.seaLevel-.1;
     this.scene.userData.underwater=underwater;
     const shown=f>.5?layer:layerOf((tr?.from||subject).kind);
-    const density=underwater?.045:shown.fogDensity*this.view.fogMultiplier;
+    const density=underwater ? .045 : shown.fogDensity*this.view.fogMultiplier*this.atmosphere.fogBoost;
     this.scene.fog.density=THREE.MathUtils.damp(this.scene.fog.density,density,1.5,dt);
-    this.scene.fog.color.lerp(new THREE.Color(underwater?'#3e7c73':'#b5c4aa'),1-Math.exp(-dt*2));
+    this.scene.fog.color.lerp(underwater?new THREE.Color('#3b4a2c'):this.atmosphere.fogColor,1-Math.exp(-dt*2));
     this.scene.userData.cameraPosition=this.camera.position;
     const center=this.world.position(subject);
-    if(shown.localSun){this.sun.position.copy(center).add(new THREE.Vector3(-60,110,35));this.sun.target.position.copy(center);this.sun.castShadow=true;}
-    else{this.sun.castShadow=false;this.sun.position.copy(center).add(new THREE.Vector3(-15000,25000,8000));this.sun.target.position.copy(center);}
+    this.lightFollow(center,shown.localSun);
     this.applyPerception();
-    if(tr&&tr.elapsed>=tr.duration)this.finishTransition();
-    // Hide only this body's visual, preserving carried entities, terrain and collisions.
     this.world.firstPersonBodies=first?(tr?[tr.from,tr.to]:[this.player]):[];
+    if(tr&&tr.elapsed>=tr.duration)this.finishTransition();
     return f;
   }
-  constrainThirdPersonCamera(subject,focus,position){
-    const layer=layerOf(subject.kind);
-    if(layer.cameraTerrainFloor&&subject.root.parent===this.world.islandRoot){
-      const local=this.world.islandRoot.worldToLocal(position.clone()),floor=this.world.height(local.x,local.z)+.25;
-      if(local.y<floor){local.y=floor;position.copy(this.world.islandRoot.localToWorld(local));}
-    }
-    if(layer.cameraCollision)position.copy(this.collision.cameraPosition(focus,position,subject,tune('cameraCollisionPaddingM',.1)));
-  }
   firstPersonEye(subject){
-    const s=SPECIES[subject.kind],eye=subject.root.localToWorld(new THREE.Vector3(...s.firstPerson.eyeOffset));
-    // Check each carrying surface in its own frame, including a tilted neighbour island.
-    // An island keeps its own terrain visible, so its eye must also clear that surface.
-    for(let carrier=s.firstPerson.hideBody?this.world.carrierOf(subject):subject;carrier;carrier=this.world.carrierOf(carrier)){
-      const local=carrier.root.worldToLocal(eye.clone());
-      local.y=Math.max(local.y,this.world.surfaceOf(carrier,local.x,local.z)+tune('cameraCollisionPaddingM',.1));
-      eye.copy(carrier.root.localToWorld(local));
-    }
+    const s=SPECIES[subject.kind],offset=s.firstPerson?.eyeOffset||[0,s.height*.8,0];
+    const eye=subject.root.localToWorld(new THREE.Vector3(...offset));
+    if(subject.root.parent===this.world.islandRoot){const local=this.world.islandRoot.worldToLocal(eye.clone());local.y=Math.max(local.y,this.world.height(local.x,local.z)+tune('cameraCollisionPaddingM',.1));eye.copy(this.world.islandRoot.localToWorld(local));}
     return eye;
+  }
+  // The sun (or the moon at night) lights from the atmosphere's direction; near layers keep a
+  // tight shadow box around the body, large layers light from far away without shadows.
+  lightFollow(center,local){
+    const dir=this.sun.userData.direction||UP;
+    this.sun.position.copy(center).addScaledVector(dir,local?150:30000);this.sun.target.position.copy(center);
+    this.sun.castShadow=local&&dir.y>.05;
   }
   applyPerception(){
     const v=this.view,filter=`grayscale(${v.grayscale.toFixed(3)}) saturate(${v.saturation.toFixed(3)}) contrast(${v.contrast.toFixed(3)}) brightness(${v.brightness.toFixed(3)})`;
@@ -530,16 +518,14 @@ class Game {
   }
   save(){
     if(!this.started||this.resetting||(this.transition&&!this.transition.opening))return;
-    try{localStorage.setItem(STORAGE,JSON.stringify({version:4,player:this.player.id,entities:this.world.serialize(),layout:this.world.serializeLayout(),yaw:this.yaw,pitch:this.pitch,cameraMode:this.cameraMode,hints:this.hints,shown:[...this.shown]}));$('save-status').textContent='足迹已留在这台设备上';}
+    try{localStorage.setItem(STORAGE,JSON.stringify({version:SAVE_VERSION,layoutId:LAYOUT.layoutId||'river_island_v1',player:this.player.id,entities:this.world.serialize(),layout:this.world.serializeLayout(),yaw:this.yaw,pitch:this.pitch,cameraMode:this.cameraMode,hints:this.hints,shown:[...this.shown],atmosphere:this.atmosphere.serialize()}));$('save-status').textContent='足迹已留在这台设备上';}
     catch{$('save-status').textContent='暂时无法保存足迹';}
   }
   restore(){
-    try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'null');if(!saved||saved.version!==4||!Array.isArray(saved.entities))return false;
-      // A retired body must not discard the rest of a valid session. Aliases only transfer
-      // control: obsolete transforms (e.g. a sea fish replaced by a lake fish) stay retired.
+    try{const saved=JSON.parse(localStorage.getItem(STORAGE)||'null');if(!saved||saved.version!==SAVE_VERSION||saved.layoutId!==(LAYOUT.layoutId||'river_island_v1')||!Array.isArray(saved.entities)||!Array.isArray(saved.layout))return false;
       const id=this.world.byId.has(saved.player)?saved.player:LAYOUT.savePlayerAliases?.[saved.player];
       const player=this.world.byId.get(id)||this.world.byId.get(LAYOUT.initialInstance);if(!player)return false;
-      this.world.restore(saved.entities,saved.layout);this.player=player;
+      this.world.restore(saved.entities,saved.layout);this.atmosphere.restore(saved.atmosphere);this.player=player;
       this.cameraMode=saved.cameraMode==='first_person'?'first_person':CAMERA_MODES.default;
       this.yaw=Number.isFinite(saved.yaw)?saved.yaw:.35;this.pitch=clamp(Number.isFinite(saved.pitch)?saved.pitch:.27,this.pitchMin(),this.pitchMax());
       this.hints={...this.hints,...saved.hints};this.shown=new Set(Array.isArray(saved.shown)?saved.shown:[]);$('enter-label').textContent='继续漫游';return true;
@@ -549,6 +535,7 @@ class Game {
     requestAnimationFrame(()=>this.loop());const dt=Math.min(this.clock.getDelta(),.05);
     if(!this.paused){
       let subject=this.player;
+      this.atmosphere.update(dt,this.camera.position,{underwater:this.scene.userData.underwater,camera:this.camera});
       if(this.started){
         this.elapsed+=dt;this.collision.refresh();
         if(!this.transition){this.move(dt);this.collision.refresh();}
@@ -561,23 +548,31 @@ class Game {
         const t=this.world.time;
         if(this.hasSave){const s=SPECIES[this.player.kind],focus=this.world.focus(this.player);this.introFocus.copy(focus);this.camera.position.copy(focus).add(new THREE.Vector3(Math.sin(this.yaw+.2)*s.camera*1.25,s.camera*.4,Math.cos(this.yaw+.2)*s.camera*1.25));}
         else{this.camera.position.set(25+Math.sin(t*.07)*2,14,55+Math.cos(t*.07)*2);this.introFocus.set(-5,6,-15);}
-        this.camera.lookAt(this.introFocus);this.scene.userData.cameraPosition=this.camera.position;this.applyPerception();
+        this.camera.lookAt(this.introFocus);this.scene.userData.cameraPosition=this.camera.position;this.lightFollow(this.introFocus,true);this.applyPerception();
       }
       const info=this.targetInfo,size=info?.carrier?Math.max(1.5,this.camera.position.distanceTo(info.point)*.05):Math.max(SPECIES[this.target?.kind]?.radius||0,.5);
-      this.world.ambientHold=this.transition?.to||null;
+      this.world.ambientHold=this.transition?[this.transition.from,this.transition.to]:null;
       this.world.update(dt,subject,this.target,info?.point||null,size);
       if(this.started)this.interactions.update(dt);
     }
-    if(!this.paused||this.needsRender){this.renderer.render(this.scene,this.camera);this.needsRender=false;}
+    if((!this.paused||this.needsRender)&&!NO_RENDER){this.renderer.render(this.scene,this.camera);this.needsRender=false;}
   }
 }
 
+// ?debug&render=0 runs the game without drawing it: automated checks on software rendering
+// (CI) read state, never pixels, and a dense rainforest takes seconds per frame there.
+const NO_RENDER=(()=>{const p=new URLSearchParams(location.search);return p.has('debug')&&p.get('render')==='0';})();
 async function boot(){
   try{
     const renderer=new THREE.WebGLRenderer({canvas:$('world'),antialias:true,alpha:false,powerPreference:'high-performance'});
     renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
     await loadRuntimeConfig();
-    const assets=new AssetLibrary();await assets.prepare();game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
+    const assets=new AssetLibrary();await assets.prepare();
+    // A missing or broken heightfield keeps the procedural island (L-03).
+    try{await loadTerrainField(assets.manifest.environment);}catch(e){assets.errors.push('heightfield: '+e.message);console.warn('Heightfield unavailable; procedural terrain kept.',e);}
+    game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
+    // Compile every material while the loading screen shows, so entering does not stall.
+    try{game.world.update(0,game.player,null,null,1);if(!NO_RENDER)await renderer.compileAsync(game.scene,game.camera);}catch(e){console.warn('Shader warm-up skipped',e);}
     if(!game.hasSave)$('enter-label').textContent='进入旷野';$('enter').disabled=false;
     // Debug access is available only with ?debug; the normal product UI stays quiet.
     if(new URLSearchParams(location.search).has('debug'))window.__world=game;

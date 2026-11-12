@@ -28,6 +28,9 @@ parser.add_argument('--port', type=int, default=9223)
 parser.add_argument('--url', default='http://127.0.0.1:4173/')
 parser.add_argument('--no-pointer-lock', action='store_true', help='Skip checks that request real pointer lock')
 args = parser.parse_args()
+# Software rendering (CI) draws the rainforest at seconds per frame; nothing here reads pixels,
+# so the game runs without drawing (render=0).
+PAGE = args.url + '?debug&render=0'
 c = CDP(args.port)
 for method in ['Runtime.enable', 'Page.enable', 'Network.enable']:
     c.call(method)
@@ -41,7 +44,7 @@ c.call('Emulation.setDeviceMetricsOverride', {'width': 1280, 'height': 800, 'dev
 def load():
     c.evaluate("window.__world&&(window.__world.resetting=true);localStorage.clear();true")
     previous = c.evaluate('performance.timeOrigin')
-    c.call('Page.navigate', {'url': args.url + '?debug'})
+    c.call('Page.navigate', {'url': PAGE})
     c.wait_for(f'performance.timeOrigin!=={previous}&&!!window.__world&&!document.getElementById("enter").disabled', 90)
 
 
@@ -71,6 +74,12 @@ passed += run(r"""
 const kinds=Object.keys(SPECIES),used=new Set(Object.values(SPECIES).map(s=>s.category));
 assert('every configured category has a species and every species a configured category',kinds.length>0&&used.size===Object.keys(CATEGORIES).length&&[...used].every(c=>c in CATEGORIES),`${kinds.length} species, ${used.size}/${Object.keys(CATEGORIES).length} categories`);
 assert('every type has a physical instance',Object.keys(SPECIES).every(k=>W.entities.some(e=>e.kind===k)));
+const butterflies=W.entities.filter(e=>e.kind==='blueMorpho'),butterfly=W.byId.get('blue-morpho-playable');
+assert('six blue morphos survive world initialization',butterflies.length===6&&!!butterfly);
+assert('blue morpho model and wing animation are loaded',W.assets.hasModel('blueMorpho')&&!!butterfly.visual.userData.flap);
+const flap=butterfly.visual.userData.flap.value;W.update(.037,g.player,null);assert('blue morpho wings animate',butterfly.visual.userData.flap.value!==flap);
+assert('blue morpho has an ambient route',W.ambient.has(butterfly));
+
 assert('no flower or planet bodies',!W.entities.some(e=>['flower','planet','rockPlanet'].includes(e.kind)));
 const ids=W.entities.map(e=>e.id);assert('instance ids unique',new Set(ids).size===ids.length);
 assert('a new journey starts as human-first (D-017)',g.player.id==='human-first'&&g.player.kind==='human');
@@ -138,7 +147,8 @@ for(const kind of kinds)for(const [action,relative] of [['move_back',Math.PI],['
   assert(`${kind}: ${action} starts a bounded turn and camera follow`,Math.abs(turn)<=SPECIES[kind].turnSpeed*Math.PI/180*.1+1e-8&&Math.abs(cameraTurn-turn)<1e-6&&Math.abs(turn)>.01);
   if(action==='move_back')assert(`${kind}: back does not backpedal at turn start`,W.position(e).distanceTo(position)<1e-7);
   for(let i=0;i<24;i++){g.move(1/20);g.updateCamera(1/20);}
-  assert(`${kind}: ${action} body and camera reach the requested direction`,Math.cos(e.heading-start-relative)>.999&&Math.cos(g.yaw-.7-relative)>.999&&W.position(e).distanceTo(position)>.01);
+  const moved=W.position(e).distanceTo(position);
+  assert(`${kind}: ${action} body and camera reach the requested direction`,Math.cos(e.heading-start-relative)>.999&&Math.cos(g.yaw-.7-relative)>.999&&moved>.01);
   const settledYaw=g.yaw,settledHeading=e.heading;
   for(let i=0;i<20;i++){g.move(1/20);g.updateCamera(1/20);}
   assert(`${kind}: holding ${action} does not accumulate another turn`,Math.abs(g.yaw-settledYaw)<1e-6&&Math.abs(e.heading-settledHeading)<1e-6);
@@ -147,6 +157,8 @@ for(const kind of kinds)for(const [action,relative] of [['move_back',Math.PI],['
   g.clearInput();
 }
 W.restore(movementSnapshot);g.player=W.byId.get('human-first');g.allowed=originalAllowed;g.collision.move=originalCollisionMoveForMovement;g.unstick=originalUnstick;
+const {checkPossessionMovement}=await import('./tests/possession-movement-regressions.js');
+checkPossessionMovement(g,assert);
 // Mouse orbit updates the held movement reference; releasing/repressing uses the new view.
 g.player.heading=g.yaw;g.player.root.rotation.y=g.yaw;g.actions.add('move_left');g.move(.1);
 g.paused=false;g.dragging=true;const mouseYaw=g.yaw,movementYaw=g.movementInput.yaw;
@@ -223,15 +235,15 @@ assert('third-person dog stays in colour (D-029)',g.view.grayscale===0&&g.view.s
 assert('dog -> human',go('human-first'));
 assert('perception returns to colour',g.renderer.domElement.style.filter.startsWith('grayscale(0)'));
 assert('human -> tree, one tier up (G-07)',go('tree-first'));
-take('human-first');const h=g.player;h.root.position.set(285,0,112);h.root.position.y=g.groundHeight(h);step(20);
+take('human-first');const h=g.player;h.root.position.set(300,0,88);h.root.position.y=g.groundHeight(h);step(20);
 assert('human on the shore cannot select the island (D-021)',!seek('island-main'));
 take('boulder-main');
 assert('boulder -> main island (G-07)',go('island-main'));
 assert('Foucault line queued for the first island moment',g.shown.has('island:first_possess'));
 assert('island -> neighbour island',go('island-0'));
 assert('island -> boulder',go('boulder-island-0'));
-assert('boulder -> pine',go('pine-island-0-1'));
-assert('pine -> rock, one tier down (W-05, D-021)',go('rocks-island-0-1'));
+assert('boulder -> palm',go('palm-island-0-1'));
+assert('palm -> rock, one tier down (W-05, D-021)',go('rocks-island-0-1'));
 assert('rock -> grass, back to the smallest scale (W-05)',go('grass-island-0-1'));
 """)
 load()
@@ -266,11 +278,15 @@ for(const id of ['island-main','island-0','boulder-island-0','grass-boulder-0','
 take('human-first');toggle();step(45);
 const firstYaw=g.yaw,firstPosition=W.position(g.player).clone(),firstLocal=g.player.root.position.clone();g.actions.add('move_right');step(15);g.clearInput();
 assert('first-person strafing keeps the look direction fixed',g.yaw===firstYaw&&W.position(g.player).distanceTo(firstPosition)>.1);
+assert('first-person strafing keeps body facing the view',Math.cos(g.player.heading-firstYaw)>.999);
+const backStart=W.position(g.player).clone(),backForward=backStart.clone().set(-Math.sin(firstYaw),0,-Math.cos(firstYaw));
+g.actions.add('move_back');step(15);g.clearInput();
+assert('first-person S backs away without turning the view or body',W.position(g.player).clone().sub(backStart).dot(backForward)<-.1&&g.yaw===firstYaw&&Math.cos(g.player.heading-firstYaw)>.999);
 g.player.root.position.copy(firstLocal);g.collision.refresh();
 g.yaw=.5;g.pitch=-.6;step(2);assert('ground first-person can look up',g.camera.getWorldDirection(g.camera.position.clone()).y>0);
 const before=W.position(g.player).clone();g.actions.add('move_forward');step(15);g.actions.clear();
 assert('looking up does not lift a ground body',Math.abs(g.player.root.position.y-g.groundHeight(g.player))<.001&&W.position(g.player).distanceTo(before)>0);
-g.save();assert('save records the selected perspective',JSON.parse(localStorage.getItem('between-all-things.save.v4')).cameraMode==='first_person');
+g.save();assert('save records the selected perspective',JSON.parse(localStorage.getItem('between-all-things.save.v5')).cameraMode==='first_person');
 g.cameraMode='third_person';g.restore();assert('restore retains first-person mode and look pitch',g.cameraMode==='first_person'&&g.pitch===-.6);
 g.paused=false;g.transition={opening:true,from:g.player,to:g.player};assert('view switching is ignored during transitions',!g.toggleView());g.transition=null;g.paused=true;
 assert('view switching is ignored while paused',!g.toggleView());
@@ -310,10 +326,10 @@ passed += run(r"""
 take('grass-boulder-0');
 assert('grass on a boulder recognises the island as its carrying whole',g.isCarrier(W.byId.get('island-main')));
 assert('grass on a boulder still cannot select the island (D-021)',!seek('island-main'));
-take('grove-pine-0');
+take('grove-palm-0');
 assert('tree -> boulder, one tier up (G-07)',go('boulder-main'));
-take('pine-boulder-1');
-assert('pine on the boulder -> rock on the boulder (W-05)',go('rock-boulder-0'));
+take('palm-boulder-1');
+assert('palm on the boulder -> rock on the boulder (W-05)',go('rock-boulder-0'));
 assert('rock on the boulder -> grass on the boulder (W-05)',go('grass-boulder-1'));
 """)
 load()
@@ -372,14 +388,16 @@ assert('shared animation returns to still idle',animation.current==='idle'&&anim
 const decor=lib.makeDecor({slotId:'env.test',scatter:{seed:3}},Array.from({length:10},(_,i)=>({position:[i,0,0],rotationY:0,scale:1})));
 let placed=0;decor.traverse(o=>{if(o.isInstancedMesh)placed+=o.count;});
 assert('decoration slots render GLB instances',placed===10);
-assert('meadow and pebbles come from decoration slots',W.decor.length===2&&W.decor.every(d=>d.object.parent));
+assert('every decoration slot is built from data (meadow, pebbles, reeds, forest, understory, fireflies)',W.decor.length===W.assets.manifest.decor.length&&W.decor.every(d=>d.object.parent));
 // Water bodies come from regions with a `water` block, not from code (M-04).
-assert('the lake and the sea are both data regions',W.water(-83,-65)?.id==='lake'&&WATERS.some(r=>r.water.type==='sea'));
+assert('the oxbow lake and the river are both data regions (D-030)',W.water(-60,27)?.id==='lake'&&WATERS.some(r=>r.water.type==='river'));
+assert('the oxbow keeps its inner bank dry',!W.water(-142,8));
 const enclosed=WATERS.filter(r=>r.water.type==='enclosed');
 assert('each enclosed water body gets a surface mesh at its level',W.waterBodies.length===enclosed.length&&enclosed.every((r,i)=>W.waterBodies[i].position.y===r.water.surfaceY&&W.waterBodies[i].parent===W.islandRoot));
 const pond={id:'test-pond',shape:'ellipse',center:[300,-300],radii:[10,10],water:{type:'enclosed',surfaceY:50}};
 LAYOUT.regions[pond.id]=pond;WATERS.push(pond);const found=W.water(300,-300);WATERS.pop();delete LAYOUT.regions[pond.id];
 assert('a water body added in data is recognised without code changes',found?.id==='test-pond'&&found.surface===50&&!W.water(300,-300)?.id?.startsWith('test'));
+const h0=W.byId.get('human-first');
 // A new species of an existing category needs no code: it borrows the category placeholder (G-08).
 SPECIES.testheron={...SPECIES.gull,name:'测试'};
 assert('a new bird species gets a bird placeholder',makeProcedural('testheron',1,{placeholder:'procedural:bird',placeholderStyle:'heron'}).userData.bird===true);
@@ -387,11 +405,44 @@ SPECIES.testhouse={...SPECIES.rock,category:'house'};
 let meshes=0;makeProcedural('testhouse',1,{placeholder:'procedural:house'}).traverse(o=>{if(o.isMesh)meshes++;});
 assert('an unknown category still gets a visible stand-in',meshes>0);
 delete SPECIES.testheron;delete SPECIES.testhouse;
-assert('world layout comes from data/anchors.json (W-08)',W.byId.has('forest-pine-0')&&W.byId.has('pine-island-2-3'));
+assert('world layout comes from data/anchors.json (W-08)',W.entities.some(e=>e.id.startsWith('forest-kapok-'))&&W.byId.has('palm-island-2-3'));
 // A fixture exercises replacement wiring, not real terrain or Lux3D acceptance.
 const oldTerrain=W.terrain,main=W.byId.get(LAYOUT.mainIsland);
 W.assets.manifest.environment={url:fixture,useAsTerrain:true,scale:20};
 await W.loadEnvironment();step(3);
+// Rainforest layers, scenery trunks and the atmosphere (D-030, D-031, D-032, D-034).
+assert('three rainforest tree layers stand on the island',['kapok','broadleaf','palm'].every(k=>W.entities.some(e=>e.kind===k&&e.root.parent===W.islandRoot)));
+assert('pines are gone from the rainforest',!SPECIES.pine);
+const trunk=W.obstacles.find(o=>Math.hypot(o.x-h0.root.position.x,o.z-h0.root.position.z)>40);
+assert('scenery trunks are registered as obstacles',W.obstacles.length>500&&!!trunk);
+const hp=h0.root.position.clone();h0.root.position.set(trunk.x,W.height(trunk.x,trunk.z),trunk.z);g.collision.refresh();
+assert('a human cannot stand inside a scenery trunk (M-01)',g.collision.collides(h0,W.position(h0)));h0.root.position.copy(hp);g.collision.refresh();
+// Aholo rainforest models (D-034): bodies and scenery, drawn at exactly one level each.
+assert('the Aholo vegetation models load',['kapok','canopy','canopy_tall','acai','understory'].every(k=>W.assets.vegetation?.models[k]?.levels.length>=2));
+assert('the trees one can become wear the Aholo models with their LOD levels',['kapok','broadleaf','palm'].every(k=>{const e=W.entities.find(x=>x.kind===k);let lod=null;e.visual.traverse(o=>{if(o.isLOD)lod=o;});return e.visual.userData.external&&lod?.levels.length===3;}));
+const palmBody=W.entities.find(e=>e.kind==='palm'&&e.root.parent===W.islandRoot),pp=palmBody.root.position.clone();
+palmBody.root.position.set(trunk.x,W.height(trunk.x,trunk.z),trunk.z);palmBody.root.updateMatrixWorld(true);
+assert('a tree one can become passes through the scenery forest (D-034)',!g.collision.hitsScenery(palmBody,g.collision.frameBox(palmBody,W.position(palmBody))));
+palmBody.root.position.copy(pp);palmBody.root.updateMatrixWorld(true);g.collision.refresh();
+const F=W.decor.find(d=>d.slot.slotId==='env.forest').object,inForest=F.children[1].items[0],eyeAt=new h0.root.position.constructor(inForest.x+2,inForest.y,inForest.z);
+const drawnOnce=f=>f.levels.reduce((a,l)=>a+l[0].count,0)+(f.impostor?f.impostor[0].count:0)===f.items.length;
+F.userData.updateLod(eyeAt,true);
+assert('every scenery tree is drawn at exactly one level near the eye (no gaps, no doubles)',F.children.every(drawnOnce)&&F.children.some(f=>f.levels[0][0].count>0));
+F.userData.updateLod(null,true);
+assert('at large scales every scenery tree is an impostor',F.children.every(f=>drawnOnce(f)&&f.levels.every(l=>l[0].count===0)));
+F.userData.updateLod(eyeAt,true);
+const A=g.atmosphere;A.pinned.time=true;A.timeOfDay=.98;A.update(1/30,W.position(h0));const nightHemi=g.hemi.intensity,nightPhase=A.phase;
+A.timeOfDay=.5;A.update(1/30,W.position(h0));
+assert('night is moonlit, not black (W-09)',nightPhase==='night'&&nightHemi>.8&&g.sun.intensity>1);
+const Atm=A.constructor,share=TUNING.nightShare.value;
+let nightCycle=0;for(let c=0;c<1;c+=.001){const t=Atm.timeOf(c);if(t>.8||t<.2)nightCycle+=.001;}
+assert('night takes only the configured share of a day (W-10)',Math.abs(nightCycle-share)<.02,nightCycle);
+assert('time of day survives a save',Math.abs(Atm.timeOf(Atm.cycleOf(.37))-.37)<1e-6);
+A.pinned.time=false;
+const isl=W.byId.get('island-main'),cor=W.river.corridor,ip=isl.root.position.clone();g.player=isl;g.transition=null;g.yaw=Math.PI/2;g.pitch=.5;
+g.actions.add('move_forward');g.actions.add('boost');for(let i=0;i<600;i++)g.move(1/10);g.actions.clear();
+assert('a drifting island stays between the forested banks (M-04)',Math.abs(isl.root.position.z)<cor.halfWidthM&&Math.abs(isl.root.position.x)<cor.lengthM/2);
+isl.root.position.copy(ip);g.player=h0;
 assert('environment replacement remains the only main-island terrain after updates (L-04)',!oldTerrain.parent&&main.visual===W.terrain&&W.externalTerrain===W.terrain&&W.terrain.visible&&W.terrain.parent===W.islandRoot);
 assert('environment replacement supplies main-body collision bounds',main.visual.userData.external&&!g.collision.localBoxes(main)[0].isEmpty());
 """)
@@ -622,7 +673,7 @@ g.save();g.pause();return JSON.stringify(results);
 })()"""))
 # Continue a save with both old hint flags; do not clear this profile.
 previous = c.evaluate('performance.timeOrigin')
-c.call('Page.navigate', {'url': args.url + '?debug'})
+c.call('Page.navigate', {'url': PAGE})
 c.wait_for(f'performance.timeOrigin!=={previous}&&!!window.__world&&!document.getElementById("enter").disabled', 90)
 browser_assert('save with legacy hint flags still offers continue',
                "window.__world.hasSave&&window.__world.hints.possessed&&document.getElementById('enter-label').textContent==='继续漫游'")

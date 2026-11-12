@@ -71,7 +71,7 @@ export class AmbientMotion{
     const t=this.world.time;
     for(const [e,st] of this.state){
       // The body the player is in (or entering) is not ours; once released it rests, then rejoins.
-      if(e===player||e===hold){st.held=true;continue;}
+      if(e===player||(Array.isArray(hold)?hold.includes(e):e===hold)){st.held=true;continue;}
       const g=st.group;
       if(st.held){st.held=false;st.resumeAt=t+(g.resumeAfterSec??4);e.moving=false;}
       if(e.flee||t<st.resumeAt)continue;

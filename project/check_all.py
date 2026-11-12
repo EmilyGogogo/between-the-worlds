@@ -120,7 +120,7 @@ def main():
                     '--disable-background-networking', '--disable-extensions', '--disable-dev-shm-usage',
                     '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
                     '--remote-debugging-address=127.0.0.1', f'--remote-debugging-port={debug_port}',
-                    f'--user-data-dir={profile}', url + '?debug',
+                    f'--user-data-dir={profile}', url + '?debug&render=0',
                 ], stdout=chrome_log, stderr=subprocess.STDOUT)
                 processes.append(browser)
                 wait_ready(f'http://127.0.0.1:{debug_port}/json/version', browser)
@@ -141,9 +141,7 @@ def main():
                     ]
                     if args.no_pointer_lock:
                         command.append('--no-pointer-lock')
-                    # Full real-asset reloads plus input/layout regressions exceed five
-                    # minutes under software rendering. Keep individual assertion limits.
-                    check = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+                    check = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)  # software rendering compiles the river-island shaders on every reload
                 print((args.output / 'browser.log').read_text(encoding='utf-8'), flush=True)
                 if check.returncode:
                     result['browser'] = 'failed'

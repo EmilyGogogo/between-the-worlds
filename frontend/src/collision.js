@@ -42,7 +42,22 @@ export class WorldCollision {
   blockers(entity){return this.records.filter(r=>!this.related(entity,r.entity));}
   collides(entity,position,records=this.blockers(entity)){
     const box=this.actorBox(entity,position),frame=this.frameBox(entity,position);
-    return records.some(r=>r.parent===entity.root.parent?frame.intersectsBox(r.frameBox):box.intersectsBox(r.box));
+    return records.some(r=>r.parent===entity.root.parent?frame.intersectsBox(r.frameBox):box.intersectsBox(r.box))||this.hitsScenery(entity,frame);
+  }
+  // Scenery trunks (env.forest) on the main island block small bodies (a person, a dog), so
+  // nothing walks through a trunk; bodies taller than `blocksBodiesUpToM` (the trees one can
+  // become) pass through the scenery forest and keep their room to move (D-034).
+  hitsScenery(entity,frame){
+    const list=this.world.obstacles,s=SPECIES[entity.kind];
+    if(!list?.length||entity.root.parent!==this.world.islandRoot||s.stage>1||s.height>this.world.obstacleBodyHeight)return false;
+    if(!this.grid||this.gridSize!==list.length){this.grid=new Map();this.gridSize=list.length;for(const o of list){const k=`${Math.floor(o.x/16)},${Math.floor(o.z/16)}`;if(!this.grid.has(k))this.grid.set(k,[]);this.grid.get(k).push(o);}}
+    const x0=Math.floor((frame.min.x-4)/16),x1=Math.floor((frame.max.x+4)/16),z0=Math.floor((frame.min.z-4)/16),z1=Math.floor((frame.max.z+4)/16);
+    for(let i=x0;i<=x1;i++)for(let j=z0;j<=z1;j++)for(const o of this.grid.get(`${i},${j}`)||[]){
+      if(frame.min.y>o.top)continue;
+      const dx=Math.max(frame.min.x-o.x,0,o.x-frame.max.x),dz=Math.max(frame.min.z-o.z,0,o.z-frame.max.z);
+      if(dx*dx+dz*dz<o.r*o.r)return true;
+    }
+    return false;
   }
   setWorldPosition(entity,point){entity.root.position.copy(entity.root.parent.worldToLocal(point.clone()));entity.root.updateWorldMatrix(true,true);}
   move(entity,delta){

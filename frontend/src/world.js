@@ -1,14 +1,27 @@
 import * as THREE from 'three';
 import { SPECIES, TUNING, LAYOUT, WATERS, inRegion, mulberry32, layerOf } from './species.js';
-import { makeRock } from './assets.js';
+import { makeRock, understoryModels, forestTemplates } from './assets.js';
+import { TerrainChunks, groundMaterial, loadHeightfield } from './terrain.js';
+import { waterMaterial, heightTexture } from './water.js';
+import { createBanks } from './banks.js';
+import { LodField } from './vegetation.js';
+import { fireflies } from './sky.js';
 import { AmbientMotion } from './ambient.js';
 
-export const PLANET_RADIUS=7500;
+// The river follows a very large sphere: a drifting island tilts a little, while the
+// curvature stays below the haze of the far banks.
+export const PLANET_RADIUS=100000;
 const UP=new THREE.Vector3(0,1,0);
 const smooth=(a,b,x)=>{const t=THREE.MathUtils.clamp((x-a)/(b-a),0,1);return t*t*(3-2*t);};
 function hash(x,z){return (Math.sin(x*127.1+z*311.7)*43758.5453123)%1;}
 function noise(x,z){const a=Math.floor(x),b=Math.floor(z),u=smooth(0,1,x-a),v=smooth(0,1,z-b);return THREE.MathUtils.lerp(THREE.MathUtils.lerp(hash(a,b),hash(a+1,b),u),THREE.MathUtils.lerp(hash(a,b+1),hash(a+1,b+1),u),v);}
+// Main island heightfield (env.world.heightfield), generated in Blender by
+// project/terrain/river_island.py. Without it the procedural placeholder island remains.
+let FIELD=null;
+export async function loadTerrainField(entry){FIELD=null;if(entry?.heightfield)FIELD=await loadHeightfield(entry.heightfield);}
+export function terrainField(){return FIELD;}
 export function terrainHeight(x,z){
+  if(FIELD)return FIELD.height(x,z)-(x*x+z*z)/(2*PLANET_RADIUS);
   const radius=Math.hypot(x/430,z/350);
   let h=8+Math.sin(x*.024)*2.5+Math.cos(z*.031)*2+noise(x*.025,z*.025)*3;
   // The large rocky hill is its own movable body, not a baked terrain duplicate.
@@ -19,7 +32,11 @@ export function terrainHeight(x,z){
   return h-(x*x+z*z)/(2*PLANET_RADIUS);
 }
 
-function createTerrain(){
+function createTerrain(shared){
+  if(FIELD){
+    const layers=FIELD.desc.layers||[];
+    return new TerrainChunks(FIELD,terrainHeight,groundMaterial(FIELD,layers,shared));
+  }
   const geo=new THREE.PlaneGeometry(960,820,190,164);geo.rotateX(-Math.PI/2);
   const p=geo.attributes.position,colors=[];
   const green=new THREE.Color('#83916d'),sand=new THREE.Color('#c1ba9b'),rock=new THREE.Color('#899184'),dark=new THREE.Color('#74845e');
@@ -40,13 +57,6 @@ function createTerrain(){
   const mesh=new THREE.Mesh(geo,mat);mesh.receiveShadow=true;return mesh;
 }
 
-const waterVertex=`varying vec3 vWorld;varying vec3 vNormal;uniform float time;void main(){vec3 p=position;p.y+=sin(p.x*.23+time*.7)*.045+sin(p.z*.31-time*.5)*.035;vec4 w=modelMatrix*vec4(p,1.);vWorld=w.xyz;vNormal=normalize(mat3(modelMatrix)*normal);gl_Position=projectionMatrix*viewMatrix*w;}`;
-const waterFragment=`varying vec3 vWorld;varying vec3 vNormal;uniform float time;uniform vec3 deep;uniform vec3 sky;uniform float alpha;void main(){vec3 view=normalize(cameraPosition-vWorld);float fres=pow(1.-max(dot(view,vNormal),0.),3.);float w=sin(vWorld.x*.48+vWorld.z*.25+time*.8)*sin(vWorld.z*.55-time*.5);float fine=pow(max(0.,w),18.);vec3 c=mix(deep,sky,.18+fres*.72);c+=vec3(.32,.29,.19)*fine*.2;gl_FragColor=vec4(c,alpha);
-#include <tonemapping_fragment>
-#include <colorspace_fragment>
-}`;
-function waterMaterial(alpha=1){return new THREE.ShaderMaterial({uniforms:{time:{value:0},deep:{value:new THREE.Color('#377b76')},sky:{value:new THREE.Color('#c6d6c0')},alpha:{value:alpha}},vertexShader:waterVertex,fragmentShader:waterFragment,transparent:alpha<1,side:THREE.DoubleSide,depthWrite:alpha===1});}
-
 // Seeds come from ids, so each individual keeps its model variant when others are added or removed.
 function seedOf(id){let seed=2166136261;for(const c of id)seed=Math.imul(seed^c.charCodeAt(0),16777619);return seed>>>0;}
 // Whether a scatter group may place something at a point (surface band and regions).
@@ -54,46 +64,168 @@ function scatterAllows(group,x,y,z){
   return (group.surfaceMin==null||y>=group.surfaceMin)&&(group.surfaceMax==null||y<=group.surfaceMax)
     &&!(group.avoidRegions||[]).some(id=>inRegion(id,x,z))&&(!group.insideRegion||inRegion(group.insideRegion,x,z));
 }
-// Placeholder for the env.meadow slot: one wind-bent blade per scattered point.
-function createMeadow(scatter){
-  const r=mulberry32(scatter.seed??7),positions=[],colors=[],indices=[],a=new THREE.Color();
-  for(const area of scatter.areas)for(let i=0;i<area.count;i++){
-    const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],y=terrainHeight(x,z);
-    if(!scatterAllows(scatter,x,y,z))continue;
-    const h=.15+r()*.38,w=.014+r()*.028,angle=r()*6.28,dx=Math.cos(angle)*w,dz=Math.sin(angle)*w,bend=.08+r()*.17;
-    const n=positions.length/3;
-    positions.push(x-dx,y,z-dz,x+dx,y,z+dz,x+dx*.5+bend,y+h*.6,z+dz*.5,x-dx*.5+bend,y+h*.6,z-dz*.5,x+bend*1.8,y+h,z);
-    a.setHSL(.20+r()*.055,.22+r()*.14,.22+r()*.15);
-    for(let j=0;j<5;j++){const light=.72+j*.08;colors.push(a.r*light,a.g*light,a.b*light);}
-    indices.push(n,n+1,n+2,n,n+2,n+3,n+3,n+2,n+4);
+// Blade decoration (env.meadow, env.reeds): wind-bent blades scattered over the scatter areas,
+// thinned by the ground layer they belong to, and split into cells that are culled by
+// distance so dense ground cover stays cheap.
+const BLADE_STYLES={
+  meadow:{height:[.18,.62],width:[.012,.034],bend:[.08,.3],hue:[.19,.27],sat:[.25,.45],light:[.2,.36],layer:2},
+  reeds:{height:[.9,2.3],width:[.02,.05],bend:[.15,.5],hue:[.16,.23],sat:[.25,.42],light:[.18,.3],layer:1},
+};
+// Ground layer weight at a point: an index into the weight map, or 'litter' (the remainder).
+function layerWeight(layer,x,z,w){
+  if(!FIELD||layer==null)return 1;FIELD.weights(x,z,w);
+  return layer==='litter'?Math.max(0,1-w[0]-w[1]-w[2]-w[3]):w[layer];
+}
+// Background rainforest (env.forest): layered scenery trees placed like a real forest rather
+// than evenly. A slow noise field gathers trees into stands and opens clearings; each layer
+// keeps its own spacing (crowns of one layer touch but rarely overlap, smaller layers grow
+// beneath), sizes skew toward young trees, and every tree leans, stretches and tints a little.
+// Scenery, not bodies: it keeps clear of the bodies on the island; its trunks block small
+// bodies only (see WorldCollision.hitsScenery, D-031). Each model is drawn by distance (LodField):
+// the Aholo model's mesh levels near, its impostor beyond and at large scales.
+// Value noise here spans −1…1; fbm returns 0…1.
+function fbm(x,z){return .5+.5*(noise(x,z)*.55+noise(x*2.13+17,z*2.13-9)*.3+noise(x*4.7-31,z*4.7+5)*.15);}
+// Without the vegetation file, procedural trees near the eye only (L-03).
+let FALLBACK=null;
+function fallbackModels(style){
+  FALLBACK??=forestTemplates();
+  return (FALLBACK[style]||[]).map(t=>({levels:[t.parts],impostor:null,height:t.height,crownRadius:t.crown[0],crownBase:t.crownBase}));
+}
+function modelsFor(layer,veg){
+  const list=veg?(layer.models||[]).map(n=>veg.models[n]).filter(Boolean):[];
+  return list.length?list:fallbackModels(layer.fallback);
+}
+function createForest(slot,surface,obstacles,bodies,veg){
+  const sc=slot.scatter,r=mulberry32(sc.seed??61),w=[0,0,0,0];
+  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),v=new THREE.Vector3(),sv=new THREE.Vector3(),tilt=new THREE.Quaternion(),e=new THREE.Euler();
+  const clump=sc.clumping||{},clumpScale=clump.scaleM??70,clearing=clump.clearingBelow??.3,strength=clump.strength??1;
+  const placed=new Map(),hashCell=12,byModel=new Map();
+  const near=(x,z,radius,test)=>{const k0=Math.floor((x-radius)/hashCell),k1=Math.floor((x+radius)/hashCell),j0=Math.floor((z-radius)/hashCell),j1=Math.floor((z+radius)/hashCell);
+    for(let i=k0;i<=k1;i++)for(let j=j0;j<=j1;j++)for(const t of placed.get(`${i},${j}`)||[])if(test(t))return true;return false;};
+  for(const L of sc.layers){
+    const models=modelsFor(L,veg);if(!models.length)continue;
+    const [h0,h1]=L.heightM||[10,20],[w0,w1]=L.widthScale||[.85,1.15],spacing=L.spacingM??8;
+    for(const area of sc.areas){
+      const attempts=Math.round((L.attempts??1000)*(area.share??1));
+      for(let i=0;i<attempts;i++){
+        const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],roll=r(),age=r(),variant=r(),turn=r()*6.28,lean=r(),wide=r(),hue=r();
+        const y=surface(x,z);
+        if(!scatterAllows(sc,x,y,z)||(L.surfaceMin!=null&&y<L.surfaceMin)||(L.surfaceMax!=null&&y>L.surfaceMax))continue;
+        // Stands and clearings: the density field decides first, the ground layer second.
+        const density=smooth(clearing,clearing+.3,fbm(x/clumpScale+(L.clumpOffset??0),z/clumpScale))**strength;
+        if(roll>density*Math.min(1,layerWeight(sc.groundLayer,x,z,w)*2))continue;
+        if((bodies.get(`${Math.floor(x/16)},${Math.floor(z/16)}`)||[]).some(b=>Math.hypot(b.x-x,b.z-z)<b.r))continue;
+        // Many young trees, few old giants.
+        const height=h0+(h1-h0)*age**(L.ageSkew??1.6),t=models[Math.floor(variant*models.length)];
+        const sy=height/t.height,sxz=sy*(L.slender??1)*(w0+(w1-w0)*wide),crown=t.crownRadius*sxz,gap=spacing*(.55+.45*height/h1),trunk=(L.trunk??.3)*sxz;
+        if(near(x,z,gap+40,o=>{const d=Math.hypot(o.x-x,o.z-z);return d<(o.trunk+trunk)*1.6||(o.layer===L&&d<Math.max(gap,(o.crown+crown)*.5*(L.overlap??.8)));}))continue;
+        const hk=`${Math.floor(x/hashCell)},${Math.floor(z/hashCell)}`;
+        (placed.get(hk)||placed.set(hk,[]).get(hk)).push({x,z,crown,trunk,layer:L});
+        const maxLean=(L.leanDeg??3)*Math.PI/180;
+        tilt.setFromEuler(e.set((lean-.5)*2*maxLean,0,(r()-.5)*2*maxLean));
+        q.setFromAxisAngle(UP,turn).premultiply(tilt);
+        m.compose(v.set(x,y-.15,z),q,sv.set(sxz,sy,sxz));
+        // Crowns differ: most green, some darker, a few yellowing or fresh.
+        // (The Aholo leaves are a light green; rainforest crowns read darker and bluer.)
+        const tint=new THREE.Color(.8+.12*r(),.9,.82+.12*r()).multiplyScalar(.66+.26*r());
+        if(hue>.92)tint.multiply(new THREE.Color(1.12,1.04,.78));else if(hue<.2)tint.multiply(new THREE.Color(.82,.92,.9));
+        (byModel.get(t)||byModel.set(t,[]).get(t)).push({x,y:y+height*.4,z,matrix:m.clone(),tint});
+        obstacles.push({x,z,r:trunk,top:y+t.crownBase*sy});
+      }
+    }
   }
-  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.setIndex(indices);geo.computeVertexNormals();
+  const group=new THREE.Group(),ranges=sc.lodRangesM||[12,30,75],fields=[];
+  for(const [model,items] of byModel){
+    const field=new LodField(model,items,{ranges:model.impostor?ranges:[ranges[ranges.length-1]],shadowLevels:2});
+    group.add(field);fields.push(field);
+  }
+  group.userData.updateLod=(eye,force)=>{for(const f of fields)f.update(eye,force);};
+  group.userData.count=[...byModel.values()].reduce((a,l)=>a+l.length,0);
+  group.userData.forest=true;
+  return group;
+}
+// Forest floor (env.understory): the Aholo understory clump (ferns and broad-leaved aroids)
+// gathered in patches on leaf litter, drawn by distance like the forest; procedural ferns and
+// shrubs without it.
+function createUnderstory(slot,surface,veg){
+  const sc=slot.scatter,r=mulberry32(sc.seed??91),w=[0,0,0,0],[lo,hi]=slot.scaleRange||[1,1];
+  const modelled=veg&&sc.plants?sc.plants.map(p=>({...p,model:veg.models[p.model]})).filter(p=>p.model):[];
+  const kinds=modelled.length?modelled.map(p=>({model:p.model,weight:p.weight,heightM:p.heightM,patch:p.patchM}))
+    :understoryModels().map(m=>({model:{levels:[m],impostor:null},weight:m.weight}));
+  const total=kinds.reduce((a,b)=>a+b.weight,0),lists=kinds.map(()=>[]);
+  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),v=new THREE.Vector3(),sv=new THREE.Vector3();
+  for(const area of sc.areas)for(let i=0;i<area.count;i++){
+    const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],y=surface(x,z),roll=r(),pick=r()*total,grow=r(),turn=r()*6.28,wide=r(),shade=r();
+    if(!scatterAllows(sc,x,y,z)||roll>layerWeight(sc.groundLayer,x,z,w)*1.3)continue;
+    let k=0,acc=kinds[0].weight;while(pick>acc&&k<kinds.length-1)acc+=kinds[++k].weight;
+    const K=kinds[k];
+    // Each kind grows in its own patches.
+    if(K.patch&&fbm(x/K.patch+k*13.1,z/K.patch-k*7.7)<.42)continue;
+    const size=K.heightM?(K.heightM[0]+(K.heightM[1]-K.heightM[0])*grow)/K.model.height:lo+(hi-lo)*grow,spread=size*(.85+.35*wide);
+    lists[k].push({x,y,z,matrix:m.compose(v.set(x,y-.03,z),q.setFromAxisAngle(UP,turn),sv.set(spread,size,spread)).clone(),tint:new THREE.Color().setScalar(.8+.3*shade)});
+  }
+  const group=new THREE.Group(),ranges=sc.lodRangesM||[12],fields=[];
+  kinds.forEach((K,k)=>{if(!lists[k].length)return;const f=new LodField(K.model,lists[k],{ranges:ranges.slice(0,K.model.levels.length),farM:sc.drawDistanceM??45,shadowLevels:1});group.add(f);fields.push(f);});
+  group.userData.updateLod=(eye,force)=>{for(const f of fields)f.update(eye,force);};
+  group.userData.count=lists.reduce((a,l)=>a+l.length,0);
+  return group;
+}
+function createBlades(scatter,style,surface){
+  const st=BLADE_STYLES[style]||BLADE_STYLES.meadow,r=mulberry32(scatter.seed??7),cell=scatter.cellM??48,cells=new Map(),a=new THREE.Color(),w=[0,0,0,0];
+  const range=([lo,hi])=>lo+(hi-lo)*r();
+  for(const area of scatter.areas)for(let i=0;i<area.count;i++){
+    const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],y=surface(x,z),roll=r();
+    if(!scatterAllows(scatter,x,y,z))continue;
+    // Keep a blade with the probability of its ground layer (grass for meadows, mud for reeds).
+    if(roll>layerWeight(scatter.groundLayer,x,z,w)*1.6)continue;
+    const key=`${Math.floor(x/cell)},${Math.floor(z/cell)}`;
+    if(!cells.has(key))cells.set(key,{positions:[],colors:[],indices:[],center:new THREE.Vector3(Math.floor(x/cell)*cell+cell/2,y,Math.floor(z/cell)*cell+cell/2)});
+    const c=cells.get(key),h=range(st.height),wd=range(st.width),angle=r()*6.28,dx=Math.cos(angle)*wd,dz=Math.sin(angle)*wd,bend=range(st.bend)*(r()<.5?-1:1);
+    const n=c.positions.length/3;
+    c.positions.push(x-dx,y,z-dz,x+dx,y,z+dz,x+dx*.5+bend*.4,y+h*.6,z+dz*.5,x-dx*.5+bend*.4,y+h*.6,z-dz*.5,x+bend,y+h,z);
+    a.setHSL(range(st.hue),range(st.sat),range(st.light));
+    for(let j=0;j<5;j++){const light=.7+j*.09;c.colors.push(a.r*light,a.g*light,a.b*light);}
+    c.indices.push(n,n+1,n+2,n,n+2,n+3,n+3,n+2,n+4);
+  }
   const mat=new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide,roughness:.9});
   const wind={value:0};mat.onBeforeCompile=shader=>{shader.uniforms.windTime=wind;shader.vertexShader='uniform float windTime;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
-float breeze=sin(position.x*.15+position.z*.21+windTime*.85)*.11;transformed.x+=breeze*pow(mod(float(gl_VertexID),5.)/4.,2.);`);};
-  const mesh=new THREE.Mesh(geo,mat);mesh.receiveShadow=true;mesh.userData.wind=wind;return mesh;
+float breeze=sin(position.x*.15+position.z*.21+windTime*.85)*.11+sin(position.x*.9+windTime*2.3)*.03;transformed.x+=breeze*pow(mod(float(gl_VertexID),5.)/4.,2.);`);};
+  const group=new THREE.Group();group.userData.wind=wind;group.userData.cells=[];
+  for(const c of cells.values()){
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(c.positions,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(c.colors,3));geo.setIndex(c.indices);geo.computeVertexNormals();
+    const mesh=new THREE.Mesh(geo,mat);mesh.receiveShadow=true;mesh.userData.center=c.center;group.add(mesh);group.userData.cells.push(mesh);
+  }
+  group.userData.drawDistance=scatter.drawDistanceM??220;
+  return group;
 }
 
 export class World {
-  constructor(scene,assets){
-    this.scene=scene;this.assets=assets;this.entities=[];this.byId=new Map();this.byRoot=new Map();this.decor=[];this.time=0;this.externalTerrain=null;this.surfaceRay=new THREE.Raycaster();
+  constructor(scene,assets,atmosphere){
+    this.scene=scene;this.assets=assets;this.atmosphere=atmosphere;this.entities=[];this.byId=new Map();this.byRoot=new Map();this.decor=[];this.obstacles=[];this.obstacleBodyHeight=0;this.time=0;this.externalTerrain=null;this.surfaceRay=new THREE.Raycaster();
+    this.field=FIELD;this.shared=atmosphere.shared;
     this.planetRoot=new THREE.Group();this.planetRoot.position.y=-PLANET_RADIUS;scene.add(this.planetRoot);
-    // The ocean coordinate frame is inert; no playable planets in this version.
+    // The river's coordinate frame; islands drift on it. No playable planets in this version.
     this.islandRoot=new THREE.Group();this.islandRoot.position.y=PLANET_RADIUS;this.planetRoot.add(this.islandRoot);
     const mainKind=LAYOUT.instances.find(i=>i.placement==='main')?.kind;
-    this.terrain=mainKind&&assets.hasModel(mainKind)?assets.make(mainKind,1):createTerrain();this.islandRoot.add(this.terrain);
-    if(mainKind&&assets.hasModel(mainKind))this.externalTerrain=this.terrain;
+    const modelled=!FIELD&&mainKind&&assets.hasModel(mainKind);
+    this.terrain=modelled?assets.make(mainKind,1):createTerrain(this.shared);this.islandRoot.add(this.terrain);
+    if(modelled)this.externalTerrain=this.terrain;
     this.islandRoot.updateWorldMatrix(true,true);
-    this.waterMat=waterMaterial();
-    const waterGeo=new THREE.PlaneGeometry(12000,12000,150,150);waterGeo.rotateX(-Math.PI/2);
-    const sea=WATERS.find(r=>r.water.type==='sea');this.seaLevel=sea.water.levelM;
+    const river=WATERS.find(r=>r.water.type==='river');this.river=river;this.seaLevel=river.water.levelM;this.shared.waterLevel.value=this.seaLevel;
+    const heights=FIELD?heightTexture(FIELD):null,enclosed=WATERS.filter(r=>r.water.type==='enclosed');
+    this.waterMat=waterMaterial({...river.water.look,level:this.seaLevel,holes:enclosed.map(r=>[...r.center,...r.radii])},this.shared,FIELD,heights);
+    const corridor=river.corridor||{lengthM:12000,halfWidthM:1200};
+    const waterGeo=new THREE.PlaneGeometry(corridor.lengthM+3000,2*corridor.halfWidthM+1400,Math.round((corridor.lengthM+3000)/60),Math.round((2*corridor.halfWidthM+1400)/60));waterGeo.rotateX(-Math.PI/2);
     const p=waterGeo.attributes.position;for(let i=0;i<p.count;i++){const r2=p.getX(i)**2+p.getZ(i)**2;p.setY(i,Math.sqrt(Math.max(0,PLANET_RADIUS**2-r2))-PLANET_RADIUS+this.seaLevel);}waterGeo.computeVertexNormals();
-    this.sea=new THREE.Mesh(waterGeo,this.waterMat);this.sea.position.y=PLANET_RADIUS;this.planetRoot.add(this.sea);
-    this.waterBodies=WATERS.filter(r=>r.water.type==='enclosed').map(r=>{
-      const mesh=new THREE.Mesh(new THREE.CircleGeometry(1,80),waterMaterial(r.water.opacity??1));mesh.rotation.x=-Math.PI/2;
-      mesh.scale.set(r.radii[0],r.radii[1],1);mesh.position.set(r.center[0],r.water.surfaceY,r.center[1]);this.islandRoot.add(mesh);return mesh;
+    this.sea=new THREE.Mesh(waterGeo,this.waterMat);this.sea.position.y=PLANET_RADIUS;this.sea.renderOrder=2;this.planetRoot.add(this.sea);
+    this.waterBodies=enclosed.map(r=>{
+      const mesh=new THREE.Mesh(new THREE.CircleGeometry(1,96),waterMaterial({...r.water.look,level:r.water.surfaceY},this.shared,FIELD,heights));mesh.rotation.x=-Math.PI/2;
+      mesh.scale.set(r.radii[0],r.radii[1],1);mesh.position.set(r.center[0],r.water.surfaceY,r.center[1]);mesh.renderOrder=2;this.islandRoot.add(mesh);return mesh;
     });
-    this.populate();this.createDecor();this.createSky();this.createRipples();
+    // Rainforest walls along both banks, in the river's curved frame.
+    this.banks=createBanks({halfWidth:corridor.halfWidthM,length:corridor.lengthM},(x,z,h)=>new THREE.Vector3(x,Math.sqrt(Math.max(0,PLANET_RADIUS**2-x*x-z*z))+this.seaLevel+h,z),assets.vegetation);
+    this.planetRoot.add(this.banks);
+    this.populate();this.createDecor();this.createRipples();
     this.ready=this.loadEnvironment();scene.updateMatrixWorld(true);
   }
   addBody(id,kind,root,visual){
@@ -114,7 +246,7 @@ export class World {
   place(item,id,position,random=false){
     if(item.placement==='main')return this.addBody(id,item.kind,this.islandRoot,this.terrain);
     const [x,dy,z]=position;
-    if(item.carrier==='ocean'){
+    if(item.carrier==='river'){
       const root=new THREE.Group(),y=Math.sqrt(Math.max(0,PLANET_RADIUS**2-x*x-z*z));
       root.position.set(x,y,z);root.quaternion.setFromUnitVectors(UP,root.position.clone().normalize());this.planetRoot.add(root);
       const visual=this.assets.make(item.kind,seedOf(id));root.add(visual);
@@ -161,16 +293,41 @@ export class World {
           if(scatterAllows(slot.scatter,x,y,z))placements.push({position:[x,y,z],rotationY:r()*Math.PI*2,scale:lo+(hi-lo)*r()});
         }
         object=this.assets.makeDecor(slot,placements);
-      }else if(slot.placeholder==='procedural:meadow'){object=createMeadow(slot.scatter);procedural=true;}
+      }else if(slot.placeholder==='procedural:fireflies'){
+        const r=mulberry32(slot.scatter.seed??11),points=[];
+        for(const area of slot.scatter.areas)for(let i=0;i<area.count;i++){
+          const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],y=this.surfaceOf(carrier,x,z);
+          if(scatterAllows(slot.scatter,x,y,z))points.push([x,y+.5+r()*2.2,z]);
+        }
+        object=fireflies(this.shared,points);procedural=true;
+      }else if(slot.placeholder==='procedural:forest'){object=createForest(slot,(x,z)=>this.surfaceOf(carrier,x,z),this.obstacles,this.bodyGrid(carrier,16),this.assets.vegetation);this.obstacleBodyHeight=slot.scatter.blocksBodiesUpToM??0;procedural=true;
+      }else if(slot.placeholder==='procedural:understory'){object=createUnderstory(slot,(x,z)=>this.surfaceOf(carrier,x,z),this.assets.vegetation);procedural=true;
+      }else if(slot.placeholder==='procedural:blades'){object=createBlades(slot.scatter,slot.placeholderStyle,(x,z)=>this.surfaceOf(carrier,x,z));procedural=true;}
       else if(slot.placeholder==='procedural:pebble'){
         object=new THREE.Group();procedural=true;const r=mulberry32(slot.scatter.seed??500);
         for(const area of slot.scatter.areas)for(let i=0;i<area.count;i++){
-          const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1];
-          const rock=makeRock(i+500,.15+r()*.45);rock.position.set(x,this.height(x,z),z);object.add(rock);
+          const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],y=this.height(x,z);
+          const pool=this.water(x,z);
+          if(!scatterAllows(slot.scatter,x,y,z)||
+             ((area.waterType||slot.scatter.waterType)&&pool?.type!==(area.waterType||slot.scatter.waterType)))continue;
+          const rock=makeRock(i+500,.15+r()*.45);rock.position.set(x,y,z);object.add(rock);
         }
       }
       if(object){carrier.root.add(object);this.decor.push({slot,object,procedural});}
     }
+  }
+  // Solid bodies on a carrier, bucketed by cell, with a keep-clear radius (crown or body plus margin).
+  bodyGrid(carrier,cell){
+    const grid=new Map();
+    for(const e of this.entities){
+      const s=SPECIES[e.kind];if(e.root.parent!==carrier.root||!s.collision.solid)continue;
+      // Boxes are axis-aligned, so the keep-clear circle reaches their corners.
+      const p=e.root.position,r=Math.max(s.radius,...s.collision.boxes.map(b=>Math.hypot(Math.max(-b[0],b[3]),Math.max(-b[2],b[5]))))+3;
+      for(let i=Math.floor((p.x-r)/cell);i<=Math.floor((p.x+r)/cell);i++)for(let j=Math.floor((p.z-r)/cell);j<=Math.floor((p.z+r)/cell);j++){
+        const k=`${i},${j}`;if(!grid.has(k))grid.set(k,[]);grid.get(k).push({x:p.x,z:p.z,r});
+      }
+    }
+    return grid;
   }
   // Random scenery must not start inside another solid body (M-01); named bodies stay.
   prune(collision){
@@ -184,15 +341,17 @@ export class World {
   carrierOf(entity){return this.byRoot.get(entity.root.parent)||null;}
   // Water body under a point of the main island, in island-local metres: an enclosed body
   // whose shape contains the point, else the sea where it is deep enough.
+  // Still water stands only where its region dips below its surface (an oxbow keeps its
+  // inner bank dry); the river fills everything deep enough below its level.
   water(x,z){
-    const floor=this.height(x,z);let sea=null;
+    const floor=this.height(x,z);let river=null;
     for(const r of WATERS){
-      if(r.water.type==='sea')sea=r;
-      else if(inRegion(r.id,x,z))return {id:r.id,type:r.water.type,surface:r.water.surfaceY,floor};
+      if(r.water.type==='river')river=r;
+      else if(inRegion(r.id,x,z)&&floor<r.water.surfaceY)return {id:r.id,type:r.water.type,surface:r.water.surfaceY,floor};
     }
-    if(!sea)return null;
-    const surface=-(x*x+z*z)/(2*PLANET_RADIUS)+sea.water.levelM;
-    return floor<surface-sea.water.minDepthM?{id:sea.id,type:'sea',surface,floor}:null;
+    if(!river)return null;
+    const surface=-(x*x+z*z)/(2*PLANET_RADIUS)+river.water.levelM;
+    return floor<surface-river.water.minDepthM?{id:river.id,type:'river',surface,floor}:null;
   }
   height(x,z){
     let result=terrainHeight(x,z);
@@ -221,15 +380,6 @@ export class World {
     return false;
   }
 
-  createSky(){
-    this.skyUniforms={underwater:{value:0},sun:{value:new THREE.Vector3(-.6,.5,-.7).normalize()}};
-    const skyMat=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:this.skyUniforms,vertexShader:`varying vec3 dir;void main(){dir=position;gl_Position=projectionMatrix*viewMatrix*vec4(position+cameraPosition,1.);}`,fragmentShader:`varying vec3 dir;uniform float underwater;uniform vec3 sun;void main(){vec3 d=normalize(dir);float h=pow(max(d.y,0.),.45);vec3 sky=mix(vec3(.77,.8,.68),vec3(.51,.63,.66),h);float glow=pow(max(dot(d,sun),0.),18.);sky+=vec3(.18,.13,.055)*glow;sky=mix(sky,vec3(.12,.30,.27),underwater);gl_FragColor=vec4(sky,1.);
-#include <tonemapping_fragment>
-#include <colorspace_fragment>
-}`});
-    this.sky=new THREE.Mesh(new THREE.SphereGeometry(180000,32,20),skyMat);this.sky.renderOrder=-100;this.scene.add(this.sky);
-
-  }
   createRipples(){
     this.ripple=new THREE.Group();this.scene.add(this.ripple);
     this.rings=[];
@@ -264,29 +414,46 @@ export class World {
     target.y+=s.height*layerOf(entity.kind).focusHeightRatio;
     return target;
   }
-  update(dt,player,target,targetPoint=null,targetSize=1){
+  update(dt,player,target,targetPoint=null,targetSize=1,transition=null){
     this.time+=dt;const t=this.time,stage=SPECIES[player.kind].stage;
-    // Unplayed birds and fish keep to their routes (D-027); built after spawning and pruning.
     if(!this.ambient)this.ambient=new AmbientMotion(this,LAYOUT.ambient||[]);
-    this.ambient.update(dt,player,this.ambientHold);
-    this.waterMat.uniforms.time.value=t;for(const w of this.waterBodies)w.material.uniforms.time.value=t;
+    this.ambient.update(dt,player,this.ambientHold||transition);
+    this.islandRoot.updateMatrixWorld();this.shared.toIsland.value.copy(this.islandRoot.matrixWorld).invert();
+    const eye=this.scene.userData.cameraPosition,localEye=eye?this.islandRoot.worldToLocal(eye.clone()):null;
+    if(localEye&&this.terrain.update)this.terrain.update(localEye);
+    // Bank tree segments beyond the haze are not drawn.
+    if(eye&&this.banks.userData.segments.length){const local=this.planetRoot.worldToLocal(eye.clone()),far=(TUNING.bankTreeDistanceM?.value??2600)**2;for(const g of this.banks.userData.segments)g.visible=g.userData.center.distanceToSquared(local)<far;}
     for(const d of this.decor){
+      // Forest: impostors at every scale, model levels only near the eye at small scales.
+      // Understory: only at small scales, near the eye.
+      const shown=stage<=(d.slot.visibleUpToStage??1);
+      if(d.object.userData.updateLod){
+        d.object.visible=shown||!!d.object.userData.forest;
+        if(localEye&&d.object.visible)d.object.userData.updateLod(shown?localEye:null);
+        continue;
+      }
       d.object.visible=stage<=(d.slot.visibleUpToStage??1)&&!(d.procedural&&this.externalTerrain);
       if(d.object.userData.wind)d.object.userData.wind.value=t;
+      // Dense cells beyond their draw distance are hidden (positions are in the carrier frame).
+      if(d.object.visible&&localEye&&d.object.userData.cells&&d.object.parent===this.islandRoot){
+        const far=d.object.userData.drawDistance**2;for(const m of d.object.userData.cells)m.visible=m.userData.center.distanceToSquared(localEye)<far;
+      }
     }
     this.sea.visible=!this.scene.userData.underwater;
     for(const w of this.waterBodies)w.visible=!this.scene.userData.underwater;
-    this.skyUniforms.underwater.value=THREE.MathUtils.damp(this.skyUniforms.underwater.value,this.scene.userData.underwater?1:0,2,dt);
     // Small bodies are not drawn at large scales; their state is kept (W-06).
     const hideBelow=stage-(TUNING.scaleHideBelowStageOffset?.value??1);
     for(const e of this.entities){
       const s=SPECIES[e.kind];
       if(e.visual)e.visual.visible=e===player||s.stage>=hideBelow;
+      if(this.firstPersonBodies?.includes(e)&&s.firstPerson?.hideBody)e.visual.visible=false;
       if(!e.visual||!e.visual.visible)continue;
       const v=e.visual;
       if(v.userData.sway)v.rotation.z=Math.sin(t*.9+e.seed)*v.userData.sway;
+      if(v.userData.flap)v.userData.flap.value=0.3+0.7*Math.sin(t*2*Math.PI*6+e.seed);
+      if(v.userData.insect){const a=Math.sin(t*9+e.seed)*.55;v.userData.leftWing.rotation.z=a;v.userData.rightWing.rotation.z=-a;v.position.y=Math.sin(t*2+e.seed)*.01;}
       if(v.userData.bird){const a=Math.sin(t*(e.moving?7:3.4)+e.seed)*.38;v.userData.leftWing.rotation.z=a;v.userData.rightWing.rotation.z=-a;v.position.y=Math.sin(t*2+e.seed)*.08;}
-      if(v.userData.limbs)for(let i=0;i<v.userData.limbs.length;i++)v.userData.limbs[i].rotation.x=e.moving?Math.sin(t*s.limbSwingRate+i*Math.PI)*.38:0;
+      if(v.userData.limbs){for(let i=0;i<v.userData.limbs.length;i++){const limb=v.userData.limbs[i];if(s.category==='human'&&e.swimming){const arm=i%2===1;limb.rotation.x=arm?Math.sin(t*3.2+i)*.7:Math.sin(t*2.4+i)*.28;limb.rotation.z=arm?(i===1?-.45:.45):0;}else{limb.rotation.x=e.moving?Math.sin(t*s.limbSwingRate+i*Math.PI)*.38:0;limb.rotation.z=0;}}}
       if(v.userData.dogTail)v.userData.dogTail.rotation.z=Math.sin(t*4)*.2;
       if(v.userData.fish)v.userData.tail.rotation.y=Math.sin(t*(e.moving?10:4)+e.seed)*.35;
       v.userData.moving=e===player?(e.animationMoving??e.moving):e.moving;
@@ -295,7 +462,6 @@ export class World {
       v.userData.swimming=e.swimming;
     }
     this.assets.update(dt);
-    for(const first of this.firstPersonBodies||[])if(first.visual&&SPECIES[first.kind].firstPerson.hideBody)first.visual.visible=false;
     if(target){
       this.ripple.visible=true;const s=SPECIES[target.kind];
       if(targetPoint)this.ripple.position.copy(targetPoint).y+=.06;
@@ -304,25 +470,15 @@ export class World {
     }else this.ripple.visible=false;
   }
   serialize(){return this.entities.map(e=>({id:e.id,kind:e.kind,position:e.root.position.toArray(),rotation:[e.root.rotation.x,e.root.rotation.y,e.root.rotation.z],baseY:e.baseY,heading:e.heading}));}
-  serializeLayout(){return this.entities.map(e=>({id:e.id,position:e.home.toArray(),rotation:e.homeRotation,baseY:e.homeBaseY}));}
+  serializeLayout(){return this.entities.map(e=>({id:e.id,kind:e.kind,position:e.home.toArray(),rotation:e.homeRotation||[0,0,0],baseY:e.homeBaseY??e.baseY}));}
   restore(records,layout=[]){
-    const oldLayout=new Map((Array.isArray(layout)?layout:[]).filter(r=>r&&typeof r.id==='string').map(r=>[r.id,r]));
+    const old=new Map((Array.isArray(layout)?layout:[]).filter(r=>r&&typeof r.id==='string').map(r=>[r.id,r]));
     for(const record of records||[]){
       const e=this.byId.get(record.id);if(!e||!Array.isArray(record.position)||record.position.length!==3||!record.position.every(Number.isFinite))continue;
-      const previous=oldLayout.get(record.id),oldPosition=previous?.position;
-      const position=Array.isArray(oldPosition)&&oldPosition.length===3&&oldPosition.every(Number.isFinite)
-        ?e.home.clone().add(new THREE.Vector3(...record.position).sub(new THREE.Vector3(...oldPosition))).toArray()
-        :record.position;
-      e.root.position.fromArray(position);e.heading=Number.isFinite(record.heading)?record.heading:0;
-      if(Array.isArray(record.rotation)&&record.rotation.length===3&&record.rotation.every(Number.isFinite)){
-        const oldRotation=previous?.rotation;
-        if(Array.isArray(oldRotation)&&oldRotation.length===3&&oldRotation.every(Number.isFinite))
-          e.root.rotation.set(...record.rotation.map((value,index)=>e.homeRotation[index]+value-oldRotation[index]));
-        else e.root.rotation.set(...record.rotation);
-      }
+      const prior=old.get(record.id),position=prior?.position?.length===3?e.home.clone().add(new THREE.Vector3(...record.position).sub(new THREE.Vector3(...prior.position))):new THREE.Vector3(...record.position);e.root.position.copy(position);e.heading=Number.isFinite(record.heading)?record.heading:0;
+      if(Array.isArray(record.rotation)&&record.rotation.length===3&&record.rotation.every(Number.isFinite)){const oldRotation=prior?.rotation;e.root.rotation.set(...(Array.isArray(oldRotation)&&oldRotation.length===3?record.rotation.map((v,i)=>e.homeRotation[i]+v-oldRotation[i]):record.rotation));}
       else if(SPECIES[e.kind].mode!=='island')e.root.rotation.y=e.heading;
-      const oldBaseY=previous?.baseY;
-      e.baseY=Number.isFinite(record.baseY)&&Number.isFinite(oldBaseY)?e.homeBaseY+record.baseY-oldBaseY:Number.isFinite(record.baseY)?record.baseY:e.root.position.y;
+      e.baseY=Number.isFinite(record.baseY)&&Number.isFinite(prior?.baseY)?(e.homeBaseY??e.baseY)+record.baseY-prior.baseY:(Number.isFinite(record.baseY)?record.baseY:e.root.position.y);
     }
     this.scene.updateMatrixWorld(true);
   }
