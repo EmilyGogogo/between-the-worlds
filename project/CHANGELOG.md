@@ -2,6 +2,23 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-12 · PR #12 同步已合并的 CI 检查修复
+
+- 负责人：@EmilyGogogo；关联：PR #12、已合并 PR #13，分支 `codex/river-island-review`。
+- AI：Codex 确认远端状态、合入 main、处理文档冲突并运行自动检查；人工复核：待负责人复核。
+- 变更与原因：按用户要求，将 main 的 `5630513` 合入 PR #12 的 `9dd1e9c`，接入 PR #13 的环境体累计路程检查与闭环／静止回归。保留两边审计及历史变更记录；不改玩法、路线、资产、生成配置或 CI 工作流，不混入其他工作区尚未提交的服务修改。
+- 验证：本次合并工作树中，`python3 project/validate_docs.py` 1996 项通过；`python3 project/check_repository.py --javascript` 检查 208 个文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；隔离 Chrome 157.0.8103.52 的目标环境路线检查 4 项通过。按标准入口执行 `python3 project/check_all.py --output .work/pr12-main-update-checks`，执行时的文档／数据检查 1991 项通过（随后补回历史记录后单独重跑为 1996 项），完整浏览器在 `check_browser.py:230` 页面重载处等待 90 秒后超时，未通过。`git diff --cached --check` 通过，无未解决冲突，游戏代码、数据、资产与工作流相对合并前未改动；原始日志在本次工作树 `.work/pr12-main-update-checks/`。
+- 未验证项 / 风险：本条提交时，新提交的远端 CI 待运行；本地完整浏览器重载超时，不能据 4 项目标检查通过声称整套通过。此前本地复现的 `gull-1 overlaps` 不在本次同步范围，不放宽断言或擅自修游戏；真人试玩、许可及性能仍未验收。
+
+## 2026-11-12 · 修复 CI 环境路线检查的循环移动误报
+
+- 负责人：@EmilyGogogo；关联：PR #12 的浏览器失败，独立修复 PR #13，分支 `codex/fix-ambient-ci-regression`。
+- AI：Codex 核对 PR 与断言、隔离浏览器复现、修复测试并验证；人工复核：待负责人复核。
+- 变更与原因：原断言以 10 秒后距离起点超过 1 m 判断自主移动，误判短半径循环路线。PR #12 的隔离 Chrome 实测 `blue-morpho-playable` 累计行进约 4.393 m，但净位移仅约 0.508 m。改为逐帧累计路程，保留全部成员、10 秒窗口及超过 1 m 的门槛，失败时输出成员 ID 和累计路程；增加绕圈回到起点、完全静止两项回归。仅修改浏览器测试与审计记录，不改游戏、数据、生成配置或 Actions 工作流；独立从 main 提交，供 PR #12 随主线更新取得修复。
+- 验证：macOS、Python 3.9.6、Chrome 157.0.8103.52、Node 24.22.2；修复前在 PR #12 的 `9dd1e9c` 隔离浏览器复现上述净位移误报。修复后从 main 基线启动真实游戏，环境路线整组 8 项通过（含碰撞、水体、群聚、受控暂停与释放后归队）；PR #12 集成副本的目标检查 4 项通过（成员完整、闭环测量、静止测量、自主移动）。`python3 project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`python3 project/check_all.py --output .work/ambient-ci-checks` 的 1790 项文档／数据检查通过，但完整浏览器在页面重载的 90 秒等待阶段超时，不能算通过；`git diff --check` 通过。本地原始工作区证据 `.work/pr12-ambient/baseline.log`、`main-focused.log`、`focused-metric.log` 与独立修复工作树 `.work/ambient-ci-checks/`。
+- 集成验证：PR #12 副本执行 `python3 project/check_all.py --output .work/pr12-ci-integration`，1990 项文档／数据检查通过，完整浏览器同样在页面重载的 90 秒等待阶段超时（原工作区 `.work/pr12-ambient/integration-check.log`），不作为完整通过的证据。
+- 未验证项 / 风险：提交本条记录时 PR #13 的 GitHub Actions 尚待运行；完整浏览器本地重载超时。PR #12 原版与仅替换测试的集成副本，在单独运行整组环境检查时均另报 `gull-1 overlaps`（原版诊断日志 `.work/pr12-ambient/original-diagnostic.log`，不是本修复引入）；此游戏碰撞问题不在本 PR 修改范围，不能据目标检查通过声称 PR #12 全部通过。真人试玩、模型许可、视觉和性能不在本次测试修复的验收范围。
+
 ## 2026-11-12 · 修复所有实体第三人称方向偏移
 
 - 负责人：@EmilyGogogo（待人工复核）；关联：`codex/fix-possession-forward-camera`，PR 待关联。
@@ -57,6 +74,87 @@
 - 变更与原因：河心岛是一次特殊的大环境替换，存档新增 `layoutId=river_island_v1` 与布局基线；旧海岛存档和缺少基线的旧记录失效。以后普通布局更新仍可按保存的基线映射位移、旋转和高度偏移。保留当前 12 个实体、鱼种、实例 ID 和引用，不引入 Main 的 `fish_discus_01` 替换蝴蝶鱼；双视角决策重新编号为 D-035，补齐所有实体第一人称眼位、V 键和第三人称跟转。河流与封闭水体改为浅色、低不透明度、高透明度；水底卵石装饰槽现在分别在牛轭湖与南岸河床按实际水体判定生成。人物入水时保持游泳动作并在出水后恢复陆地动作。
 - 验证：`python3 project/sync_runtime.py`；`python3 project/validate_docs.py` 通过 1888 项文档／数据检查；`python3 -m unittest discover -s project/tests -v` 15 项通过；`python3 project/check_repository.py` 检查 206 个文件、0 错误；`git diff --check` 通过。隔离 Chrome 浏览器回归已运行，但未完成：运行过程中发现并修正人类第三人称转向及转向后镜头避障，随后 Chrome 在重载场景时超时；Node.js 缺失，仓库 JS 语法专项检查未运行。
 - 未验证项 / 风险：本轮尚未在真实浏览器逐帧确认清澈河水下鱼、`env.pebbles` 礁石和人物游泳姿态的遮挡效果；游泳 GLB 的动作轨道和不同水深岸边过渡仍需 QA-23；需要补跑浏览器回归后再声称游戏内视觉验收通过。
+
+## 2026-11-09 · 统一第三人称转身移动并新增实体第一人称
+
+- 负责人：@EmilyGogogo；关联：D-029，分支 `codex/perspective-movement`，PR 待关联。
+- AI：Codex 参与规则梳理、代码与数据、文档、回归测试及验证；人工复核：待负责人复核。
+- 变更与原因：修正第三人称后键直接倒退，所有身体改为相对镜头转向行进，后键转身约 180°，左右移动并转身；接入已有 180°/s 转速，岛漂移不旋转整座地形。第三人称统一人类全彩与基准 FOV；新增 V 第一人称，使用身体眼位、视觉与 FOV（狗黑白、鸟增强远景、鱼青绿宽视野），隐藏自身视觉模型并保留碰撞、承载物与岛的地形。第一人称眼位逐层检查承载面，避免进入斜岛或多层承载物的内部。两种视角听觉均随身体，魂穿和 v4 存档保留视角、旧存档默认第三人称。`perceptionCrossfadeSec` 原值 1.2 秒不变，接入 V 视觉混合。同步输入提示、数据与生成器、规范、决策、QA-49、审计与浏览器回归。
+- 验证（2026-11-09，Windows 11、Python 3.13.9、Chrome 157.0.8103.38、Node 22.23.3）：`python project/sync_runtime.py` 生成运行配置；`python project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`python project/check_all.py --output .work/perspective-20261109/complete-fixed` 标准完整入口退出 0，1789 项文档／数据检查及 331 项隔离浏览器检查通过，结果 JSON 的 docs/browser/status 均为 passed；`git diff --check` 通过。浏览器覆盖全部 11 种身体的后键转身、转速限制与起步不倒退、双视角视觉／FOV／眼位／模型恢复、相邻斜岛与多层承载眼位、魂穿视觉过渡、视角存档，以及真实 WASD／方向键／V 输入与五种视口 HUD。
+- 回归诊断：首次完整运行在真实后键位移等待处超时；软件渲染下 10 秒墙钟仅推进约 0.3 秒游戏时间，身体仍在按规则转身。真实按键检查改为每个方向先面向行进方向，保留实际按键、位移阈值与原等待时限；转身时序另用固定步长验证，未修改游戏来迎合超时。重跑完整入口通过；原始诊断与最终日志仅保留于本地 `.work/perspective-20261109/`。
+- 同日追加：按创作者反馈补齐第三人称左右及后键转身时的镜头跟随，所有身体统一使用实际转角驱动镜头，沿用原有平滑与转速；同次方向输入固定移动参考，避免镜头跟转让长按变成持续绕圈，鼠标环视仍能改变方向。岛仅跟随漂移朝向，不额外旋转地形及居民；第一人称平移与视线保持原行为。同步 D-029、规则、QA、实现审计与配置。
+- 跟随追加验证（同日、同上环境）：重新运行 `python project/sync_runtime.py`；`python project/check_repository.py --javascript` 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`python project/check_all.py --output .work/perspective-20261109/follow-camera-fixed` 完整入口退出 0，1790 项文档／数据检查及 456 项隔离浏览器检查通过，结果 JSON 的 docs/browser/status 均为 passed；`git diff --check` 通过。覆盖全部 11 种身体左右及后键的转速、实际相机环绕、长按转角收敛、鼠标环视、重按参考及第一人称平移不改变视线。首次新增第一人称平移检查改变位置后干扰了后续地面移动检查，恢复场景位置后完整重跑通过；沙箱临时目录权限失败后在沙箱外完成工具及浏览器检查。原始失败与通过日志仅留于本地 `.work/perspective-20261109/follow-camera*`，镜头跟随手感与真人画面尚未验收。
+- 同日短按跟转修复：创作者再次反馈左右转身时画面也要动。新回归复现旧实现的短按跟转延迟：0.05 秒内身体已转身，实际镜头仍落后；此前长按到位检查没有覆盖这一时段。将受转速限制的身体转角同帧应用到实际镜头环绕与注视方向，位移、鼠标环视保留缓动，实际相机位置再次执行地形与实体避障。新增全部 11 种身体的 A/D、左右方向键短按与松键回归，同步 D-029、镜头规范、QA-49、数据说明和审计；未改调参数值。
+- 短按修复验证（同日、同上环境）：修复前 `python project/check_all.py --output .work/perspective-20261109/immediate-turn-before` 在新增短按实际镜头断言处失败，日志留于本地；沙箱临时目录拒绝访问后在沙箱外复现。修复后首次完整运行通过新增短按检查，后续在双视角检查前的页面重载等待处超时；未放宽加载时限。重跑 `python project/check_all.py --output .work/perspective-20261109/immediate-turn-complete` 退出 0，1790 项文档／数据检查、589 项隔离浏览器检查全部通过，结果 JSON 的 docs/browser/status 均为 passed；新增覆盖全部 11 种身体的四个左右键短按实际环绕与注视方向、松键无追转及即时跟转时的实际相机避障。`python project/check_repository.py --javascript` 154 个文件、0 错误；`python project/validate_docs.py` 与 `git diff --check` 通过。失败与通过日志仅留本地 `.work/perspective-20261109/immediate-turn*`；真人画面与手感仍待验收。
+- 推送前复验（2026-11-09）：Codex 按创作者要求提交并推送本分支；`python project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`python project/validate_docs.py` 1790 项通过；`python project/check_all.py --output .work/perspective-20261109/pre-push` 退出 0，1790 项文档／数据检查与 589 项隔离浏览器检查通过；日志仅留本地，人工复核仍待负责人完成。
+- 未验证项 / 风险：真人移动与转向手感、双视角眼位和画面、正常像素密度下的视觉质量、目标设备性能及远端 CI 待验证；正式 QA 未验收。回退时成组撤销本任务代码、数据、生成文件与规范修改。
+
+## 2026-11-09 · PR #5 与最新 main 的冲突处理
+
+- 负责人：@EmilyGogogo；关联：[PR #5](https://github.com/EmilyGogogo/between-the-worlds/pull/5)，分支 `codex/save-layout-patch-compat`。
+- AI：Codex 负责冲突分析、语义合并、回归与文档；人工复核：待负责人复核。
+- 变更与原因：合入 main 的 PR #7 鸟鱼资产、主体迁移及 PR #10 浏览器回归修复；恢复入口同时执行旧主体别名迁移与布局差量恢复，不把已移除身体的坐标赋给替代身体。保留双方决策与历史变更，将本 PR 布局补丁决策从 D-027 顺延为 D-028，更新 QA-30 与实现审计。增加旧主体迁移、布局补丁同时生效与再次保存不重复叠加的浏览器回归。
+- 验证（2026-11-09，Windows 11、Python 3.13.9、Chrome 157.0.8103.38、Node 22.23.3）：`python project/sync_runtime.py` 重新生成两份运行配置；`python project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`python project/check_all.py --output .work/pr5-conflict-20261109/complete-fixed` 完整入口退出 0，1747 项文档／数据检查及 203 项隔离浏览器检查通过，结果 JSON 的 docs/browser/status 均为 passed；`git diff --check` 通过。首次新增回归误把自主移动海鸥的位置预期为出生点，修正为保留它已保存的位置后重跑完整入口通过；未修改游戏实现来迎合测试。原始日志仅保留于本地 `.work/pr5-conflict-20261109/`，远端 CI 以本次提交的新运行结果为准。
+- 未验证项 / 风险：真人升级体验、线上缓存策略、正常像素密度画面与目标设备性能未验证；原有未提交的移动诊断修改已独立保存在 Git stash 和本地 `.work/pr5-conflict-20261109/`，不混入本次提交。
+
+## 2026-11-07 · 补丁更新保留游玩进度并采用新版布局
+
+- 负责人：@EmilyGogogo；关联：分支 `codex/save-layout-patch-compat`，基于 `main`，[PR #5](https://github.com/EmilyGogogo/between-the-worlds/pull/5)。
+- AI：Codex 负责原因分析、存档合并实现、文档与回归；人工复核待负责人完成。
+- 变更与原因：存档增加对应实体的初始布局基线。补丁修改已有实体位置时，加载器把存档相对旧初始位置的差量叠加到新版位置，保留玩家自行移动的偏移，同时应用新版布局；新增实体使用新版配置，已删除实体忽略。无基线旧存档兼容读取并在下次保存时写入基线。更新规则记录为 D-028，补充 QA-30 和实现审计。
+- 验证：首次 `python project/validate_docs.py` 通过（1659 项）；`python project/check_repository.py --javascript` 通过（59 个第一方文件、0 错误）；`python -m unittest discover -s project/tests -v` 通过（14 项）；`git diff --check` 通过。更正此前浏览器通过的记录：当时误读了遗留结果文件，不能作为最终修改的通过证据；[首次远端 CI](https://github.com/EmilyGogogo/between-the-worlds/actions/runs/42379122987) 在朝向差量断言处失败。
+- CI 修复：Three.js `Euler.toArray()` 包含第四项旋转顺序，导致基线不符合恢复器的三项角度校验。改为显式记录三个角度，保留失败断言并补充所有存档基线均为三个有限角度的检查。修复后 `python project/check_all.py --output .work/save-layout-ci-fix-20261107-01` 通过（文档 1659 项、隔离 Chrome 131 项；Windows 11、Python 3.13.9、Chrome 157）。
+- PR 冲突处理与合并验证：为解决 PR #5 与 `main` 上 PR #6 的冲突，将布局补丁决策编号顺延至 D-027，保留双方 CHANGELOG 和文档更新；人物模型、转向与游泳更新由 Git 自动合并。合并后文档数据校验通过（1664 项）、源码检查通过（67 个第一方文件、0 错误）、工具单元测试通过（14 项）、部分隔离 Chrome 检查通过（95 项）。完整隔离浏览器回归在真实按键移动检查处超时，尚未确认这是本机输入模拟限制还是行为问题；因此不记录完整浏览器回归通过，等待推送后的 GitHub CI 验证。
+- 未验证项 / 风险：线上托管缓存策略与已打开页面的更新体验未验证；已打开页面需刷新才会加载新版本。旧存档无布局基线，首次升级无法区分玩家改变量与历史布局差异，仍沿用旧行为一次。
+
+## 2026-11-08～11-09 · 修复完整浏览器回归的恢复状态与操作栏宽度
+
+- 负责人：@EmilyGogogo；关联：PR #6 合入后的 CI 第 11 次运行及 PR #7 浏览器回归；修复分支 `codex/fix-browser-regression`，[PR #10](https://github.com/EmilyGogogo/between-the-worlds/pull/10)。
+- AI：Codex 负责定位、CSS 与测试修复、文档与验证；人工复核：待负责人复核。
+- 变更与原因：当前分支中补齐失焦测试后显式点击 resume、等待解除暂停及指针锁定，再检查真实移动／转向／同向多键。HUD 测量发现人的拖动环视文案使操作栏宽约 308.9 px，超过既有 300 px 限制；为 `.control-guide` 加 300 px 最大宽度，保留视口约束并允许自然换行。五种视口分别检查真实锁定与未锁定状态，断言栏体可见、无横向溢出且不遮挡其他提示，防止隐藏元素的零尺寸被当作通过。
+- 检查执行：诊断中记录到软件渲染响应约 9 秒、反复加载真实模型触及 300 秒总时限；测试设备像素比设为 0.25，保留 CSS 视口、真实模型、指针锁定与移动断言，降低光栅化开销。`check_all.py` 完整浏览器子进程预算改为 600 秒，单项等待条件和阈值保持原样；HTTP 缓存仍禁用。临时缓存对比没有单独解决问题，未纳入交付。
+- 验证（2026-11-09，Windows 11、Python 3.13.9、Chrome 157.0.8103.38、Node 22.23.3）：`python project/check_all.py --output .work/ci-hud-regression/complete` 标准完整入口退出 0，1747 项文档／数据检查、195 项浏览器检查通过；结果 JSON 的 docs/browser/status 均为 passed，日志仅在本地 `.work/ci-hud-regression/complete/`。`python project/check_repository.py --javascript` 检查 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。早期重载等待超时与 300 秒总时限失败如实保留于本地诊断记录，20 次连续空场景重载未复现；最终标准运行未发生这些失败。
+- 未验证项／风险：远端 CI、真人画面、正常像素密度下的视觉质量与目标设备性能尚未验证；本地完整回归通过不作为正式 QA 或性能验收。按用户要求提交修复 PR，人工审核与合并待负责人完成。
+
+## 2026-11-08 · 修复 PR #7 的存档迁移与自主移动穿模
+
+- 负责人：@EmilyGogogo；关联：PR #7，修复分支 `codex/fix-pr7-motion-save`。
+- AI：Codex 参与 review、复现、代码与数据修复、回归测试及文档；人工复核待负责人完成。
+- 变更与原因：旧当前主体被删除会使整个 v4 存档失效并被新进度覆盖；新增布局数据 `savePlayerAliases` 转移旧蝴蝶鱼与已移除海鸥的控制权，保留仍存在的身体、提示与回应状态，未知已移除主体退到初始身体。已移除身体的旧坐标不应用到替代身体，避免把山湖鱼放回近海。环境移动复用玩家的地形、碰撞和活动区处理，逐体更新碰撞记录，转向或贴地造成重叠时恢复上一位置；修复海鸥归队钻入山坡、鸟鱼穿过玩家的问题。同步运行配置、数据指南、D-027、QA-30／QA-48 与实现审计。
+- 验证（Windows 11、Python 3.13.9、Chrome 157.0.8103.38、Node 22.23.3）：修复前在隔离 Chrome 中复现旧主体存档被丢弃、归队海鸥进入地表下约 20.5 米、自主鸟鱼穿过玩家；修复后同场景均未复现。永久回归已接入 `frontend/tests/check_browser.py`，单次加载独立运行 36 项通过。`python project/sync_runtime.py` 已同步两份生成文件；`python project/validate_docs.py` 1747 项通过；`python project/check_repository.py --javascript` 154 个文件、0 错误；`python -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 通过。`python project/check_all.py` 在新增回归通过后仍于真实键盘移动检查超时（与修复前相同断言）；随后 `python project/check_all.py --no-pointer-lock --output .work/pr7-gameplay-checks` 的 138 项部分浏览器检查通过，真实鼠标锁定及后续检查未计入部分通过。原始结果仅保留于本地 `.work/collaboration-checks/`、`.work/pr7-gameplay-checks/`，不作为远端 CI 或真人验收证据。
+- 未验证项／风险：本次完整真实输入回归未通过，远端 CI 待本次提交运行；正式真人 QA、目标设备性能及模型来源许可未验证，不使用历史 CI 代替本次结果。
+
+## 2026-11-07～11-08 · 鱼和鸟：七彩神仙鱼、银斧鱼、海鸥 v003 与鸟鱼环境移动（D-027）
+
+- 负责人：zora-alt111；分支 `asset/fish-birds-v001`（已合并 `origin/main` 197f216，04／06／11／CHANGELOG 的文字冲突已解决，两边内容都保留），PR 见分支；同一任务的连续调整合并为本条记录。
+- AI：Claude Code（Claude Opus 5.5）负责选种参考、Blender 脚本化修整／绑骨／动作、数据与代码、文档、检查与游戏内核对；人工：负责人在 Lux3D 国内版网页生成全部模型，确定种类、数量、山湖位置、卡通风格与归队方式，并在游戏内试玩后提出体型、扇翅与斑块三项修改。
+- 种类与数量（D-027，会话授权，待团队确认）：七彩神仙鱼 `fish_discus_01`（`slot.discus`）取代蝴蝶鱼 `fish_butterfly_01`，引文 ID 改为 `TXT-FISH-DISCUS`（内容不变）；`fish_silver_01` 定为银斧鱼。两种鱼都放在山湖，近海暂无鱼。海鸥 8 → 4 只，银斧鱼 8 → 12 条（一群），七彩神仙鱼 6 条。能力与感知未改。
+- 资产：三件 Lux3D GLB 用 Blender 4.5.15 脚本处理，包括自动转向、放平、减面、定标、绑骨，以及 idle／move 动作，JPEG 内嵌、无 Draco。
+  - 海鸥 v003：137,378 → 30,000 面；原件双翅高举成 V 形，在肩部压平后设为静止姿态；动作 `Glide`／`Flap` 为连续曲线，关节过渡加宽，避免“折翅”。
+  - 银斧鱼：8,000 面；七彩神仙鱼：29,000 面。面数更低时贴图出现白斑，两种鱼都是按游戏内近景对比选定。动作均为 `Swim`／`SwimFast`。
+  - 迭代过程：写实版 v001（参考图为 Commons 照片，PierreSelim，CC BY 3.0）未采用，只保留原件与记录，运行时文件与 `.blend` 已移除；卡通版 v002 保留作回退。海鸥 v003 曾在“翅膀平滑”中对肩部做顶点放松，导致层叠羽毛互相穿插、游戏中出现斑块，已去掉该步骤并改为平滑着色。
+  - 来源链在 `assets/lux3d/LUX3D-bird_gull_01`（raw／edit／export 分 v001～v003）、`LUX3D-fish_silver_01`、`LUX3D-fish_discus_01`；台账新增对应行，v001、v002 标为 `superseded`。
+- 环境移动（D-027）：新增 `frontend/src/ambient.js`，按 `anchors.json` 新增的 `ambient` 航线驱动未被占据的海鸥与鱼。航线是按时间重复的环线或“8”字形；海鸥在低飞段减速，并按模型实际尺寸抬过实心身体；鱼不离开所属水体；银斧鱼保持队形。玩家占据或正在进入的身体不受航线驱动，离开后先停约 4 秒再归队；惊飞／四散期间交给互动。`world.js`、`main.js` 小改，`sync_runtime.py` 输出 `ambient`。
+- 开局可选中海鸥：原有问题是地面身体不能仰视，海鸥又都在 15～17 米高空，从人出生点选不中任何海鸥（干净的 main 同样复现）。现在 `gull-0` 约每 32 秒在人出生点前方减速低飞经过（锚点 A14），人平视即可选中。
+- TUNABLE（试玩反馈“从某些角度看非常大”）：海鸥 `body.height`／`asset.height` 0.65 → 0.32、`collisionRadius` 0.65 → 0.5、占位碰撞盒等比缩小、镜头距离 5.0 → 3.5。v003 在游戏内翼展约 0.89 m。
+- 测试与文档：`check_browser.py` 改为“低飞时可选中 gull-0”，惊飞测试期间暂停航线，并新增环境移动回归（数量来自数据）。同步 01、03、04、05、06、07、08（QA-15、QA-18、新增 QA-48）、09（D-027）、10、11、GLOSSARY、CONTRIBUTING、README、数据指南、THIRD_PARTY、LICENSES。
+- 验证（macOS 14.8.7、Python 3.9.6、Chrome 156.0.8078.80、Blender 4.5.15）：
+  - `python3 project/sync_runtime.py`；`python3 project/validate_docs.py` PASS（1726 项）。
+  - `python3 project/check_repository.py` 0 错误（本机无 Node.js，未运行 `--javascript`；新 JS 已在游戏中执行）；`python3 -m unittest discover -s project/tests` OK；`git diff --check` 通过。
+  - 游戏内单次加载核对 15 项全部通过：模型加载、全部移动、60 秒鱼不出水、鱼群不散、海鸥不穿实心体、低飞时人可选中并成为海鸥、占据与释放。`check_browser.py` 新增与修改的片段单独运行 9 项通过。
+  - 海鸥大小、扇翅、斑块问题都做了游戏内近景对照与逐帧渲染；截图在各资产的 `evidence/` 与 `edit/*/previews/`。
+- 未完成的检查：完整的 `check_all.py --only browser` 在本机 Chrome 156 下重新加载会停住（高频轮询所致，干净的 main 同样），以 PR 的 Actions 结果为准。
+- PR #7 的 CI 修复（2026-11-08）：PR 的 game-checks 在浏览器检查步骤失败。main（197f216）在同一步骤也失败，日志需要管理员权限，本机无法查看。本机把 `check_browser.py` 的各段测试分别在新页面上运行（慢轮询）：干净的 main 各段全部通过，本分支有 2 处真实失败，均已修复：
+  - 出生时 5 条银斧鱼互相重叠：队形间距 0.8 m 加上漂移 0.3 m，相邻两条最近只有 0.2 m，小于鱼长 0.47 m。改为间距 1.0 m、漂移 0.15 m，出生点按新队形重算。
+  - “从海鸥成为岛也触发首次回应”失败：前面的测试在搜索目标时可能注视到低飞的海鸥，触发其聚焦回应，进入 90 秒冷却；游戏行为本身符合 D-019。测试在成为岛前清空冷却，只检查回应与来源身体无关。
+  - 另外，“低飞时人在出生点可选中 gull-0”这条回归受前面人物游泳测试影响：人被留在原点，离海鸥太近而触发惊飞。改为先把人放回出生点，并在海鸥接近最低点（离地 3 m 以下）时再选，避免下降途中被身后的树抢走目标。
+  - 修复后各段在本机通过（第 0 段 35 项、第 1～7 段均通过；个别段遇到本机加载卡住后重跑通过）。依赖鼠标锁定、点击与 DOM 几何的 Python 段本机未运行，main 的 CI 失败可能就在这部分，待 Actions 结果。
+- 未验证项／风险：
+  - 三件 GLB 的生成方式、任务 ID、版本与积分待生成人补充（台账与 `task.json` 已标“待补”）；Lux3D 用户协议未查阅。
+  - D-027 与 DF-03 的关系待团队确认。
+  - 旧存档中的 `gull-4`～`gull-7` 会被跳过（可能与 PR #5 相关）。
+  - 海鸥翅根在扇翅时有轻微鼓起、双脚下垂；新手能否发现低飞海鸥、目标设备帧率、QA-31～QA-34、QA-48 待真人验收。
+- 回退：删除 `ambient` 段即恢复静止的鸟鱼；槽 `url` 改回 v002 或 `null` 并重跑同步即回退模型；种类与数量按本条恢复，或直接 revert 本 PR。
 
 ## 2026-11-08 · 疏林、草地空地与林中水塘
 
