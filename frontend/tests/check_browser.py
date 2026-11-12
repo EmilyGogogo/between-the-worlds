@@ -476,7 +476,9 @@ assert('a school keeps together',spread<2,spread.toFixed(2));
 const bird=W.byId.get(groups.find(gr=>gr.vertical.mode==='aboveGround').members[0]);
 take(bird.id);const held=bird.root.position.clone();step(60);
 assert('the played body is not moved by its route',bird.root.position.distanceTo(held)<.01);
-take('human-first');const left=bird.root.position.clone();step(60);const rest=bird.root.position.distanceTo(left);step(180);
+// Rest and rejoin timing follow the route's own resumeAfterSec, so tuning it needs no test edit.
+const resumeFrames=Math.round((A.state.get(bird).group.resumeAfterSec??4)*30);
+take('human-first');const left=bird.root.position.clone();step(Math.floor(resumeFrames/2));const rest=bird.root.position.distanceTo(left);step(Math.ceil(resumeFrames/2)+120);
 assert('a released body rests, then rejoins its route',rest<.01&&bird.root.position.distanceTo(left)>2,rest.toFixed(3));
 """)
 # D-035: an old sea-archipelago save and an unreadable current save must not block a new
@@ -550,6 +552,39 @@ def browser_assert(name, expression, state=None):
         raise AssertionError(f'{name}: {c.evaluate(state)}' if state else name)
     passed.append(name)
 
+# Real input runs on the page's own animation frames. CI renders with SwiftShader at
+# about one frame per second and can stall for several seconds while compiling a newly
+# visible model, so a wall-clock limit measures the renderer, not the input path.
+# Fail when enough game time has run without movement, or when frames stop entirely.
+# Body and camera first turn together at the body's turn speed (up to 180° for S, D-035),
+# then walk; allow that turn plus one second.
+MOVE_GAME_SECONDS = None
+MOVE_WALL_SECONDS = 90
+def mark_input_origin():
+    c.evaluate('window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();'
+               'window.__world.inputElapsed=window.__world.elapsed;true')
+
+def wait_for_input_movement(label):
+    global MOVE_GAME_SECONDS
+    if MOVE_GAME_SECONDS is None:
+        turn_speed = c.evaluate("import('./src/species.js').then(m=>m.SPECIES[window.__world.player.kind].turnSpeed)")
+        MOVE_GAME_SECONDS = 180 / turn_speed + 1.0
+    start = time.monotonic()
+    while True:
+        state = c.evaluate('(()=>{const g=window.__world;return {moved:g.world.position(g.player).distanceTo(g.inputOrigin),'
+                           'game:g.elapsed-g.inputElapsed,paused:g.paused,actions:[...g.actions],heading:g.player.heading,yaw:g.yaw,'
+                           'target:g.movementInput?.targetHeading,position:g.world.position(g.player).toArray(),'
+                           'blockedAhead:(()=>{const e=g.player,p=g.world.position(e),d=p.clone().set(0,0,-.4).applyAxisAngle(p.clone().set(0,1,0),e.heading).applyQuaternion(e.root.parent.getWorldQuaternion(g.camera.quaternion.clone()));return g.collision.collides(e,p.add(d));})()};})()')
+        if state['moved'] > .2:
+            return
+        wall = time.monotonic() - start
+        if state['game'] >= MOVE_GAME_SECONDS:
+            raise AssertionError(f'{label} did not move after {state["game"]:.2f} s of game time: {state}')
+        if wall > MOVE_WALL_SECONDS:
+            raise AssertionError(f'{label}: only {state["game"]:.2f} s of game time ran in {wall:.0f} s; '
+                                 f'the page stopped producing frames: {state}')
+        time.sleep(.2)
+
 browser_assert('entry explains hidden pointer and Escape before playing',
                "document.querySelector('.welcome-controls').textContent.includes('指针会隐藏')")
 # Hold the opening transition long enough to inspect and test its input boundary.
@@ -591,20 +626,22 @@ c.evaluate("window.dispatchEvent(new Event('focus'));true")
 browser_assert('returning focus does not automatically resume', 'window.__world.paused&&!document.pointerLockElement')
 click_at(*center('resume'))
 c.wait_for('!window.__world.paused && !!document.pointerLockElement', 10)
-# Turn timing and follow are checked with game-time steps above. Start each real
-# binding facing its travel direction so software rendering cannot spend the wait turning.
+# Turn timing and follow are checked with game-time steps above. Start each real binding
+# facing the direction the game will choose, so the wait measures input, not a turn. The
+# game picks it from the camera view in the carrier's frame (the river island is tilted
+# on its curved river, D-035), so compute it the same way instead of from yaw alone.
 origin = c.evaluate('window.__world.player.root.position.toArray()')
 for code in ('KeyW', 'KeyS', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'):
-    relative_heading = {'KeyW': 0, 'ArrowUp': 0, 'KeyS': 3.141592653589793, 'ArrowDown': 3.141592653589793,
-                        'KeyA': 1.5707963267948966, 'ArrowLeft': 1.5707963267948966,
-                        'KeyD': -1.5707963267948966, 'ArrowRight': -1.5707963267948966}[code]
-    c.evaluate(f'window.__world.clearInput();window.__world.player.root.position.fromArray({json.dumps(origin)});window.__world.player.heading=window.__world.yaw+{relative_heading};window.__world.player.root.rotation.y=window.__world.player.heading;window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
+    x, z = {'KeyW': (0, -1), 'ArrowUp': (0, -1), 'KeyS': (0, 1), 'ArrowDown': (0, 1),
+            'KeyA': (-1, 0), 'ArrowLeft': (-1, 0), 'KeyD': (1, 0), 'ArrowRight': (1, 0)}[code]
+    c.evaluate(f"""(()=>{{const g=window.__world,e=g.player,V=e.root.position.constructor,Q=g.camera.quaternion.constructor;
+g.clearInput();e.root.position.fromArray({json.dumps(origin)});e.root.updateMatrixWorld();
+const parentQ=e.root.parent.getWorldQuaternion(new Q()).invert(),view=g.camera.getWorldDirection(new V());
+const dir=new V({x},0,{z}).normalize().applyAxisAngle(new V(0,1,0),Math.atan2(-view.x,-view.z)).applyQuaternion(parentQ);
+e.heading=Math.atan2(-dir.x,-dir.z);e.root.rotation.y=e.heading;return true;}})()""")
+    mark_input_origin()
     key_event(code)
-    try:
-        c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
-    except TimeoutError as error:
-        state = c.evaluate('({paused:window.__world.paused,actions:[...window.__world.actions],heading:window.__world.player.heading,yaw:window.__world.yaw,elapsed:window.__world.elapsed})')
-        raise AssertionError(f'{code} did not move: {state}') from error
+    wait_for_input_movement(code)
     key_event(code, 'keyUp')
     passed.append(f'{code} moves during actual exploration')
 key_event('KeyV')
@@ -639,9 +676,9 @@ browser_assert('unlocked left drag changes the camera', f'window.__world.draggin
 c.evaluate("document.getElementById('world').dispatchEvent(new PointerEvent('pointercancel'));true")
 browser_assert('cancelled pointer stops drag look', '!window.__world.dragging')
 c.call('Input.dispatchMouseEvent', {'type': 'mouseReleased', 'x': 640, 'y': 320, 'button': 'left', 'clickCount': 1})
-c.evaluate('window.__world.inputOrigin=window.__world.world.position(window.__world.player).clone();true')
+mark_input_origin()
 key_event('ArrowUp')
-c.wait_for('window.__world.world.position(window.__world.player).distanceTo(window.__world.inputOrigin)>.2', 5)
+wait_for_input_movement('ArrowUp after pointer lock rejection')
 key_event('ArrowUp', 'keyUp')
 passed.append('movement remains usable after pointer lock rejection')
 # Deterministic target lifetime; this does not replace the real input checks above.
