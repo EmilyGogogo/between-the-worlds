@@ -4,7 +4,7 @@
 
 ## 2026-11-12 · 修复岩石贴住布景树干后转身卡死
 
-- 负责人：@EmilyGogogo（待人工复核）；关联：分支 `claude/fix-rock-trunk-stuck`，PR 待关联。
+- 负责人：@EmilyGogogo（待人工复核）；关联：分支 `claude/fix-rock-trunk-stuck`，PR #16。
 - AI：Claude Code（Claude Opus 5.5）负责按创作者试玩截图复现、定位原因、修改 `frontend/src/collision.js`、新增回归与记录；人工复核待完成。
 - 变更与原因：创作者魂穿海岸岩石走到林中，看似周围无物却卡住。复现：岩石碰撞盒水平 3.4 × 2.7 m（模型轮廓半径约 1.65 m），`frameBox` 随朝向把碰撞盒重新外包成轴对齐盒，45° 时半宽由 1.7 m 增至约 2.16 m。岩石顶住布景树干（`env.forest`，挡 3 m 以下身体）停下后，按左右或转视角使外包盒压进树干，此后每一步都判为碰撞，移动量为 0；脱困 `repair()` 只检查实体碰撞盒、不检查布景树干，无法推出，违反 M-02「不卡死」与 M-06。修改：①移动开始时若已重叠，只接受不加深重叠的步子（深度为每个实体盒的最短水平推出距离，飞行／游泳身体含竖直方向；树干按到盒的有符号距离计算，圆心进入盒后继续计深，不能滑穿）；未重叠时判定与原来相同。②`repair()` 同时把身体推出布景树干。岩石碰撞盒尺寸未改（四角比模型宽约 0.5 m，属 TUNABLE，需试玩证据后再定）。新增 `frontend/tests/collision-regressions.js`：岩石顶住树干、侧转后能离开且每步不加深、重叠时不能再推进、脱困推出树干。
 - 验证：macOS、Chrome 157.0.8103.52。修改前在隔离浏览器复现：顶住树干后按左移动 0.00 m 且处于重叠。新回归 7 项在修改后通过；换回 main 的 `collision.js` 时其中「侧转后能离开（moved 0.00）」与「脱困推出树干」两项失败。`python3 project/check_all.py --output .work/rock-checks`：文档／数据 1996 项通过；浏览器检查越过新回归后，在 `checkSaveMigration()` 的 `restore retains world progress when butterflyfish-0 becomes discus-0 (W-04)` 失败，与干净 main（`f900eaa`）同一处失败，属既有问题（见 PR #12 条目）。为覆盖其后的检查，临时跳过该调用（未提交）重跑，`checkAmbientCollision()` 报 `a released gull returns over terrain at 20 FPS`；对照单独重复运行该组 11 次，本分支与干净 main 各失败 1 次，为既有间歇失败，其余检查因此仍未在本地跑完。`python3 project/check_repository.py --javascript` 209 个文件、0 错误；`python3 -m unittest discover -s project/tests` 15 项通过；`git diff --check` 通过。
