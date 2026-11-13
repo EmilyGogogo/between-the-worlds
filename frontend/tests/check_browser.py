@@ -481,6 +481,13 @@ const resumeFrames=Math.round((A.state.get(bird).group.resumeAfterSec??4)*30);
 take('human-first');const left=bird.root.position.clone();step(Math.floor(resumeFrames/2));const rest=bird.root.position.distanceTo(left);step(Math.ceil(resumeFrames/2)+120);
 assert('a released body rests, then rejoins its route',rest<.01&&bird.root.position.distanceTo(left)>2,rest.toFixed(3));
 """)
+# Bodies turned against a scenery trunk or a solid box can leave it, and recovery clears
+# trunks (M-02, M-06).
+load()
+passed += run(r"""
+const {checkTrunkTurnEscape,checkTurnEscapeAllKinds}=await import('./tests/collision-regressions.js');
+checkTrunkTurnEscape(g,assert);checkTurnEscapeAllKinds(g,assert);
+""")
 # D-035: an old sea-archipelago save and an unreadable current save must not block a new
 # river-island journey or leak old coordinates into it. Load without clearing these saves.
 c.evaluate("window.__world&&(window.__world.resetting=true);localStorage.clear();"

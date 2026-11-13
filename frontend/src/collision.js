@@ -44,35 +44,56 @@ export class WorldCollision {
     const box=this.actorBox(entity,position),frame=this.frameBox(entity,position);
     return records.some(r=>r.parent===entity.root.parent?frame.intersectsBox(r.frameBox):box.intersectsBox(r.box))||this.hitsScenery(entity,frame);
   }
+  // How deep a body sits in what blocks it: the shortest push-out for each box (horizontal
+  // only for bodies that cannot climb), the depth inside each scenery trunk. Zero means free.
+  penetration(entity,position,records=this.blockers(entity)){
+    const box=this.actorBox(entity,position),frame=this.frameBox(entity,position),mode=SPECIES[entity.kind].mode,vertical=mode==='fly'||mode==='swim';let depth=0;
+    const shallowest=(a,b)=>Math.max(0,Math.min(a.max.x-b.min.x,b.max.x-a.min.x,a.max.z-b.min.z,b.max.z-a.min.z,vertical?Math.min(a.max.y-b.min.y,b.max.y-a.min.y):Infinity));
+    for(const r of records){const own=r.parent===entity.root.parent,a=own?frame:box,b=own?r.frameBox:r.box;if(a.intersectsBox(b))depth+=shallowest(a,b);}
+    // A trunk whose centre is already inside the box keeps counting deeper towards the box's
+    // middle, so an overlapping body cannot slide through it.
+    for(const o of this.sceneryHits(entity,frame)){
+      const dx=Math.max(frame.min.x-o.x,0,o.x-frame.max.x),dz=Math.max(frame.min.z-o.z,0,o.z-frame.max.z);
+      depth+=o.r+(dx||dz?-Math.hypot(dx,dz):Math.min(o.x-frame.min.x,frame.max.x-o.x,o.z-frame.min.z,frame.max.z-o.z));
+    }
+    return depth;
+  }
   // Scenery trunks (env.forest) on the main island block small bodies (a person, a dog), so
   // nothing walks through a trunk; bodies taller than `blocksBodiesUpToM` (the trees one can
   // become) pass through the scenery forest and keep their room to move (D-034).
-  hitsScenery(entity,frame){
-    const list=this.world.obstacles,s=SPECIES[entity.kind];
-    if(!list?.length||entity.root.parent!==this.world.islandRoot||s.stage>1||s.height>this.world.obstacleBodyHeight)return false;
+  hitsScenery(entity,frame){return this.sceneryHits(entity,frame,true).length>0;}
+  sceneryHits(entity,frame,first=false){
+    const list=this.world.obstacles,s=SPECIES[entity.kind],hits=[];
+    if(!list?.length||entity.root.parent!==this.world.islandRoot||s.stage>1||s.height>this.world.obstacleBodyHeight)return hits;
     if(!this.grid||this.gridSize!==list.length){this.grid=new Map();this.gridSize=list.length;for(const o of list){const k=`${Math.floor(o.x/16)},${Math.floor(o.z/16)}`;if(!this.grid.has(k))this.grid.set(k,[]);this.grid.get(k).push(o);}}
     const x0=Math.floor((frame.min.x-4)/16),x1=Math.floor((frame.max.x+4)/16),z0=Math.floor((frame.min.z-4)/16),z1=Math.floor((frame.max.z+4)/16);
     for(let i=x0;i<=x1;i++)for(let j=z0;j<=z1;j++)for(const o of this.grid.get(`${i},${j}`)||[]){
       if(frame.min.y>o.top)continue;
       const dx=Math.max(frame.min.x-o.x,0,o.x-frame.max.x),dz=Math.max(frame.min.z-o.z,0,o.z-frame.max.z);
-      if(dx*dx+dz*dz<o.r*o.r)return true;
+      if(dx*dx+dz*dz<o.r*o.r){hits.push(o);if(first)return hits;}
     }
-    return false;
+    return hits;
   }
   setWorldPosition(entity,point){entity.root.position.copy(entity.root.parent.worldToLocal(point.clone()));entity.root.updateWorldMatrix(true,true);}
   move(entity,delta){
     const s=SPECIES[entity.kind],start=this.world.position(entity),length=delta.length();if(length<1e-9)return start;
     const records=this.blockers(entity),count=Math.max(1,Math.ceil(length/Math.max(.035,Math.min(s.radius*.35,3))));
     const step=delta.clone().divideScalar(count);let p=start.clone();
+    // Turning re-fits the axis-aligned box, so a body that stopped against a trunk can
+    // find itself already overlapping it. Then any step that does not sink deeper is
+    // allowed, so it can turn away and leave instead of being held in place (M-02).
+    let depth=this.collides(entity,p,records)?this.penetration(entity,p,records):0;
+    const free=q=>depth>0?this.penetration(entity,q,records)<=depth+1e-6:!this.collides(entity,q,records);
     for(let i=0;i<count;i++){
       let next=p.clone().add(step);
       if(this.world.externalTerrain&&this.meshBlocks(entity,p,step))next.copy(p);
-      if(this.collides(entity,next,records)){
+      if(!free(next)){
         next.copy(p);
         for(const axis of (s.mode==='fly'||s.mode==='swim'?['x','z','y']:['x','z'])){
-          const candidate=next.clone();candidate[axis]+=step[axis];if(!this.collides(entity,candidate,records))next.copy(candidate);
+          const candidate=next.clone();candidate[axis]+=step[axis];if(free(candidate))next.copy(candidate);
         }
       }
+      if(depth>0&&!next.equals(p))depth=this.penetration(entity,next,records);
       p.copy(next);
     }
     this.setWorldPosition(entity,p);return p;
@@ -94,9 +115,10 @@ export class WorldCollision {
     const local=entity.root.position.clone();
     for(let pass=0;pass<12;pass++){
       const world=toWorld(local),frame=this.frameBox(entity,world),box=this.actorBox(entity,world);
-      const hit=records.find(r=>r.parent===parent?frame.intersectsBox(r.frameBox):box.intersectsBox(r.box));
-      if(!hit){this.setWorldPosition(entity,world);entity.lastSafe=world;return true;}
-      const a=frame,b=hit.parent===parent?hit.frameBox:hit.box.clone().applyMatrix4(parent.matrixWorld.clone().invert());
+      const hit=records.find(r=>r.parent===parent?frame.intersectsBox(r.frameBox):box.intersectsBox(r.box)),trunk=hit?null:this.sceneryHits(entity,frame,true)[0];
+      if(!hit&&!trunk){this.setWorldPosition(entity,world);entity.lastSafe=world;return true;}
+      // A scenery trunk is pushed out of like its square footprint.
+      const a=frame,b=trunk?new THREE.Box3(new THREE.Vector3(trunk.x-trunk.r,0,trunk.z-trunk.r),new THREE.Vector3(trunk.x+trunk.r,0,trunk.z+trunk.r)):hit.parent===parent?hit.frameBox:hit.box.clone().applyMatrix4(parent.matrixWorld.clone().invert());
       const offsets=[new THREE.Vector3(b.min.x-a.max.x-.06,0,0),new THREE.Vector3(b.max.x-a.min.x+.06,0,0),new THREE.Vector3(0,0,b.min.z-a.max.z-.06),new THREE.Vector3(0,0,b.max.z-a.min.z+.06)];
       offsets.sort((u,v)=>u.lengthSq()-v.lengthSq());local.add(offsets[0]);
     }

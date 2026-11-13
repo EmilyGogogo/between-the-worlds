@@ -2,6 +2,24 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-13 · PR #16 同步 main 并解决冲突
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：PR #16，分支 `claude/fix-rock-trunk-stuck`。
+- AI：Codex 核对远端分支、合入 main、解决回归入口及变更记录冲突并执行验证；人工复核尚未完成。
+- 变更与原因：按用户要求将 main 的 `2208be4` 合入 PR #16，保留岩石及全部身体的转向脱困回归，同时保留 PR #17 的 D-035 存档检查、环境移动修复与历史记录；两组回归依次执行，不以任一侧覆盖另一侧。不修改设计规则、调参、生成配置或 CI 工作流，不合并或推送受保护的 main。
+- 验证：`python3 project/check_all.py --output .work/pr16-main-conflict-checks` 通过：1996 项文档／数据检查、2099 项隔离 Chrome 浏览器检查；`python3 project/check_repository.py --javascript` 检查 209 个 first-party 文件、0 错误；`python3 -m unittest discover -s project/tests -v` 15 项通过；`git diff --check` 与 `git diff --cached --check` 通过。本轮证据保留于 PR #16 工作树 `.work/pr16-main-conflict-checks/`，不将此前旧存档或海鸥夹具失败沿用为本轮结果。
+- 未验证项 / 风险：远端 CI 与真人试玩待完成。
+
+## 2026-11-12 · 修复岩石贴住布景树干后转身卡死
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：分支 `claude/fix-rock-trunk-stuck`，PR #16。
+- AI：Claude Code（Claude Opus 5.5）负责按创作者试玩截图复现、定位原因、修改 `frontend/src/collision.js`、新增回归与记录；人工复核待完成。
+- 变更与原因：创作者魂穿海岸岩石走到林中，看似周围无物却卡住。复现：岩石碰撞盒水平 3.4 × 2.7 m（模型轮廓半径约 1.65 m），`frameBox` 随朝向把碰撞盒重新外包成轴对齐盒，45° 时半宽由 1.7 m 增至约 2.16 m。岩石顶住布景树干（`env.forest`，挡 3 m 以下身体）停下后，按左右或转视角使外包盒压进树干，此后每一步都判为碰撞，移动量为 0；脱困 `repair()` 只检查实体碰撞盒、不检查布景树干，无法推出，违反 M-02「不卡死」与 M-06。修改：①移动开始时若已重叠，只接受不加深重叠的步子（深度为每个实体盒的最短水平推出距离，飞行／游泳身体含竖直方向；树干按到盒的有符号距离计算，圆心进入盒后继续计深，不能滑穿）；未重叠时判定与原来相同。②`repair()` 同时把身体推出布景树干。岩石碰撞盒尺寸未改（四角比模型宽约 0.5 m，属 TUNABLE，需试玩证据后再定）。新增 `frontend/tests/collision-regressions.js`：岩石顶住树干、侧转后能离开且每步不加深、重叠时不能再推进、脱困推出树干。
+- 验证：macOS、Chrome 157.0.8103.52。修改前在隔离浏览器复现：顶住树干后按左移动 0.00 m 且处于重叠。新回归 7 项在修改后通过；换回 main 的 `collision.js` 时其中「侧转后能离开（moved 0.00）」与「脱困推出树干」两项失败。`python3 project/check_all.py --output .work/rock-checks`：文档／数据 1996 项通过；浏览器检查越过新回归后，在 `checkSaveMigration()` 的 `restore retains world progress when butterflyfish-0 becomes discus-0 (W-04)` 失败，与干净 main（`f900eaa`）同一处失败，属既有问题（见 PR #12 条目）。为覆盖其后的检查，临时跳过该调用（未提交）重跑，`checkAmbientCollision()` 报 `a released gull returns over terrain at 20 FPS`；对照单独重复运行该组 11 次，本分支与干净 main 各失败 1 次，为既有间歇失败，其余检查因此仍未在本地跑完。`python3 project/check_repository.py --javascript` 209 个文件、0 错误；`python3 -m unittest discover -s project/tests` 15 项通过；`git diff --check` 通过。
+- 未验证项 / 风险：真人试玩手感（贴树转身、沿树干滑开）未验收；重叠时允许「深度不增加」的平移，贴着障碍侧滑时视觉上可能短暂保持既有的包围盒重叠。完整浏览器套件因上述两处既有失败未在本地全部通过；远端 CI 待运行。
+
+- 补充（按创作者要求检查其他实体）：对除岛外 12 种身体逐一测试——正前方放一棵布景树干（仅 3 m 以下且在主岛上的身体受其阻挡）或一个实体碰撞盒，顶住后分别第三人称按左、第一人称转视角 45° 后按后。旧代码下 1.5 秒内位移为 0（在 2 秒脱困之前完全动不了）的有：石头、蓝闪蝶（树干与实体盒、两种操作都卡；树干情形在旧脱困下也推不出，会永久卡住）、草与人（第一人称转视角时）、阔叶树、棕榈、吉贝木棉、巨岩（贴实体盒时）；海鸥、银斧鱼、七彩神仙鱼、狗未出现。原因相同：碰撞盒不是正方形，转向后重新外包变大。岛走河道漂移与大身体互推，不经此路径，未纳入。新增 `checkTurnEscapeAllKinds()` 把上述情形固化为回归：每种身体都要停在障碍前、两种操作后立即离开、不触发脱困、每步不加深。
+- 补充验证：新回归 60 项在修改后通过；换回 main 的 `collision.js` 时 19 项失败，涉及上列身体。重跑 `python3 project/check_all.py --output .work/rock-checks2`：文档／数据 1996 项通过，浏览器检查越过新回归后仍在既有的 `checkSaveMigration()` 处失败（`check_browser.py:489`）。测试中障碍是人为放置的树干或碰撞盒，并临时移走其他阻挡，不代表真实地图里每处都已走过。
 ## 2026-11-12 · PR #12 合入后修复 main CI：D-035 存档检查与鸟鱼停住
 
 - 负责人：@EmilyGogogo（待人工复核）；关联：PR #12 合入后 main 的 CI 失败（运行 43233045314），分支 `claude/river-island-ci-tests`，PR #17。
