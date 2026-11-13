@@ -76,17 +76,30 @@ export class AmbientMotion{
       if(st.held){st.held=false;st.resumeAt=t+(g.resumeAfterSec??4);e.moving=false;}
       if(e.flee||t<st.resumeAt)continue;
       const goal=this.goal(g,st.index,t,e);if(!goal){e.moving=false;continue;}
+      const collision=this.world.collision;
+      // A body already overlapping (e.g. after a flee turn against a canopy) is moved clear
+      // first, as for the player (M-06); otherwise every step below is reverted and it stops.
+      if(collision.collides(e,this.world.position(e))){collision.repair(e);collision.refreshEntity(e);}
       const p=e.root.position,before=p.clone(),h=e.heading||0;v.set(goal.x-p.x,goal.y-p.y,goal.z-p.z);
       const max=(g.maxSpeedMS??10)*dt,dist=v.length();if(dist>max)v.multiplyScalar(max/dist);
+      const wanted=Math.hypot(v.x,v.z);
       const hx=Math.abs(v.x)+Math.abs(v.z)>1e-4?v.x:goal.ux,hz=Math.abs(v.x)+Math.abs(v.z)>1e-4?v.z:goal.uz;
       const yaw=Math.atan2(-hx,-hz);
       // Use the same swept collision, terrain and activity limits as player movement,
       // including the entire trip back from a body the player left far from its route.
-      this.world.moveBody(e,v,dt);
-      e.heading=h+Math.atan2(Math.sin(yaw-h),Math.cos(yaw-h))*Math.min(1,dt*3);e.root.rotation.y=e.heading;
-      const collision=this.world.collision;
+      // Keep the heading during the sweep: turning first can push a long box into a canopy
+      // and block the whole step; the turn below is checked on its own.
+      this.world.moveBody(e,v,dt,true);
+      e.heading=h+Math.atan2(Math.sin(yaw-h),Math.cos(yaw-h))*Math.min(1,dt*3);e.root.rotation.y=e.heading;e.root.updateMatrixWorld();
       // Clamping height or turning must not create an overlap after the swept move.
-      if(collision.collides(e,this.world.position(e))){p.copy(before);e.heading=h;e.root.rotation.y=h;}
+      // Undo the turn first (a long body's box widens as it turns), then the move itself.
+      if(collision.collides(e,this.world.position(e))){e.heading=h;e.root.rotation.y=h;e.root.updateMatrixWorld();if(collision.collides(e,this.world.position(e)))p.copy(before);}
+      // A flyer held back by a trunk, canopy or slope climbs over it instead of hovering in
+      // place until its route turns away (D-027); the same limits apply to the climb.
+      if(g.vertical?.mode==='aboveGround'&&wanted>1e-3&&Math.hypot(p.x-before.x,p.z-before.z)<wanted*.25){
+        const y=p.y;this.world.moveBody(e,scratch.set(0,max,0),dt,true);
+        if(collision.collides(e,this.world.position(e)))p.y=y;
+      }
       collision.refreshEntity(e);v.copy(p).sub(before);
       // Birds flap while climbing and glide otherwise; fish use the role the route names.
       e.moving=g.animation==='climb'?v.y/dt>.4:g.animation==='move';
