@@ -6,6 +6,8 @@ import { SPECIES,SCALE_TIERS,TUNING,LAYOUT,CAMERA_MODES,loadRuntimeConfig,action
 import { InteractionSystem } from './interactions.js';
 import { WorldCollision } from './collision.js';
 import { Ambience } from './audio.js';
+import { Lens, blendLens, scaleLens } from './lens.js';
+import { bodyMotion, NO_MOTION } from './motion.js';
 
 const $=id=>document.getElementById(id);
 // River-island save (D-027); saves from the sea archipelago or earlier prototypes are
@@ -22,14 +24,26 @@ const tune=(key,fallback)=>TUNING[key]?.value??fallback;
 const LEVEL_PITCH=.3;
 let game;
 
-function viewOf(kind,mode='third_person'){const s=SPECIES[kind],first=mode==='first_person';return {...(first?s.vision:CAMERA_MODES.third_person.vision),fov:first?s.fov:CAMERA_MODES.third_person.fovDeg,hearing:s.hearing,tintAmount:first&&s.vision.tint?1:0};}
+// What the eye takes in for a body in a camera mode (B-04, D-035). Third person shares the human
+// view; first person uses the body's own vision, lens (camera.firstPerson.lens) and, for
+// bodies that have one, its own water colour (vision.underwaterFog; null keeps the shared water).
+function viewOf(kind,mode='third_person'){
+  const s=SPECIES[kind],first=mode==='first_person',tinted=first&&s.vision.tint;
+  return {...(first?s.vision:CAMERA_MODES.third_person.vision),fov:first?s.fov:CAMERA_MODES.third_person.fovDeg,hearing:s.hearing,
+    tintAmount:tinted?1:0,tintStrength:tinted?(s.vision.tintOpacity??.32):0,lens:first?s.firstPerson?.lens||null:null,
+    water:[[first?s.vision.underwaterFog||null:null,1]]};
+}
 function blendView(a,b,f){
   const out={hearing:{}};
   for(const key of ['grayscale','saturation','contrast','brightness','fogMultiplier','fov'])out[key]=lerp(a[key],b[key],f);
   for(const key of Object.keys(b.hearing))out.hearing[key]=typeof b.hearing[key]==='number'?lerp(a.hearing[key],b.hearing[key],f):(f<.5?a.hearing[key]:b.hearing[key]);
-  out.tint=b.tint||a.tint;out.tintAmount=(a.tint?1-f:0)+(b.tint?f:0);
+  out.tint=b.tint||a.tint;out.tintAmount=(a.tint?1-f:0)+(b.tint?f:0);out.tintStrength=lerp(a.tintStrength,b.tintStrength,f);
+  out.lens=blendLens(a.lens,a.fov,b.lens,b.fov,f);
+  out.water=[...a.water.map(([w,k])=>[w,k*(1-f)]),...b.water.map(([w,k])=>[w,k*f])];
   return out;
 }
+const WATER_COLOURS=new WeakMap();
+function waterColours(w){if(!WATER_COLOURS.has(w))WATER_COLOURS.set(w,{fog:new THREE.Color(w.color),sky:w.sky?new THREE.Color(w.sky):null});return WATER_COLOURS.get(w);}
 
 class Game {
   constructor(renderer,assets){
@@ -46,7 +60,7 @@ class Game {
     this.actions=new Set();this.pressedCodes=new Set();this.yaw=.35;this.pitch=.27;this.zoom=1;
     this.started=false;this.paused=false;this.needsRender=true;this.transition=null;this.dragging=false;this.clock=new THREE.Clock();this.elapsed=0;this.saveElapsed=0;this.cameraMode=CAMERA_MODES.default;this.cameraBodyTurn=0;this.movementInput=null;
     this.hints={};this.pointerHintTime=0;this.lastResponse=-90;this.responseTimer=0;this.shown=new Set();this.pendingMoment=null;
-    this.stuck={time:0,anchor:null};this.audio=new Ambience();this.filter='';
+    this.stuck={time:0,anchor:null};this.audio=new Ambience(tune);this.lens=new Lens(renderer);this.motion=NO_MOTION;this.listenerState={underwater:false,surface:0};this.filter='';
     this.hasSave=this.restore();this.view=viewOf(this.player.kind,this.cameraMode);
     this.focusGoal=new THREE.Vector3();this.introFocus=new THREE.Vector3(-5,6,-15);
     if(this.hasSave)this.updatePresence();
@@ -147,7 +161,9 @@ class Game {
   updatePresence(){const s=SPECIES[this.player.kind];$('body-name').textContent=s.name;$('body-place').textContent=s.place;}
   pitchMin(){return this.cameraMode==='first_person'?-1.35:SPECIES[this.player.kind].verticalControl==='view_direction'?-.45:.06;}
   pitchMax(){return this.cameraMode==='first_person'?1.35:1.16;}
-  toggleView(){if(!this.started||this.paused||this.transition)return false;const first=this.cameraMode!=='first_person';this.cameraMode=first?'first_person':'third_person';this.pitch=clamp(first?(this.pitch-LEVEL_PITCH)*1.6:this.pitch/1.6+LEVEL_PITCH,this.pitchMin(),this.pitchMax());this.zoom=1;this.target=null;this.candidate=null;this.targetInfo=null;this.clearInput();this.snapCamera=true;this.updateControlGuide();this.save();return true;}
+  toggleView(){if(!this.started||this.paused||this.transition)return false;const first=this.cameraMode!=='first_person';this.cameraMode=first?'first_person':'third_person';this.pitch=clamp(first?(this.pitch-LEVEL_PITCH)*1.6+this.restPitch(this.player):(this.pitch-this.restPitch(this.player))/1.6+LEVEL_PITCH,this.pitchMin(),this.pitchMax());this.zoom=1;this.target=null;this.candidate=null;this.targetInfo=null;this.clearInput();this.snapCamera=true;this.updateControlGuide();this.save();return true;}
+  // A body's resting gaze in first person (camera.firstPerson.restPitchDeg; negative looks up).
+  restPitch(e){return THREE.MathUtils.degToRad(SPECIES[e.kind].firstPerson?.restPitchDeg||0);}
   // Looking up while moving forward rises, looking down dives (I-02).
   climb(){return -Math.sin(this.cameraMode==='first_person'?this.pitch:(this.pitch-LEVEL_PITCH)*1.6);}
 
@@ -169,6 +185,7 @@ class Game {
       this.transition={opening:true,from:tr.from,to:tr.from,start:this.camera.position.clone(),startFocus:this.focusGoal.clone(),elapsed:0,duration:tune('rollbackDurationSec',.8)};return;
     }
     this.player=tr.to;this.collision.refresh();this.collision.repair(this.player);
+    if(this.cameraMode==='first_person')this.pitch+=this.restPitch(tr.to)-this.restPitch(tr.from);
     this.pitch=clamp(this.pitch,this.pitchMin(),this.pitchMax());this.stuck={time:0,anchor:null};
     const moment=SPECIES[this.player.kind].moments?.first_possess,key=this.player.kind+':first_possess';
     this.pendingMoment=moment&&!this.shown.has(key)?{key,text:moment,kind:this.player.kind}:null;
@@ -421,7 +438,15 @@ class Game {
       if(local.y<floor){local.y=floor;desired.copy(this.world.islandRoot.localToWorld(local));}
     }
     if(layer.cameraCollision&&!first)desired.copy(this.collision.cameraPosition(focus,desired,subject,tune('cameraCollisionPaddingM',.1)));
-    if(first){desired.copy(this.firstPersonEye(subject));const look=new THREE.Vector3(-Math.sin(this.yaw)*Math.cos(this.pitch),-Math.sin(this.pitch),-Math.cos(this.yaw)*Math.cos(this.pitch));aim.copy(desired).add(look);}
+    // The body's own motion, read from its animation: its beats sound in both modes, the eye
+    // moves with it in first person only, and not during a hand-over.
+    const felt=tr?NO_MOTION:bodyMotion(subject,s,{moving:subject.moving,boosting:subject.boosting,climb:subject.moving&&s.verticalControl==='view_direction'?this.climb():0,dt,scale:first?tune('firstPersonMotionScale',1):0});
+    this.motion=felt;
+    if(first){
+      desired.copy(this.firstPersonEye(subject,felt.offset));
+      const yaw=this.yaw+felt.yaw,pitch=this.pitch+felt.pitch;
+      const look=new THREE.Vector3(-Math.sin(yaw)*Math.cos(pitch),-Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));aim.copy(desired).add(look);
+    }
     const bound=Math.hypot(s.radius,s.height*.5);
     const viewDistance=desired.distanceTo(focus),maxAimAngle=Math.max(.025,THREE.MathUtils.degToRad(this.camera.fov)*.5-Math.asin(Math.min(.95,bound/viewDistance))-.035);
     const offset=aim.clone().sub(focus),angle=focus.clone().sub(desired).angleTo(aim.clone().sub(desired));
@@ -436,14 +461,13 @@ class Game {
     this.view=tr?blendView(viewOf(tr.from.kind,this.cameraMode),viewOf(tr.to.kind,this.cameraMode),f):viewOf(this.player.kind,this.cameraMode);
     this.camera.fov=this.view.fov;
     this.camera.near=first ? .025 : Math.max(.025,this.camera.position.distanceTo(this.focusGoal)/6000);this.camera.updateProjectionMatrix();this.camera.lookAt(this.focusGoal);
-    const localEye=this.world.islandRoot.worldToLocal(this.camera.position.clone());
-    const pool=this.world.water(localEye.x,localEye.z);
-    const underwater=(pool?.type==='enclosed'&&localEye.y<pool.surface)||this.world.planetRoot.worldToLocal(this.camera.position.clone()).length()<PLANET_RADIUS+this.world.seaLevel-.1;
+    const at=this.waterAt(this.camera.position),underwater=at.underwater;
     this.scene.userData.underwater=underwater;
     const shown=f>.5?layer:layerOf((tr?.from||subject).kind);
-    // Under water the fog and sky take the colour of the water the eye is in (anchors.json water.underwater).
-    const look=underwater?this.world.underwaterLook(pool?.type==='enclosed'?pool.id:null):null;
-    if(look)this.atmosphere.skyUniforms.underwaterColor.value.copy(look.skyColor);
+    // Under water the fog, sky and the underside of the surface take the colour of the water the
+    // eye is in (anchors.json water.underwater); in first person, a body's own water colour.
+    const look=underwater?this.waterLook(this.world.underwaterLook(at.pool?.id??null)):null;
+    if(look){this.atmosphere.skyUniforms.underwaterColor.value.copy(look.skyColor);this.world.setUnderwaterColor(look.fogColor);}
     const density=underwater ? look.fogDensity : shown.fogDensity*this.view.fogMultiplier*this.atmosphere.fogBoost;
     this.scene.fog.density=THREE.MathUtils.damp(this.scene.fog.density,density,1.5,dt);
     this.scene.fog.color.lerp(underwater?look.fogColor:this.atmosphere.fogColor,1-Math.exp(-dt*2));
@@ -455,11 +479,41 @@ class Game {
     if(tr&&tr.elapsed>=tr.duration)this.finishTransition();
     return f;
   }
-  firstPersonEye(subject){
+  // extra: a shift in the body's own frame (first-person body motion).
+  firstPersonEye(subject,extra=null){
     const s=SPECIES[subject.kind],offset=s.firstPerson?.eyeOffset||[0,s.height*.8,0];
-    const eye=subject.root.localToWorld(new THREE.Vector3(...offset));
+    const local=new THREE.Vector3(...offset);if(extra)local.add(extra);
+    const eye=subject.root.localToWorld(local);
+    // A swimmer's eye stays in the water, below the margin at which the camera counts as under it.
+    if(s.mode==='swim'&&subject.root.parent===this.world.islandRoot){const l=this.world.islandRoot.worldToLocal(eye.clone()),w=this.world.water(l.x,l.z);if(w&&l.y>w.surface-.12){l.y=w.surface-.12;eye.copy(this.world.islandRoot.localToWorld(l));}}
     if(subject.root.parent===this.world.islandRoot){const local=this.world.islandRoot.worldToLocal(eye.clone());local.y=Math.max(local.y,this.world.height(local.x,local.z)+tune('cameraCollisionPaddingM',.1));eye.copy(this.world.islandRoot.localToWorld(local));}
     return eye;
+  }
+  // Water over a world point: under it or not, the enclosed body it is in (else the river),
+  // and how far below the surface.
+  waterAt(point){
+    const W=this.world,local=W.islandRoot.worldToLocal(point.clone()),pool=W.water(local.x,local.z);
+    const inPool=pool?.type==='enclosed'&&local.y<pool.surface;
+    const underwater=inPool||W.planetRoot.worldToLocal(point.clone()).length()<PLANET_RADIUS+W.seaLevel-.1;
+    const surface=inPool?pool.surface:-(local.x**2+local.z**2)/(2*PLANET_RADIUS)+W.seaLevel;
+    return {underwater,pool:inPool?pool:null,depth:underwater?Math.max(0,surface-local.y):0};
+  }
+  // The water as seen now: the shared look of that water, or the current view's own water colours.
+  waterLook(shared){
+    const out={fogColor:new THREE.Color(0,0,0),skyColor:new THREE.Color(0,0,0),fogDensity:0},add=(o,c,k)=>{o.r+=c.r*k;o.g+=c.g*k;o.b+=c.b*k;};
+    const total=this.view.water.reduce((a,[,k])=>a+k,0)||1;
+    for(const [w,k] of this.view.water){
+      const q=k/total,c=w?waterColours(w):null;
+      add(out.fogColor,c?c.fog:shared.fogColor,q);add(out.skyColor,c?.sky||shared.skyColor,q);out.fogDensity+=(w?.density??shared.fogDensity)*q;
+    }
+    return out;
+  }
+  // The lens for the current view at its tuned strength, or null (tests read this too).
+  currentLens(){return this.started?scaleLens(this.view?.lens,this.camera.fov,tune('firstPersonLensScale',1)):null;}
+  renderFrame(){
+    const lens=this.currentLens();
+    if(!lens)this.lens.last=null;
+    if(!lens||!this.lens.render(this.scene,this.camera,lens,{rim:this.scene.userData.underwater?this.scene.fog.color:null,renderScale:tune('firstPersonLensRenderScale',1.5)}))this.renderer.render(this.scene,this.camera);
   }
   // The sun (or the moon at night) lights from the atmosphere's direction; near layers keep a
   // tight shadow box around the body, large layers light from far away without shadows.
@@ -471,10 +525,17 @@ class Game {
   applyPerception(){
     const v=this.view,filter=`grayscale(${v.grayscale.toFixed(3)}) saturate(${v.saturation.toFixed(3)}) contrast(${v.contrast.toFixed(3)}) brightness(${v.brightness.toFixed(3)})`;
     if(filter!==this.filter){this.renderer.domElement.style.filter=filter;this.filter=filter;}
-    const tint=$('perception-tint');if(v.tint)tint.style.background=v.tint;tint.style.opacity=(v.tintAmount*.32).toFixed(3);
+    const tint=$('perception-tint');if(v.tint)tint.style.background=v.tint;tint.style.opacity=v.tintStrength.toFixed(3);
+  }
+  // Where the current body hears from: a swimming body by its own middle (in water even when a
+  // third-person camera is above the surface), any other body by the camera.
+  listener(subject){
+    const s=SPECIES[subject.kind],ear=s.mode==='swim'?subject.root.localToWorld(new THREE.Vector3(0,s.height*.5,0)):this.camera.position,at=this.waterAt(ear);
+    return {underwater:at.underwater,surface:at.underwater?1-clamp(at.depth/tune('underwaterSurfaceLapDepthM',3),0,1):0};
   }
   updateAudio(){
     const subject=this.transition?.to||this.player,h=this.view.hearing,p=this.world.position(subject,new THREE.Vector3());
+    this.listenerState=this.listener(subject);
     let groundFade=1;
     if(h.heightAttenuation&&subject.root.parent===this.world.islandRoot){
       const local=this.world.islandRoot.worldToLocal(p.clone()),start=tune('airGroundSoundFadeStartM',5),end=tune('airGroundSoundFadeEndM',60);
@@ -489,7 +550,7 @@ class Game {
       if(!cue||distance<cue.distance){cue={name,distance};source=e;}
     }
     if(cue)cue.pan=this.panOf(source,p);
-    this.audio.update(h,{underwater:this.scene.userData.underwater,groundFade,cue,crossfade:tune('audioCrossfadeSec',1.2),time:this.elapsed});
+    this.audio.update(h,{underwater:this.listenerState.underwater,surface:this.listenerState.surface,beat:this.motion.beat,groundFade,cue,crossfade:tune('audioCrossfadeSec',1.2),time:this.elapsed});
   }
 
   panOf(entity,from){
@@ -500,7 +561,7 @@ class Game {
   playCue(name,volume,entity){
     const h=this.view.hearing,p=this.world.position(this.transition?.to||this.player,new THREE.Vector3());
     const reach=1-this.world.position(entity,v1).distanceTo(p)/h.range;
-    if(reach>0)this.audio.play(name,volume*h.distantCueGain*Math.sqrt(reach),this.panOf(entity,p));
+    if(reach>0)this.audio.play(name,volume*h.distantCueGain*Math.sqrt(reach)*(this.listenerState.underwater?tune('underwaterAirCueGain',.15):1),this.panOf(entity,p));
   }
 
   // --- Compact controls, current possession target guidance, rare responses (D-024).
@@ -559,7 +620,7 @@ class Game {
       this.world.update(dt,subject,this.target,info?.point||null,size);
       if(this.started)this.interactions.update(dt);
     }
-    if((!this.paused||this.needsRender)&&!NO_RENDER){this.renderer.render(this.scene,this.camera);this.needsRender=false;}
+    if((!this.paused||this.needsRender)&&!NO_RENDER){this.renderFrame();this.needsRender=false;}
   }
 }
 
@@ -576,7 +637,9 @@ async function boot(){
     try{await loadTerrainField(assets.manifest.environment);}catch(e){assets.errors.push('heightfield: '+e.message);console.warn('Heightfield unavailable; procedural terrain kept.',e);}
     game=new Game(renderer,assets);await game.world.ready;game.collision.refresh();
     // Compile every material while the loading screen shows, so entering does not stall.
-    try{game.world.update(0,game.player,null,null,1);if(!NO_RENDER)await renderer.compileAsync(game.scene,game.camera);}catch(e){console.warn('Shader warm-up skipped',e);}
+    try{game.world.update(0,game.player,null,null,1);if(!NO_RENDER){await renderer.compileAsync(game.scene,game.camera);await renderer.compileAsync(game.lens.screen,game.lens.flat);
+      // The first-person lens draws the scene into a target, which needs its own shader variants.
+      renderer.setRenderTarget(game.lens.target);await renderer.compileAsync(game.scene,game.camera);renderer.setRenderTarget(null);}}catch(e){console.warn('Shader warm-up skipped',e);}
     if(!game.hasSave)$('enter-label').textContent='进入旷野';$('enter').disabled=false;
     // Debug access is available only with ?debug; the normal product UI stays quiet.
     if(new URLSearchParams(location.search).has('debug'))window.__world=game;

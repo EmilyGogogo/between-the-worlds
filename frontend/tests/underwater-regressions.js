@@ -15,7 +15,8 @@ export function checkUnderwater(g,assert){
   try{
     const fish=W.entities.find(e=>SPECIES[e.kind].mode==='swim'&&W.water(e.root.position.x,e.root.position.z)?.type==='enclosed');
     g.player=fish;g.cameraMode='first_person';g.yaw=0;g.pitch=0;g.snapCamera=true;frames(60);
-    const look=W.underwaterLook(W.water(fish.root.position.x,fish.root.position.z).id);
+    // In first person a fish sees its own water colour when it has one (vision.underwaterFog).
+    const look=g.waterLook(W.underwaterLook(W.water(fish.root.position.x,fish.root.position.z).id));
     assert('a fish eye in the lake is under water',g.scene.userData.underwater===true);
     assert('water surfaces stay drawn from below',W.sea.visible&&W.waterBodies.every(m=>m.visible));
     const lakeId=W.water(fish.root.position.x,fish.root.position.z).id;

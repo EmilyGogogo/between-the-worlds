@@ -220,6 +220,28 @@ def main():
         check(len(offset) == 3 and all(isinstance(v, (int, float)) and math.isfinite(v) for v in offset), f'{e["id"]}: invalid first-person eye')
         check(0 < offset[1] <= e['body']['height'], f'{e["id"]}: eye must lie within body height')
         check(first['hideBody'] == (e['category'] != 'island'), f'{e["id"]}: first-person visibility must preserve island terrain')
+        # First-person senses (2026-11-14): lens, body motion, resting gaze, own water colour.
+        isnum = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+        hexcol = lambda c: isinstance(c, str) and len(c) == 7 and c.startswith('#')
+        lens = first.get('lens')
+        if lens is not None:
+            check(isnum(lens.get('fieldDeg')) and 30 <= lens['fieldDeg'] <= 170, f'{e["id"]}: lens.fieldDeg must be 30-170')
+            for k, lo, hi in [('curve', 0, 1), ('round', 0, 1), ('radius', .5, 4), ('fade', 0, 1), ('fadeMax', 0, 1), ('ripple', 0, .2), ('edgeBlur', 0, 1), ('vignette', 0, 1)]:
+                check(lens.get(k) is None or (isnum(lens[k]) and lo <= lens[k] <= hi), f'{e["id"]}: lens.{k} must be {lo}-{hi}')
+        rest = first.get('restPitchDeg')
+        check(rest is None or (isnum(rest) and -30 <= rest <= 30), f'{e["id"]}: restPitchDeg must be within +-30')
+        motion = first.get('motion')
+        if motion is not None:
+            check(motion.get('source') in {'wingbeat', 'tailbeat'}, f'{e["id"]}: motion.source must be wingbeat or tailbeat')
+            bones = ['wingBone', 'bodyBone'] if motion.get('source') == 'wingbeat' else ['headBone', 'spineBone']
+            check(all(isinstance(motion.get(b), str) and motion[b] for b in bones), f'{e["id"]}: motion needs {bones}')
+            check(all(isnum(v) and v >= 0 for k, v in motion.items() if k not in bones + ['source', 'note']), f'{e["id"]}: motion amounts must be non-negative numbers')
+        vision = e['perception']['vision']
+        check(vision.get('tintOpacity') is None or (isnum(vision['tintOpacity']) and 0 <= vision['tintOpacity'] <= 1), f'{e["id"]}: vision.tintOpacity must be 0-1')
+        fog = vision.get('underwaterFog')
+        if fog is not None:
+            check(hexcol(fog.get('color')) and (fog.get('sky') is None or hexcol(fog['sky'])) and isnum(fog.get('density')) and 0 < fog['density'] <= .3,
+                  f'{e["id"]}: vision.underwaterFog needs #rrggbb color (and sky) and density in (0, 0.3]')
 
     # Input (D-007, D-035)
     inputs = read_json('input-map.json')

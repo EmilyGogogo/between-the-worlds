@@ -1105,15 +1105,16 @@
       },
       "perception": {
         "basis": "art_direction",
-        "reviewState": "creator_confirmed",
-        "summary": "色彩更饱满、远景更清楚；升高后地面声音减弱、风声清晰",
+        "reviewState": "owner_directed_pending_review",
+        "summary": "明亮、饱满、偏暖，远处灰雾更淡；升高后地面声音减弱、风声清晰",
         "vision": {
           "grayscale": 0,
-          "saturation": 1.15,
-          "contrast": 1.1,
-          "brightness": 1.02,
-          "fogMultiplier": 0.6,
-          "tint": null
+          "saturation": 1.45,
+          "contrast": 1.18,
+          "brightness": 1.08,
+          "fogMultiplier": 0.3,
+          "tint": "#ffd9a0",
+          "tintOpacity": 0.32
         },
         "hearing": {
           "airLowpassHz": 1400,
@@ -1133,10 +1134,29 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            0.24,
-            0
+            0.155,
+            -0.2
           ],
-          "hideBody": true
+          "hideBody": true,
+          "lens": {
+            "fieldDeg": 110,
+            "curve": 0.45,
+            "round": 0,
+            "edgeBlur": 0.3,
+            "vignette": 0.1,
+            "note": "海鸥眼睛在头两侧、视野很宽：铺满屏幕约 110° 的宽视野，边缘轻微弯曲、稍虚，中央清楚，不做圆形（艺术表达，负责人 2026-11-14 选定，待试玩）"
+          },
+          "motion": {
+            "source": "wingbeat",
+            "wingBone": "wing3R",
+            "bodyBone": "body",
+            "flapBobM": 0.012,
+            "flapPitchDeg": 0.45,
+            "glideBobM": 0.004,
+            "climbGain": 0.5,
+            "boostGain": 0.3,
+            "note": "眼位随 Flap 振翅的实际翅尖高度起伏：翅膀扇到最低时身体最高，并轻微点头；Glide 滑翔只缓慢漂浮；只抬高不压低眼位（艺术表达，负责人 2026-11-14 选定，待试玩）"
+          }
         }
       },
       "body": {
@@ -1214,7 +1234,7 @@
       "verticalControl": "view_direction",
       "moveSpeed": 9.0,
       "acceleration": 10,
-      "turnSpeedDegPerSec": 180,
+      "turnSpeedDegPerSec": 260,
       "boostMultiplier": 2.7,
       "observationRange": 150.0,
       "possessionRange": 100.0,
@@ -1227,23 +1247,29 @@
       },
       "perception": {
         "basis": "art_direction",
-        "reviewState": "creator_confirmed",
-        "summary": "水下青绿、视野更宽但看得更近；声音沉闷，低频清楚",
+        "reviewState": "owner_directed_pending_review",
+        "summary": "贴近水面的清澈水层：以水下蓝绿为底、略偏蓝，看得比神仙鱼远；骨鳔类，声音沉闷但清楚、听得更远",
         "vision": {
           "grayscale": 0,
-          "saturation": 0.82,
-          "contrast": 0.96,
-          "brightness": 0.96,
-          "fogMultiplier": 1.6,
-          "tint": "#3e7c73"
+          "saturation": 0.9,
+          "contrast": 1,
+          "brightness": 1.06,
+          "fogMultiplier": 1.2,
+          "tint": "#4f8fa6",
+          "tintOpacity": 0.12,
+          "underwaterFog": {
+            "color": "#2a78a0",
+            "density": 0.028,
+            "sky": "#5aaed0"
+          }
         },
         "hearing": {
-          "airLowpassHz": 900,
-          "underwaterLowpassHz": 360,
-          "range": 35,
+          "airLowpassHz": 1200,
+          "underwaterLowpassHz": 520,
+          "range": 50,
           "waterCueGain": 1.4,
           "windGain": 0.03,
-          "distantCueGain": 0.8,
+          "distantCueGain": 1.1,
           "heightAttenuation": false
         }
       },
@@ -1255,10 +1281,34 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            0.208,
-            0
+            0.2,
+            -0.2
           ],
-          "hideBody": true
+          "hideBody": true,
+          "restPitchDeg": -12,
+          "restPitchNote": "银斧鱼嘴和眼朝上、盯着水面：进入第一人称或在第一人称魂穿到它时视线先上抬 12°（负值为抬头），之后鼠标照常控制、仍按视线升降",
+          "lens": {
+            "fieldDeg": 150,
+            "curve": 1,
+            "round": 1,
+            "radius": 2.0,
+            "fade": 0.14,
+            "fadeMax": 0.85,
+            "ripple": 0.02,
+            "edgeBlur": 0.4,
+            "vignette": 0,
+            "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，待试玩）"
+          },
+          "motion": {
+            "source": "tailbeat",
+            "headBone": "head",
+            "spineBone": "spine1",
+            "swayM": 0.002,
+            "swayYawDeg": 0.5,
+            "idleGain": 0.3,
+            "boostGain": 0.5,
+            "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：银斧鱼小而快，摆幅小、细碎；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，待试玩）"
+          }
         }
       },
       "body": {
@@ -1336,7 +1386,7 @@
       "verticalControl": "view_direction",
       "moveSpeed": 7.0,
       "acceleration": 10,
-      "turnSpeedDegPerSec": 180,
+      "turnSpeedDegPerSec": 130,
       "boostMultiplier": 2.7,
       "observationRange": 150.0,
       "possessionRange": 100.0,
@@ -1349,23 +1399,29 @@
       },
       "perception": {
         "basis": "art_direction",
-        "reviewState": "creator_confirmed",
-        "summary": "水下青绿、视野更宽但看得更近；声音沉闷，低频清楚",
+        "reviewState": "owner_directed_pending_review",
+        "summary": "以水下蓝绿为底、略偏暖，远处很快沉进水色，看得近但不暗；声音更闷、听距更短",
         "vision": {
           "grayscale": 0,
-          "saturation": 0.82,
-          "contrast": 0.96,
-          "brightness": 0.96,
+          "saturation": 1,
+          "contrast": 1.06,
+          "brightness": 1.04,
           "fogMultiplier": 1.6,
-          "tint": "#3e7c73"
+          "tint": "#9a7a4a",
+          "tintOpacity": 0.12,
+          "underwaterFog": {
+            "color": "#4a8278",
+            "density": 0.05,
+            "sky": "#78b8a8"
+          }
         },
         "hearing": {
-          "airLowpassHz": 900,
-          "underwaterLowpassHz": 360,
-          "range": 35,
+          "airLowpassHz": 700,
+          "underwaterLowpassHz": 300,
+          "range": 28,
           "waterCueGain": 1.4,
           "windGain": 0.03,
-          "distantCueGain": 0.8,
+          "distantCueGain": 0.7,
           "heightAttenuation": false
         }
       },
@@ -1377,10 +1433,32 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            0.2925,
-            0
+            0.25,
+            -0.2
           ],
-          "hideBody": true
+          "hideBody": true,
+          "lens": {
+            "fieldDeg": 155,
+            "curve": 1,
+            "round": 1,
+            "radius": 2.0,
+            "fade": 0.14,
+            "fadeMax": 0.85,
+            "ripple": 0.02,
+            "edgeBlur": 0.5,
+            "vignette": 0,
+            "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，待试玩）"
+          },
+          "motion": {
+            "source": "tailbeat",
+            "headBone": "head",
+            "spineBone": "spine1",
+            "swayM": 0.005,
+            "swayYawDeg": 0.9,
+            "idleGain": 0.35,
+            "boostGain": 0.3,
+            "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：七彩神仙鱼身体扁圆、游得慢，摆幅较大、柔和；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，待试玩）"
+          }
         }
       },
       "body": {

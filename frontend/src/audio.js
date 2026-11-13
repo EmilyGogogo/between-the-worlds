@@ -14,7 +14,8 @@ const CUES={
 export function registerCue(name,play){CUES[name]=play;}
 
 export class Ambience {
-  constructor(){this.context=null;this.enabled=false;this.lastCue=0;}
+  // tune(key,fallback): reads levels from tuning.json (underwater*, wingbeatGain, cueAirLowpassFactor).
+  constructor(tune=(key,fallback)=>fallback){this.context=null;this.enabled=false;this.lastCue=0;this.tune=tune;this.levels=null;this.lastBeat=null;this.nextBubble=0;}
   build(){
     const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return false;
     const c=this.context=new Audio(),buffer=c.createBuffer(1,c.sampleRate*4,c.sampleRate),data=buffer.getChannelData(0);let brown=0;
@@ -29,6 +30,18 @@ export class Ambience {
     this.near=c.createBufferSource();this.near.buffer=white;this.near.loop=true;
     this.band=c.createBiquadFilter();this.band.type='bandpass';this.band.frequency.value=2200;this.band.Q.value=.7;
     this.nearGain=c.createGain();this.nearGain.gain.value=.02;this.near.connect(this.band).connect(this.nearGain).connect(this.filter);this.near.start();
+    this.brown=buffer;this.white=white;
+    // Under water: the water's own bed instead of muffled wind and leaves (A-01, 2026-11-14):
+    // a steady low drone and the surface lapping overhead, louder near the top.
+    this.water=c.createGain();this.water.gain.value=0;this.water.connect(this.master);
+    this.drone=c.createBufferSource();this.drone.buffer=buffer;this.drone.loop=true;this.drone.playbackRate.value=.45;
+    const droneFilter=c.createBiquadFilter();droneFilter.type='lowpass';droneFilter.frequency.value=160;
+    this.droneGain=c.createGain();this.droneGain.gain.value=0;this.drone.connect(droneFilter).connect(this.droneGain).connect(this.water);this.drone.start();
+    this.lap=c.createBufferSource();this.lap.buffer=white;this.lap.loop=true;
+    const lapFilter=c.createBiquadFilter();lapFilter.type='bandpass';lapFilter.frequency.value=420;lapFilter.Q.value=1.4;
+    this.lapGain=c.createGain();this.lapGain.gain.value=0;this.lap.connect(lapFilter).connect(this.lapGain).connect(this.water);this.lap.start();
+    // Calls from things in the world pass through the body's hearing too, at their own volume.
+    this.cueFilter=c.createBiquadFilter();this.cueFilter.type='lowpass';this.cueFilter.frequency.value=4800;this.cueFilter.connect(this.master);
     return true;
   }
   // Must first be called from a click or key press: browsers only start audio after a gesture.
@@ -38,23 +51,68 @@ export class Ambience {
     this.master.gain.setTargetAtTime(on?1:0,this.context.currentTime,.7);return on;
   }
   toggle(){return this.setEnabled(!this.enabled);}
-  // hearing: blended profile; state: {underwater, groundFade, cue:{name,distance,pan}|null, crossfade, time}
+  // Target levels for a hearing profile and listener state; kept on `levels` for checks.
+  // state: {underwater, surface (0 deep … 1 just under), beat ('wing'|'stroke'|null), groundFade, time}
+  mix(hearing,state){
+    const t=this.tune,u=!!state.underwater,cutoff=u?hearing.underwaterLowpassHz:hearing.airLowpassHz,air=u?t('underwaterAirGain',.08):1;
+    return {underwater:u,cutoff,cueCutoff:u?cutoff:cutoff*t('cueAirLowpassFactor',4),
+      wind:hearing.windGain*air*(1+Math.sin(state.time*.15)*.18),near:.022*hearing.waterCueGain*state.groundFade*air,
+      water:u?1:0,drone:t('underwaterDroneGain',.05)*(1+Math.sin(state.time*.09)*.15),
+      lap:u?t('underwaterSurfaceLapGain',.03)*(state.surface??0)*(.75+Math.sin(state.time*.7)*.25):0,
+      cueGain:u?t('underwaterAirCueGain',.15):1,
+      stroke:u&&state.beat==='stroke'?t('underwaterStrokeGain',.025):0,wing:!u&&state.beat==='wing'?t('wingbeatGain',.008):0};
+  }
+  // hearing: blended profile; state: {underwater, surface, beat, groundFade, cue:{name,distance,pan}|null, crossfade, time}
   update(hearing,state){
+    const L=this.levels=this.mix(hearing,state);
+    if(L.stroke||L.wing)this.lastBeat={kind:L.stroke?'stroke':'wing',volume:L.stroke||L.wing,time:state.time};
     if(!this.enabled||!this.context)return;
     const c=this.context,now=c.currentTime,k=Math.max(.05,state.crossfade/3);
-    this.filter.frequency.setTargetAtTime(state.underwater?hearing.underwaterLowpassHz:hearing.airLowpassHz,now,k);
-    this.windGain.gain.setTargetAtTime(hearing.windGain*(state.underwater?.35:1)*(1+Math.sin(state.time*.15)*.18),now,k);
-    this.nearGain.gain.setTargetAtTime(.022*hearing.waterCueGain*state.groundFade,now,k);
+    this.filter.frequency.setTargetAtTime(L.cutoff,now,k);
+    // Short calls stay recognisable in air and turn to a thud under water.
+    this.cueFilter.frequency.setTargetAtTime(L.cueCutoff,now,k);
+    this.windGain.gain.setTargetAtTime(L.wind,now,k);
+    this.nearGain.gain.setTargetAtTime(L.near,now,k);
+    this.water.gain.setTargetAtTime(L.water,now,k);
+    this.droneGain.gain.setTargetAtTime(L.drone,now,k);
+    this.lapGain.gain.setTargetAtTime(L.lap,now,k);
+    // The body's own beats: a push of water per tail sweep, a soft feathered whoosh per downstroke.
+    if(L.stroke)this.burst(this.brown,{type:'bandpass',freq:260,q:.9,volume:L.stroke,attack:.04,decay:.28,out:this.water});
+    if(L.wing)this.burst(this.white,{type:'bandpass',freq:700,q:.6,volume:L.wing,attack:.03,decay:.18,out:this.master});
+    // Bubbles at irregular intervals around the listener.
+    if(!L.underwater)this.nextBubble=state.time+this.tune('underwaterBubbleEverySec',2.5)*Math.random();
+    else if(state.time>this.nextBubble){
+      this.nextBubble=state.time+this.tune('underwaterBubbleEverySec',2.5)*(.5+Math.random());
+      this.bubble(this.tune('underwaterBubbleGain',.012)*hearing.waterCueGain,Math.random()*1.2-.6);
+    }
     if(state.time-this.lastCue>16&&state.cue){
       this.lastCue=state.time;
       const reach=1-state.cue.distance/hearing.range;
-      if(reach>0)this.play(state.cue.name,.022*hearing.distantCueGain*Math.sqrt(reach)*state.groundFade,state.cue.pan);
+      // A call from the air reaches a listener under water only faintly.
+      if(reach>0)this.play(state.cue.name,.022*hearing.distantCueGain*Math.sqrt(reach)*state.groundFade*L.cueGain,state.cue.pan);
     }
+  }
+  // A short swell of filtered noise.
+  burst(buffer,{type,freq,q,volume,attack,decay,out}){
+    const c=this.context,src=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain(),t=c.currentTime;
+    src.buffer=buffer;f.type=type;f.frequency.value=freq;f.Q.value=q;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume,t+attack);g.gain.exponentialRampToValueAtTime(.0001,t+attack+decay);
+    src.connect(f).connect(g).connect(out);src.start(t,Math.random()*2);src.stop(t+attack+decay+.05);
+  }
+  // A small rising bubble: a sine that sweeps up quickly and fades.
+  bubble(volume,pan){
+    const c=this.context;let out=this.water;
+    if(c.createStereoPanner){out=c.createStereoPanner();out.pan.value=pan;out.connect(this.water);}
+    const o=c.createOscillator(),g=c.createGain(),t=c.currentTime,f=380+Math.random()*420;
+    o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*2.4,t+.07);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+.12);
+    o.connect(g).connect(out);o.start(t);o.stop(t+.14);
   }
   play(name,volume=.018,pan=0){
     const c=this.context,cue=CUES[name];if(!this.enabled||!c||!cue||volume<=0)return;
-    let out=this.master;
-    if(c.createStereoPanner){out=c.createStereoPanner();out.pan.value=Math.max(-1,Math.min(1,pan));out.connect(this.master);}
+    // Through the body's hearing, so a call heard by a fish arrives muffled.
+    let out=this.cueFilter;
+    if(c.createStereoPanner){out=c.createStereoPanner();out.pan.value=Math.max(-1,Math.min(1,pan));out.connect(this.cueFilter);}
     cue(c,out,volume);
   }
   chime(){

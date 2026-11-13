@@ -350,6 +350,8 @@ export class World {
     const surface=-(x*x+z*z)/(2*PLANET_RADIUS)+river.water.levelM;
     return floor<surface-river.water.minDepthM?{id:river.id,type:'river',surface,floor}:null;
   }
+  // Colour the underside of the water mirrors when seen from below (the water the eye is in).
+  setUnderwaterColor(color){this.waterMat.uniforms.uwColor.value.copy(color);for(const m of this.waterBodies)m.material.uniforms.uwColor.value.copy(color);}
   // How the water looks from inside, for the body of water the eye is in (river by default).
   underwaterLook(id=null){return underwaterLook(id);}
   // Depth of the water drawn over a point (0 on dry ground). Unlike water(), the shallow river
@@ -463,6 +465,8 @@ export class World {
       const s=SPECIES[e.kind];
       if(e.visual)e.visual.visible=e===player||s.stage>=hideBelow;
       if(this.firstPersonBodies?.includes(e)&&s.firstPerson?.hideBody)e.visual.visible=false;
+      // A body hidden for first person still drives its animation (the eye follows its wingbeat or tail).
+      if(e.visual&&!e.visual.visible&&e===player){e.visual.userData.moving=e.animationMoving??e.moving;e.visual.userData.boosting=e.moving&&e.boosting;e.visual.userData.movementRatio=e.movementRatio;e.visual.userData.swimming=e.swimming;}
       if(!e.visual||!e.visual.visible)continue;
       const v=e.visual;
       if(v.userData.sway)v.rotation.z=Math.sin(t*.9+e.seed)*v.userData.sway;

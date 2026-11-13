@@ -313,6 +313,136 @@
       "rule": "W-10",
       "reviewState": "creator_directed",
       "note": "两岸布景树按 300 m 一段，离视点超过这个距离的段不画（远处靠林冠面与雾）；调小可省开销"
+    },
+    "firstPersonLensScale": {
+      "runtimeBinding": "integrated",
+      "note": "第一人称镜头（鱼眼、海鸥宽视野、边缘虚化与暗角）的总强度；0 关闭，1 为 entities.json 中 camera.firstPerson.lens 的原值。只用于第一人称，目标选择仍按原相机。",
+      "value": 1,
+      "unit": "ratio",
+      "min": 0,
+      "max": 1.5,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "firstPersonLensRenderScale": {
+      "runtimeBinding": "integrated",
+      "note": "第一人称镜头先渲染到放大的画面再弯曲绘制，放大倍数越高中央越清楚、越耗性能；按画面像素数计的上限另有 400 万像素。",
+      "value": 1.5,
+      "unit": "ratio",
+      "min": 1,
+      "max": 2,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "firstPersonMotionScale": {
+      "runtimeBinding": "integrated",
+      "note": "第一人称身体运动镜头（海鸥振翅起伏、鱼摆头）的总强度；0 关闭（防晕动），1 为 camera.firstPerson.motion 的原值。",
+      "value": 1,
+      "unit": "ratio",
+      "min": 0,
+      "max": 1.5,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "underwaterAirGain": {
+      "runtimeBinding": "integrated",
+      "note": "水下保留的风声与草叶声比例（原为风声 0.35、草叶不减）。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.08,
+      "unit": "ratio",
+      "min": 0,
+      "max": 0.5,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterAirCueGain": {
+      "runtimeBinding": "integrated",
+      "note": "水面上方的短促声音（如鸟叫）传到水下的比例。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.15,
+      "unit": "ratio",
+      "min": 0,
+      "max": 1,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterDroneGain": {
+      "runtimeBinding": "integrated",
+      "note": "低沉稳定的水体嗡鸣。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.05,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.2,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterSurfaceLapGain": {
+      "runtimeBinding": "integrated",
+      "note": "贴近水面时上方闷住的水波声。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.03,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.15,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterSurfaceLapDepthM": {
+      "runtimeBinding": "integrated",
+      "note": "水波声从水面向下淡出到 0 的深度。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 3,
+      "unit": "m",
+      "min": 0.5,
+      "max": 10,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterStrokeGain": {
+      "runtimeBinding": "integrated",
+      "note": "游动时随游动动画头部摆动的推水声。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.025,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.2,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterBubbleGain": {
+      "runtimeBinding": "integrated",
+      "note": "偶尔的气泡声。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.012,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.05,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterBubbleEverySec": {
+      "runtimeBinding": "integrated",
+      "note": "气泡的平均间隔。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 2.5,
+      "unit": "s",
+      "min": 0.5,
+      "max": 10,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "wingbeatGain": {
+      "runtimeBinding": "integrated",
+      "note": "飞行身体自己的振翅声：每次 Flap 下扇一声轻柔的羽毛风声，滑翔无声；合成占位，听测后定。",
+      "value": 0.008,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.1,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "cueAirLowpassFactor": {
+      "runtimeBinding": "integrated",
+      "note": "世界里的短促声音（鸟叫等）在空气中按身体听觉截止频率的几倍放宽，叫声仍可辨认；水下与音景同一截止频率。",
+      "value": 4,
+      "unit": "ratio",
+      "min": 1,
+      "max": 10,
+      "rule": "A-03",
+      "reviewState": "proposed"
     }
   },
   "hardConstraints": {

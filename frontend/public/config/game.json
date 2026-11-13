@@ -765,10 +765,29 @@
       "firstPerson": {
         "eyeOffset": [
           0,
-          0.24,
-          0
+          0.155,
+          -0.2
         ],
-        "hideBody": true
+        "hideBody": true,
+        "lens": {
+          "fieldDeg": 110,
+          "curve": 0.45,
+          "round": 0,
+          "edgeBlur": 0.3,
+          "vignette": 0.1,
+          "note": "海鸥眼睛在头两侧、视野很宽：铺满屏幕约 110° 的宽视野，边缘轻微弯曲、稍虚，中央清楚，不做圆形（艺术表达，负责人 2026-11-14 选定，待试玩）"
+        },
+        "motion": {
+          "source": "wingbeat",
+          "wingBone": "wing3R",
+          "bodyBone": "body",
+          "flapBobM": 0.012,
+          "flapPitchDeg": 0.45,
+          "glideBobM": 0.004,
+          "climbGain": 0.5,
+          "boostGain": 0.3,
+          "note": "眼位随 Flap 振翅的实际翅尖高度起伏：翅膀扇到最低时身体最高，并轻微点头；Glide 滑翔只缓慢漂浮；只抬高不压低眼位（艺术表达，负责人 2026-11-14 选定，待试玩）"
+        }
       },
       "reach": 130.0,
       "targets": [
@@ -787,11 +806,12 @@
       "moments": {},
       "vision": {
         "grayscale": 0,
-        "saturation": 1.15,
-        "contrast": 1.1,
-        "brightness": 1.02,
-        "fogMultiplier": 0.6,
-        "tint": null
+        "saturation": 1.45,
+        "contrast": 1.18,
+        "brightness": 1.08,
+        "fogMultiplier": 0.3,
+        "tint": "#ffd9a0",
+        "tintOpacity": 0.32
       },
       "hearing": {
         "airLowpassHz": 1400,
@@ -837,16 +857,40 @@
       "activityRegion": null,
       "speed": 9.0,
       "boost": 2.7,
-      "turnSpeed": 180,
+      "turnSpeed": 260,
       "camera": 3.5,
       "fov": 58,
       "firstPerson": {
         "eyeOffset": [
           0,
-          0.208,
-          0
+          0.2,
+          -0.2
         ],
-        "hideBody": true
+        "hideBody": true,
+        "restPitchDeg": -12,
+        "restPitchNote": "银斧鱼嘴和眼朝上、盯着水面：进入第一人称或在第一人称魂穿到它时视线先上抬 12°（负值为抬头），之后鼠标照常控制、仍按视线升降",
+        "lens": {
+          "fieldDeg": 150,
+          "curve": 1,
+          "round": 1,
+          "radius": 2.0,
+          "fade": 0.14,
+          "fadeMax": 0.85,
+          "ripple": 0.02,
+          "edgeBlur": 0.4,
+          "vignette": 0,
+          "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，待试玩）"
+        },
+        "motion": {
+          "source": "tailbeat",
+          "headBone": "head",
+          "spineBone": "spine1",
+          "swayM": 0.002,
+          "swayYawDeg": 0.5,
+          "idleGain": 0.3,
+          "boostGain": 0.5,
+          "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：银斧鱼小而快，摆幅小、细碎；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，待试玩）"
+        }
       },
       "reach": 100.0,
       "targets": [
@@ -865,19 +909,25 @@
       "moments": {},
       "vision": {
         "grayscale": 0,
-        "saturation": 0.82,
-        "contrast": 0.96,
-        "brightness": 0.96,
-        "fogMultiplier": 1.6,
-        "tint": "#3e7c73"
+        "saturation": 0.9,
+        "contrast": 1,
+        "brightness": 1.06,
+        "fogMultiplier": 1.2,
+        "tint": "#4f8fa6",
+        "tintOpacity": 0.12,
+        "underwaterFog": {
+          "color": "#2a78a0",
+          "density": 0.028,
+          "sky": "#5aaed0"
+        }
       },
       "hearing": {
-        "airLowpassHz": 900,
-        "underwaterLowpassHz": 360,
-        "range": 35,
+        "airLowpassHz": 1200,
+        "underwaterLowpassHz": 520,
+        "range": 50,
         "waterCueGain": 1.4,
         "windGain": 0.03,
-        "distantCueGain": 0.8,
+        "distantCueGain": 1.1,
         "heightAttenuation": false
       },
       "collision": {
@@ -915,16 +965,38 @@
       "activityRegion": null,
       "speed": 7.0,
       "boost": 2.7,
-      "turnSpeed": 180,
+      "turnSpeed": 130,
       "camera": 3.5,
       "fov": 58,
       "firstPerson": {
         "eyeOffset": [
           0,
-          0.2925,
-          0
+          0.25,
+          -0.2
         ],
-        "hideBody": true
+        "hideBody": true,
+        "lens": {
+          "fieldDeg": 155,
+          "curve": 1,
+          "round": 1,
+          "radius": 2.0,
+          "fade": 0.14,
+          "fadeMax": 0.85,
+          "ripple": 0.02,
+          "edgeBlur": 0.5,
+          "vignette": 0,
+          "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，待试玩）"
+        },
+        "motion": {
+          "source": "tailbeat",
+          "headBone": "head",
+          "spineBone": "spine1",
+          "swayM": 0.005,
+          "swayYawDeg": 0.9,
+          "idleGain": 0.35,
+          "boostGain": 0.3,
+          "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：七彩神仙鱼身体扁圆、游得慢，摆幅较大、柔和；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，待试玩）"
+        }
       },
       "reach": 100.0,
       "targets": [
@@ -943,19 +1015,25 @@
       "moments": {},
       "vision": {
         "grayscale": 0,
-        "saturation": 0.82,
-        "contrast": 0.96,
-        "brightness": 0.96,
+        "saturation": 1,
+        "contrast": 1.06,
+        "brightness": 1.04,
         "fogMultiplier": 1.6,
-        "tint": "#3e7c73"
+        "tint": "#9a7a4a",
+        "tintOpacity": 0.12,
+        "underwaterFog": {
+          "color": "#4a8278",
+          "density": 0.05,
+          "sky": "#78b8a8"
+        }
       },
       "hearing": {
-        "airLowpassHz": 900,
-        "underwaterLowpassHz": 360,
-        "range": 35,
+        "airLowpassHz": 700,
+        "underwaterLowpassHz": 300,
+        "range": 28,
         "waterCueGain": 1.4,
         "windGain": 0.03,
-        "distantCueGain": 0.8,
+        "distantCueGain": 0.7,
         "heightAttenuation": false
       },
       "collision": {
@@ -3683,6 +3761,136 @@
       "rule": "W-10",
       "reviewState": "creator_directed",
       "note": "两岸布景树按 300 m 一段，离视点超过这个距离的段不画（远处靠林冠面与雾）；调小可省开销"
+    },
+    "firstPersonLensScale": {
+      "runtimeBinding": "integrated",
+      "note": "第一人称镜头（鱼眼、海鸥宽视野、边缘虚化与暗角）的总强度；0 关闭，1 为 entities.json 中 camera.firstPerson.lens 的原值。只用于第一人称，目标选择仍按原相机。",
+      "value": 1,
+      "unit": "ratio",
+      "min": 0,
+      "max": 1.5,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "firstPersonLensRenderScale": {
+      "runtimeBinding": "integrated",
+      "note": "第一人称镜头先渲染到放大的画面再弯曲绘制，放大倍数越高中央越清楚、越耗性能；按画面像素数计的上限另有 400 万像素。",
+      "value": 1.5,
+      "unit": "ratio",
+      "min": 1,
+      "max": 2,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "firstPersonMotionScale": {
+      "runtimeBinding": "integrated",
+      "note": "第一人称身体运动镜头（海鸥振翅起伏、鱼摆头）的总强度；0 关闭（防晕动），1 为 camera.firstPerson.motion 的原值。",
+      "value": 1,
+      "unit": "ratio",
+      "min": 0,
+      "max": 1.5,
+      "rule": "C-05",
+      "reviewState": "proposed"
+    },
+    "underwaterAirGain": {
+      "runtimeBinding": "integrated",
+      "note": "水下保留的风声与草叶声比例（原为风声 0.35、草叶不减）。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.08,
+      "unit": "ratio",
+      "min": 0,
+      "max": 0.5,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterAirCueGain": {
+      "runtimeBinding": "integrated",
+      "note": "水面上方的短促声音（如鸟叫）传到水下的比例。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.15,
+      "unit": "ratio",
+      "min": 0,
+      "max": 1,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterDroneGain": {
+      "runtimeBinding": "integrated",
+      "note": "低沉稳定的水体嗡鸣。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.05,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.2,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterSurfaceLapGain": {
+      "runtimeBinding": "integrated",
+      "note": "贴近水面时上方闷住的水波声。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.03,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.15,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterSurfaceLapDepthM": {
+      "runtimeBinding": "integrated",
+      "note": "水波声从水面向下淡出到 0 的深度。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 3,
+      "unit": "m",
+      "min": 0.5,
+      "max": 10,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterStrokeGain": {
+      "runtimeBinding": "integrated",
+      "note": "游动时随游动动画头部摆动的推水声。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.025,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.2,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterBubbleGain": {
+      "runtimeBinding": "integrated",
+      "note": "偶尔的气泡声。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 0.012,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.05,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "underwaterBubbleEverySec": {
+      "runtimeBinding": "integrated",
+      "note": "气泡的平均间隔。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
+      "value": 2.5,
+      "unit": "s",
+      "min": 0.5,
+      "max": 10,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "wingbeatGain": {
+      "runtimeBinding": "integrated",
+      "note": "飞行身体自己的振翅声：每次 Flap 下扇一声轻柔的羽毛风声，滑翔无声；合成占位，听测后定。",
+      "value": 0.008,
+      "unit": "gain",
+      "min": 0,
+      "max": 0.1,
+      "rule": "A-03",
+      "reviewState": "proposed"
+    },
+    "cueAirLowpassFactor": {
+      "runtimeBinding": "integrated",
+      "note": "世界里的短促声音（鸟叫等）在空气中按身体听觉截止频率的几倍放宽，叫声仍可辨认；水下与音景同一截止频率。",
+      "value": 4,
+      "unit": "ratio",
+      "min": 1,
+      "max": 10,
+      "rule": "A-03",
+      "reviewState": "proposed"
     }
   }
 }

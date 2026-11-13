@@ -248,7 +248,9 @@ assert('rock -> grass, back to the smallest scale (W-05)',go('grass-island-0-1')
 """)
 load()
 passed += run(r"""
-// Exercise both modes for every configured body, including terrain carriers.
+// Exercise both modes for every configured body, including terrain carriers. Body motion is
+// off here so the eye sits exactly at its configured offset (motion is checked separately).
+const motionScale=TUNING.firstPersonMotionScale.value;TUNING.firstPersonMotionScale.value=0;
 const kinds=Object.keys(SPECIES),toggle=()=>{g.paused=false;const changed=g.toggleView();g.paused=true;return changed;};
 for(const kind of kinds){
   const e=W.entities.find(e=>e.kind===kind);take(e.id);step(45);
@@ -261,7 +263,7 @@ for(const kind of kinds){
   const look=g.camera.getWorldDirection(g.camera.position.clone()),forward=g.camera.position.clone().set(-Math.sin(g.yaw)*Math.cos(g.pitch),-Math.sin(g.pitch),-Math.cos(g.yaw)*Math.cos(g.pitch));
   assert(`${kind}: first-person look follows mouse angles`,look.dot(forward)>.999);
   if(kind==='dog')assert('first-person dog is monochrome (B-04)',g.view.grayscale===1&&g.renderer.domElement.style.filter.startsWith('grayscale(1)'));
-  if(SPECIES[kind].category==='fish')assert(`${kind}: first-person tint visible`,Number(document.getElementById('perception-tint').style.opacity)>.3);
+  if(vision.tint)assert(`${kind}: first-person tint at its configured strength`,Math.abs(Number(document.getElementById('perception-tint').style.opacity)-(vision.tintOpacity??.32))<.002);
   assert(`${kind}: V returns to third-person`,toggle());step(45);
   assert(`${kind}: third-person restores own mesh and removes tint`,e.visual.visible&&g.view.grayscale===0&&Number(document.getElementById('perception-tint').style.opacity)===0);
 }
@@ -294,6 +296,7 @@ toggle();step(45);
 take('gull-0');toggle();step(45);const y=g.player.root.position.y;g.pitch=-.4;g.actions.add('move_forward');step(30);g.actions.clear();
 assert('first-person bird climbs along its look direction',g.player.root.position.y>y+2);
 toggle();step(45);
+TUNING.firstPersonMotionScale.value=motionScale;
 """)
 load()
 passed += run(r"""
@@ -507,6 +510,13 @@ load()
 passed += run(r"""
 const {checkSaveMigration,checkAmbientCollision}=await import('./tests/ambient-regressions.js');
 checkSaveMigration(g,assert);checkAmbientCollision(g,assert);
+""")
+# First-person senses of the gull and the two fish: colours, own water, lens, body motion,
+# raised gaze, turn speeds, hearing from the body and the underwater sound bed.
+load()
+passed += run(r"""
+const {checkFirstPersonSenses}=await import('./tests/first-person-regressions.js');
+checkFirstPersonSenses(g,assert);
 """)
 # Under water: bed dressing in the water, surfaces drawn from below, fog and effects from data.
 load()
