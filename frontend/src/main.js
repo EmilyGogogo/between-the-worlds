@@ -441,9 +441,12 @@ class Game {
     const underwater=(pool?.type==='enclosed'&&localEye.y<pool.surface)||this.world.planetRoot.worldToLocal(this.camera.position.clone()).length()<PLANET_RADIUS+this.world.seaLevel-.1;
     this.scene.userData.underwater=underwater;
     const shown=f>.5?layer:layerOf((tr?.from||subject).kind);
-    const density=underwater ? .045 : shown.fogDensity*this.view.fogMultiplier*this.atmosphere.fogBoost;
+    // Under water the fog and sky take the colour of the water the eye is in (anchors.json water.underwater).
+    const look=underwater?this.world.underwaterLook(pool?.type==='enclosed'?pool.id:null):null;
+    if(look)this.atmosphere.skyUniforms.underwaterColor.value.copy(look.skyColor);
+    const density=underwater ? look.fogDensity : shown.fogDensity*this.view.fogMultiplier*this.atmosphere.fogBoost;
     this.scene.fog.density=THREE.MathUtils.damp(this.scene.fog.density,density,1.5,dt);
-    this.scene.fog.color.lerp(underwater?new THREE.Color('#3b4a2c'):this.atmosphere.fogColor,1-Math.exp(-dt*2));
+    this.scene.fog.color.lerp(underwater?look.fogColor:this.atmosphere.fogColor,1-Math.exp(-dt*2));
     this.scene.userData.cameraPosition=this.camera.position;
     const center=this.world.position(subject);
     this.lightFollow(center,shown.localSun);

@@ -508,6 +508,12 @@ passed += run(r"""
 const {checkSaveMigration,checkAmbientCollision}=await import('./tests/ambient-regressions.js');
 checkSaveMigration(g,assert);checkAmbientCollision(g,assert);
 """)
+# Under water: bed dressing in the water, surfaces drawn from below, fog and effects from data.
+load()
+passed += run(r"""
+const {checkUnderwater}=await import('./tests/underwater-regressions.js');
+checkUnderwater(g,assert);
+""")
 # Sound: starts with the first click and stays reachable while paused (A-02).
 load()
 def click_at(x, y):

@@ -242,6 +242,17 @@
             1,
             0
           ]
+        },
+        "underwater": {
+          "fog": "#2f7f8f",
+          "fogDensity": 0.035,
+          "sky": "#5fb3c4",
+          "caustics": 0.9,
+          "causticScaleM": 1.8,
+          "bedTint": "#cbb98e",
+          "bedSand": 0.65,
+          "shafts": 0.3,
+          "motes": 0.45
         }
       },
       "corridor": {

@@ -251,6 +251,15 @@ def main():
         for k in ['deep', 'shallow']:
             c = w.get('look', {}).get(k)
             check(c is None or (isinstance(c, str) and len(c) == 7 and c.startswith('#')), f'{r["id"]}: water colour {k} must be #rrggbb')
+        # How the water looks from inside (underwater.js): colours and non-negative amounts.
+        under = w.get('underwater')
+        if under is not None:
+            for k in ['fog', 'sky', 'bedTint']:
+                c = under.get(k)
+                check(c is None or (isinstance(c, str) and len(c) == 7 and c.startswith('#')), f'{r["id"]}: underwater {k} must be #rrggbb')
+            for k, hi in [('fogDensity', 0.3), ('caustics', 3), ('causticScaleM', 20), ('bedSand', 1), ('shafts', 2), ('motes', 2)]:
+                v = under.get(k)
+                check(v is None or (num(v) and 0 <= v <= hi), f'{r["id"]}: underwater {k} must be in [0, {hi}]')
         if w.get('type') == 'enclosed':
             check(r.get('shape') == 'ellipse' and len(r.get('center', [])) == 2 and len(r.get('radii', [])) == 2 and all(num(v) and v > 0 for v in r.get('radii', [])),
                   f'{r["id"]}: enclosed water needs an ellipse with center and positive radii')
@@ -287,6 +296,10 @@ def main():
         if slot.get('placeholder') == 'procedural:pebble':
             for area in slot['scatter'].get('areas', []):
                 check(area.get('waterType') in {'river', 'enclosed'}, f'{slot["slotId"]}: pebble areas must name a water type')
+        band = slot['scatter'].get('waterDepthM')
+        if slot.get('placeholder') == 'procedural:waterweed':
+            check(band is not None, f'{slot["slotId"]}: waterweeds need waterDepthM')
+        check(band is None or (len(band) == 2 and all(num(v) for v in band) and 0 <= band[0] < band[1]), f'{slot["slotId"]}: waterDepthM must be [min, max] with 0 <= min < max')
     placed = {i['type'] for i in layout['instances']} | {g['type'] for g in layout['scatter']}
     check(placed == entity_ids, f'Every body type needs individuals in the world: missing {sorted(entity_ids - placed)}')
     for e in entity_list:

@@ -22,7 +22,7 @@ Lux3D 生成（文字／图片）→ 下载原始文件 → Blender 修整：比
 | --- | --- | --- | --- |
 | 身体槽 `slot.<种类>` | 每个可魂穿种类一个，数量随 `entities.json` | 该种类所有个体共用的模型和动作 | 是（`url` 字段） |
 | 世界槽 `env.world` | 1 | 可选：整片主岛的 GLB，替代程序地表 | 是 |
-| 装饰槽 `env.meadow`、`env.pebbles` | 2，可增加 | 成片草地、湖底卵石等不可魂穿的装饰；按 `scatter` 散布，GLB 以实例方式绘制 | 是 |
+| 装饰槽 `env.meadow`、`env.pebbles`、`env.waterweeds` 等 | 可增加 | 成片草地、水底卵石、水草等不可魂穿的装饰；按 `scatter` 散布，GLB 以实例方式绘制 | 是 |
 | `env.sky_water` | 1 | 天空和水面目前是着色器，不是模型槽 | 不适用 |
 
 岛屿种类的身体槽 `slot.island` 同时用于主岛与邻岛的地形。主岛地形如果用 `env.world` 整体替换，邻岛仍使用 `slot.island`。

@@ -2010,7 +2010,7 @@
       "url": null,
       "runtimeRead": true,
       "placeholder": "procedural:pebble",
-      "note": "水底卵石装饰，不可魂穿；只放在实际水体床面，包含牛轭湖与南岸清澈河道",
+      "note": "水底卵石与碎石装饰，不可魂穿；成片铺在所有实际水体的床面：牛轭湖、两片水塘、河边浅水与通向河的小溪（2026-11-13 水下美化）",
       "variants": [],
       "height": 0.5,
       "scaleRange": [
@@ -2022,8 +2022,11 @@
       "scatter": {
         "carrier": "island-main",
         "seed": 500,
-        "insideRegion": "lake",
-        "surfaceMax": 0.0,
+        "waterDepthM": [
+          0.15,
+          4
+        ],
+        "patchM": 9,
         "areas": [
           {
             "center": [
@@ -2034,20 +2037,85 @@
               128,
               240
             ],
-            "count": 160,
+            "count": 500,
             "waterType": "enclosed"
           },
           {
             "center": [
-              153,
-              303
+              -330,
+              60
             ],
             "size": [
-              84,
-              44
+              120,
+              76
             ],
-            "count": 180,
+            "count": 260,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              -10,
+              -200
+            ],
+            "size": [
+              128,
+              76
+            ],
+            "count": 260,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              1400,
+              900
+            ],
+            "count": 30000,
             "waterType": "river"
+          }
+        ]
+      }
+    },
+    {
+      "slotId": "env.waterweeds",
+      "name": "水草（装饰）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": true,
+      "placeholder": "procedural:waterweed",
+      "note": "带状水草丛，不可魂穿、无碰撞；只长在水深 0.3～2.6 m 的床面上，叶尖始终在水面以下，随水流摆动；成片分布，少数偏红（2026-11-13 水下美化）",
+      "variants": [],
+      "height": 1.2,
+      "scaleRange": [
+        1,
+        1
+      ],
+      "wind": true,
+      "visibleUpToStage": 1,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 808,
+        "waterDepthM": [
+          0.3,
+          2.6
+        ],
+        "patchM": 14,
+        "cellM": 40,
+        "drawDistanceM": 70,
+        "areas": [
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              1400,
+              900
+            ],
+            "count": 26000
           }
         ]
       }
