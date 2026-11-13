@@ -4,7 +4,7 @@
 
 ## 2026-11-14 · 水下美化：水面底面、水底沙床与焦散、水草与卵石、光柱
 
-- 负责人：@zora-alt111；关联：W-01、L-04、A04 牛轭湖、A06 南岸浅水，分支 `claude/fix-river-underwater-plants`，PR 待关联。
+- 负责人：@zora-alt111；关联：W-01、L-04、A04 牛轭湖、A06 南岸浅水，分支 `asset/fish-birds-view-v2`，PR 待关联。
 - AI：Claude Code（Claude Opus 5.5）参与方案、代码、数据、回归检查、文档与验证；人工复核：待负责人复核。
 - 变更与原因：负责人试玩反馈水下“没有水下的感觉”：仍是光秃秃的土地，水面倒影的影子很怪，看不到浅蓝的水和水底的东西，并要求自由发挥做美化。原实现镜头一入水就隐藏所有水面，水下雾是浑浊的橄榄绿 `#3b4a2c`，地面在水下仍按岸边湿泥着色（暗而反光），水底卵石只在牛轭湖与南岸两块区域。现在：①新增 `frontend/src/underwater.js`；②水面在水下不再隐藏，改画从下往上看的底面：头顶约 97° 的天空窗、窗外映着水色的镜面、窗缘淡光圈，由 `World` 每帧只对镜头所在的那片水启用（河面随河道曲率下降，不在着色器里比较高度，避免站在岛尾时远处河面被误画成底面）；③地面材质在实际水面以下改为哑光的沙与淤泥，有轻微沙纹和随时间晃动的焦散光斑，白天明显、夜晚与雨天减弱，水面以上不变；④水下雾、天空色、光柱与悬浮颗粒来自 `anchors.json` 河流的新字段 `water.underwater`（清澈蓝绿 `#2f7f8f`，浓度 0.035），封闭水体可单独覆盖；⑤新装饰槽 `env.waterweeds`（程序占位带状水草，水深 0.3～2.6 m 成片生长，叶尖保持在水面以下，随水流摆动，少数偏红；不可魂穿、无碰撞），资产台账新增 `PH-env.waterweeds`；⑥`env.pebbles` 改为按 `waterDepthM` 成片铺在所有水体床面（牛轭湖、两片水塘、河边浅水与小溪），改为实例绘制。`validate_docs.py` 新增 `water.underwater` 与 `waterDepthM` 检查。新增 `frontend/tests/underwater-regressions.js` 并接入 `check_browser.py`。同步 05、06、08 QA-28、11 与数据指南。不改规则、调参或能力范围。
 - 验证（2026-11-14，macOS 14.8.7、Chrome 156 headless／SwiftShader）：`python3 project/sync_runtime.py` 重新生成配置；`python3 project/validate_docs.py` 2020 项通过；`git diff --check` 通过。按本机 Chrome 156 的已知问题用单次加载脚本：`checkUnderwater` 11 项全部通过（水草 1581 丛、最高叶尖在水面下 0.066 m；卵石 4409 块，0 块在干地；鱼在湖中时只有该湖画底面；雾色与浓度等于数据；光柱与颗粒只在水下出现；岛尾 (560, 60) 水面以上时没有水面画成底面）；渲染后没有编译失败的着色器程序；牛轭湖、水塘、河边水下与小溪、湖面水上 6 个机位画面无纯黑像素，单帧渲染 1.3～11 ms（SwiftShader，不代表真机）。同一脚本运行 `checkWading`、碰撞与全部身体移动回归共 1428 项通过。过程中发现并修复：水面着色器漏声明 `toIsland`（编译失败）；着色器字符串内注释的反引号截断了 `water.js`，导致游戏无法加载。
@@ -12,7 +12,7 @@
 
 ## 2026-11-13 · 植物与不会游泳的动物不下水，岩石浅涉水并贴着水底（D-036）
 
-- 负责人：@zora-alt111；关联：M-04、D-036，分支 `claude/fix-river-underwater-plants`，PR 待关联。
+- 负责人：@zora-alt111；关联：M-04、D-036，分支 `asset/fish-birds-view-v2`，PR 待关联。
 - AI：Claude Code（Claude Opus 5.5）参与定位、数据、代码、回归检查、文档与验证；人工复核：待负责人复核。
 - 变更与原因：负责人试玩发现，魂穿成树等身体走进小溪、水塘会浮在水面上。原因有两点：`main.js` 的 `groundHeight()` 只让涉水深度大于 1 m 的岩石贴着水底，其他地面身体被固定在 −0.02 m（没算河面随曲率下降，岛两端能悬空 2 m 以上）；`allowed()` 又把 `wadeDepthM` 当作绝对地面高度（−0.6 m），水面 0.2 m 的水塘里实际能进 0.8 m 深的水。负责人在会话中决定：植物完全不能下水，岩石最多 0.6 m，只有会游泳的动物下水（记为 D-036，待创作者与团队确认）。现在：①涉水的身体一律站在河底／湖底；②涉水上限按实际水深计，新增 `World.waterDepth()`（和水面着色器一致，包含河边浅于 `minDepthM` 的浅水带）；③`entities.json` 草、三种树、狗的 `wadeDepthM` 改为 0，海岸岩石 3 → 0.6；巨岩（70 m 高的承载地貌）保留 10 m，人仍按 D-026 游泳；④`anchors.json` 的 `kapok-lake` 第一棵原本立在牛轭湖约 2 m 深的水中，移到 13 m 外最近的干燥岸上 `[-26, -70]`。`collision-regressions.js` 新增 `checkWading`：D-036 数据规则；没有身体一开始就在超出涉水深度的水里；各地面身体从岸上能否进入 0.33 m 浅水、岩石不能进入 0.77 m 水；从岸边朝水里走后停在允许的水深内并贴着地面。接入 `check_browser.py`。同步 01 M-04、02、04、05、08 QA-23、09 D-036、11。
 - 验证（2026-11-13，macOS 14.8.7、Chrome 156 headless／SwiftShader）：`python3 project/sync_runtime.py` 重新生成 `game.json`；`python3 project/validate_docs.py` 1996 项通过；`git diff --check` 通过。按本机 Chrome 156 轮询卡住的已知问题，用单次加载脚本在游戏中运行 `checkWading`、`checkTrunkTurnEscape`、`checkTurnEscapeAllKinds`、`checkPossessionMovement`，共 1428 项全部通过：草、树、狗从岸边走向水里只移动 0.15～0.29 m 就停在岸上；岩石走入浅水，停在 0.60 m 水深处、高度与水底一致。第一次运行时发现 `kapok-lake-0` 立在水中、测试夹具误把巨岩当作岛上独立身体，修正布局和夹具后复测通过。
