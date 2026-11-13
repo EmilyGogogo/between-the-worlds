@@ -2,6 +2,14 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-13 · 植物与不会游泳的动物不下水，岩石浅涉水并贴着水底（D-036）
+
+- 负责人：@zora-alt111；关联：M-04、D-036，分支 `claude/fix-river-underwater-plants`，PR 待关联。
+- AI：Claude Code（Claude Opus 5.5）参与定位、数据、代码、回归检查、文档与验证；人工复核：待负责人复核。
+- 变更与原因：负责人试玩发现，魂穿成树等身体走进小溪、水塘会浮在水面上。原因有两点：`main.js` 的 `groundHeight()` 只让涉水深度大于 1 m 的岩石贴着水底，其他地面身体被固定在 −0.02 m（没算河面随曲率下降，岛两端能悬空 2 m 以上）；`allowed()` 又把 `wadeDepthM` 当作绝对地面高度（−0.6 m），水面 0.2 m 的水塘里实际能进 0.8 m 深的水。负责人在会话中决定：植物完全不能下水，岩石最多 0.6 m，只有会游泳的动物下水（记为 D-036，待创作者与团队确认）。现在：①涉水的身体一律站在河底／湖底；②涉水上限按实际水深计，新增 `World.waterDepth()`（和水面着色器一致，包含河边浅于 `minDepthM` 的浅水带）；③`entities.json` 草、三种树、狗的 `wadeDepthM` 改为 0，海岸岩石 3 → 0.6；巨岩（70 m 高的承载地貌）保留 10 m，人仍按 D-026 游泳；④`anchors.json` 的 `kapok-lake` 第一棵原本立在牛轭湖约 2 m 深的水中，移到 13 m 外最近的干燥岸上 `[-26, -70]`。`collision-regressions.js` 新增 `checkWading`：D-036 数据规则；没有身体一开始就在超出涉水深度的水里；各地面身体从岸上能否进入 0.33 m 浅水、岩石不能进入 0.77 m 水；从岸边朝水里走后停在允许的水深内并贴着地面。接入 `check_browser.py`。同步 01 M-04、02、04、05、08 QA-23、09 D-036、11。
+- 验证（2026-11-13，macOS 14.8.7、Chrome 156 headless／SwiftShader）：`python3 project/sync_runtime.py` 重新生成 `game.json`；`python3 project/validate_docs.py` 1996 项通过；`git diff --check` 通过。按本机 Chrome 156 轮询卡住的已知问题，用单次加载脚本在游戏中运行 `checkWading`、`checkTrunkTurnEscape`、`checkTurnEscapeAllKinds`、`checkPossessionMovement`，共 1428 项全部通过：草、树、狗从岸边走向水里只移动 0.15～0.29 m 就停在岸上；岩石走入浅水，停在 0.60 m 水深处、高度与水底一致。第一次运行时发现 `kapok-lake-0` 立在水中、测试夹具误把巨岩当作岛上独立身体，修正布局和夹具后复测通过。
+- 未验证项 / 风险：完整 `check_all.py` 未在本机跑（已知卡住），需 CI 复验；`check_repository.py --javascript` 因本机无 Node 未运行。本会话截图无法传回，没有目视确认画面；吉贝木棉移位后的景观、岩石在浅水中的样子与岸边停住的手感待负责人试玩。水下水面观感另行处理，不在本条。
+
 ## 2026-11-13 · PR #16 同步 main 并解决冲突
 
 - 负责人：@EmilyGogogo（待人工复核）；关联：PR #16，分支 `claude/fix-rock-trunk-stuck`。

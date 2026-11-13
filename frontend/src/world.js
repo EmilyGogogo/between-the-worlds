@@ -353,6 +353,16 @@ export class World {
     const surface=-(x*x+z*z)/(2*PLANET_RADIUS)+river.water.levelM;
     return floor<surface-river.water.minDepthM?{id:river.id,type:'river',surface,floor}:null;
   }
+  // Depth of the water drawn over a point (0 on dry ground). Unlike water(), the shallow river
+  // margin counts too, so wading limits match the water the player sees.
+  waterDepth(x,z){
+    const floor=this.height(x,z);let river=null;
+    for(const r of WATERS){
+      if(r.water.type==='river')river=r;
+      else if(inRegion(r.id,x,z)&&floor<r.water.surfaceY)return r.water.surfaceY-floor;
+    }
+    return river?Math.max(0,-(x*x+z*z)/(2*PLANET_RADIUS)+river.water.levelM-floor):0;
+  }
   height(x,z){
     let result=terrainHeight(x,z);
     if(this.externalTerrain){

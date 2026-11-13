@@ -272,8 +272,8 @@ class Game {
     if(e.root.parent===this.world.islandRoot){
       // A body placed at a fixed height (the sunken boulder) keeps its offset from the terrain.
       if(e.surfaceOffset==null)return e.groundOffset+terrainHeight(p.x,p.z);
-      // Deep waders (rocks) settle on the bed; others keep to the top of shallow edges.
-      const h=this.world.height(p.x,p.z);return s.wadeDepth>1?h:Math.max(-.02,h);
+      // Ground bodies that wade (plants, rocks, the dog) stand on the bed, never on the water.
+      return this.world.height(p.x,p.z);
     }
     const carrier=this.world.carrierOf(e);
     return carrier?this.world.surfaceOf(carrier,p.x,p.z):e.baseY;
@@ -291,8 +291,9 @@ class Game {
     }
     if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion],d=r=>Math.hypot(r[0]-air.center[0],r[1]-air.center[1]);return d([x,z])<=air.radius||d([x,z])<d([p.x,p.z]);}
     if(s.category==='human')return true;
-    const limit=-s.wadeDepth;
-    return this.world.height(x,z)>=limit||this.world.height(p.x,p.z)<limit;
+    // wadeDepth is a water depth (M-04): ground bodies stay where the water is at most that deep.
+    const limit=s.wadeDepth;
+    return this.world.waterDepth(x,z)<=limit||this.world.waterDepth(p.x,p.z)>limit;
   }
   move(dt){
     const e=this.player,s=SPECIES[e.kind],a=this.actions;

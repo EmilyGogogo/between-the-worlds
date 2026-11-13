@@ -202,7 +202,7 @@
       "body": {
         "height": 0.7,
         "collisionRadius": 0.45,
-        "wadeDepthM": 0.6
+        "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
@@ -318,7 +318,7 @@
       "body": {
         "height": 20.0,
         "collisionRadius": 5.0,
-        "wadeDepthM": 0.6
+        "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
@@ -466,7 +466,7 @@
       "body": {
         "height": 10.0,
         "collisionRadius": 2.6,
-        "wadeDepthM": 0.6
+        "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
@@ -614,7 +614,7 @@
       "body": {
         "height": 42.0,
         "collisionRadius": 9.0,
-        "wadeDepthM": 0.6
+        "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
@@ -778,7 +778,7 @@
       "body": {
         "height": 2.0,
         "collisionRadius": 1.4,
-        "wadeDepthM": 3
+        "wadeDepthM": 0.6
       },
       "collision": {
         "boxes": [
@@ -1636,7 +1636,7 @@
       "body": {
         "height": 0.8,
         "collisionRadius": 0.45,
-        "wadeDepthM": 0.6,
+        "wadeDepthM": 0,
         "limbSwingRate": 10
       },
       "collision": {
