@@ -2,7 +2,7 @@
 
 版本：0.4-review · 2026-11-01。规则：L-01～L-07。扩展方法汇总见 [数据与扩展指南](../data/README.md)。资产台账：[asset-ledger.csv](../data/asset-ledger.csv)。
 
-**当前事实：人槽已接入用户提供的绑骨 GLB，来源和授权待核实；雨林的三个树槽（`slot.kapok`、`slot.broadleaf`、`slot.palm`）与布景植被（`env.forest`、`env.understory`、两岸林线）已导入 Lux3D 产物（D-031，状态 `integrated`，未验收）；其余资产槽仍为程序化占位。** 下文是替换合同，不代表资产已经验收。
+**当前事实：人槽已接入用户提供的绑骨 GLB，来源和授权待核实；雨林的三个树槽（`slot.kapok`、`slot.broadleaf`、`slot.palm`）与布景植被（`env.forest`、`env.understory`、两岸林线）已导入 Lux3D 产物（D-031，状态 `integrated`，未验收）；岩石替换使用创作者提供的三种 Lux3D 模型，接入范围与来源见资产台账。** 下文是替换合同，不代表资产已经验收。
 
 ## 思路
 
