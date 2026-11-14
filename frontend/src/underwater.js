@@ -175,5 +175,8 @@ void main(){
     this.visible=underwater;if(!underwater)return;
     this.uniforms.center.value.copy(eye);this.uniforms.surface.value=surfaceY;
     this.uniforms.shafts.value=look.shafts;this.uniforms.motes.value=look.motes;this.uniforms.tint.value.copy(look.skyColor);
+    // Motes close to the eye read as white specks (and a first-person lens enlarges them):
+    // off unless the water's data asks for them.
+    this.motes.visible=look.motes>0;this.shaftMesh.visible=look.shafts>0;
   }
 }

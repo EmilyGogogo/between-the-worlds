@@ -1295,7 +1295,7 @@
             "fade": 0.14,
             "fadeMax": 0.85,
             "ripple": 0.02,
-            "edgeBlur": 0.4,
+            "edgeBlur": 0.15,
             "vignette": 0,
             "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，待试玩）"
           },
@@ -1303,8 +1303,8 @@
             "source": "tailbeat",
             "headBone": "head",
             "spineBone": "spine1",
-            "swayM": 0.002,
-            "swayYawDeg": 0.5,
+            "swayM": 0.004,
+            "swayYawDeg": 1.0,
             "idleGain": 0.3,
             "boostGain": 0.5,
             "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：银斧鱼小而快，摆幅小、细碎；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，待试玩）"
@@ -1445,7 +1445,7 @@
             "fade": 0.14,
             "fadeMax": 0.85,
             "ripple": 0.02,
-            "edgeBlur": 0.5,
+            "edgeBlur": 0.2,
             "vignette": 0,
             "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，待试玩）"
           },
@@ -1453,8 +1453,8 @@
             "source": "tailbeat",
             "headBone": "head",
             "spineBone": "spine1",
-            "swayM": 0.005,
-            "swayYawDeg": 0.9,
+            "swayM": 0.009,
+            "swayYawDeg": 1.8,
             "idleGain": 0.35,
             "boostGain": 0.3,
             "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：七彩神仙鱼身体扁圆、游得慢，摆幅较大、柔和；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，待试玩）"

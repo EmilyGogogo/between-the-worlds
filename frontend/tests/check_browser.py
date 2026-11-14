@@ -524,6 +524,12 @@ passed += run(r"""
 const {checkUnderwater}=await import('./tests/underwater-regressions.js');
 checkUnderwater(g,assert);
 """)
+# D-037: fish in the oxbow lake and both ponds keep swimming inside their own water.
+load()
+passed += run(r"""
+const {checkFishHabitats}=await import('./tests/fish-habitat-regressions.js');
+checkFishHabitats(g,assert);
+""")
 # Sound: starts with the first click and stays reachable while paused (A-02).
 load()
 def click_at(x, y):

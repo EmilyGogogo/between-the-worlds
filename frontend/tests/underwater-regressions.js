@@ -27,6 +27,9 @@ export function checkUnderwater(g,assert){
     assert('underwater density follows data',Math.abs(g.scene.fog.density-look.fogDensity)<.002,g.scene.fog.density);
     assert('light shafts and motes show under water, below the surface',W.underwaterFx.visible&&W.underwaterFx.uniforms.surface.value>g.camera.position.y,
       `surface ${W.underwaterFx.uniforms.surface.value.toFixed(2)} eye ${g.camera.position.y.toFixed(2)}`);
+    // Motes near the eye read as white specks in first person; they are drawn only if the data asks.
+    const shared=W.underwaterLook(lakeId);
+    assert('drifting motes follow data (off by default)',W.underwaterFx.motes.visible===(shared.motes>0)&&W.underwaterFx.shaftMesh.visible===(shared.shafts>0),`motes ${shared.motes}`);
     const human=W.entities.find(e=>SPECIES[e.kind].category==='human');
     g.player=human;g.cameraMode='third_person';g.snapCamera=true;frames(10);
     assert('back on land the underwater effects are gone',g.scene.userData.underwater===false&&!W.underwaterFx.visible);

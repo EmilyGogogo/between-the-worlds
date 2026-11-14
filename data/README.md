@@ -121,7 +121,7 @@ CSV 为 UTF-8 BOM。计划行中的生成日期、原文件、输入、授权与
 - `"type": "enclosed"`（湖、池塘）：椭圆区域（`shape`、`center`、`radii`）内的平静水面，`surfaceY` 是水面高度（岛的局部坐标），`opacity` 是水面不透明度；可选 `basin: {"depthM", "falloffM": [x, z]}` 让程序占位地形在此挖出湖盆（换成 GLB 地形后湖盆由模型提供）。
 - `"type": "river"`：全局只能有一个（D-030），`levelM` 是河面高度，`minDepthM` 是算作水体的最浅深度；`corridor` 给出河道半宽、长度与岛离岸的距离，两岸雨林据此生成，岛只在河道内漂移。
 - 封闭水体只在湖床低于 `surfaceY` 的地方有水，所以椭圆可以框住整段弯曲的牛轭湖而不淹没内侧沙脊；`look` 设定深水、浅水颜色、清澈度与流向。
-- 可选 `underwater`（2026-11-13，`frontend/src/underwater.js`）：镜头在水下时的样子。`fog`／`fogDensity` 是水下雾色与浓度，`sky` 是透过水看到的天空色，`bedTint`／`bedSand` 是水底沙与淤泥的色调和比例，`caustics`／`causticScaleM` 是水底焦散光斑的强度与网格大小，`shafts`、`motes` 是光柱和悬浮颗粒的强度。写在河流上作为所有水体的默认值，封闭水体可以单独覆盖。
+- 可选 `underwater`（2026-11-13，`frontend/src/underwater.js`）：镜头在水下时的样子。`fog`／`fogDensity` 是水下雾色与浓度，`sky` 是透过水看到的天空色，`bedTint`／`bedSand` 是水底沙与淤泥的色调和比例，`caustics`／`causticScaleM` 是水底焦散光斑的强度与网格大小，`shafts`、`motes` 是光柱和悬浮颗粒的强度（颗粒在第一人称近处像白点，2026-11-14 起河流默认 0，即不画）。写在河流上作为所有水体的默认值，封闭水体可以单独覆盖。
 - 主岛地形：`entities.json` 的 `env.world.heightfield` 指向 `project/terrain/river_island.py` 在 Blender 中生成的高度场与地表分层权重图（沙、湿泥、草、龟裂泥，其余为落叶层）；装饰槽可用 `groundLayer`（序号或 `litter`）只长在某一层上。改地形时改脚本参数后重新生成，再把 `island-terrain.json` 中的网格、尺寸与高度范围抄回 `heightfield`。
 
 游泳身体的活动区、水面渲染、镜头是否在水下、岛面拾取都读这些数据。新增一个湖只需在 `regions` 加一个带 `water` 的区域；之后仍要验证鱼的活动边界、出生点、布景和湖盆深度是否让鱼游得开（鱼需要水深超过身高 1.2 倍）。

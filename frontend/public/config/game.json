@@ -877,7 +877,7 @@
           "fade": 0.14,
           "fadeMax": 0.85,
           "ripple": 0.02,
-          "edgeBlur": 0.4,
+          "edgeBlur": 0.15,
           "vignette": 0,
           "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，待试玩）"
         },
@@ -885,8 +885,8 @@
           "source": "tailbeat",
           "headBone": "head",
           "spineBone": "spine1",
-          "swayM": 0.002,
-          "swayYawDeg": 0.5,
+          "swayM": 0.004,
+          "swayYawDeg": 1.0,
           "idleGain": 0.3,
           "boostGain": 0.5,
           "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：银斧鱼小而快，摆幅小、细碎；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，待试玩）"
@@ -983,7 +983,7 @@
           "fade": 0.14,
           "fadeMax": 0.85,
           "ripple": 0.02,
-          "edgeBlur": 0.5,
+          "edgeBlur": 0.2,
           "vignette": 0,
           "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，待试玩）"
         },
@@ -991,8 +991,8 @@
           "source": "tailbeat",
           "headBone": "head",
           "spineBone": "spine1",
-          "swayM": 0.005,
-          "swayYawDeg": 0.9,
+          "swayM": 0.009,
+          "swayYawDeg": 1.8,
           "idleGain": 0.35,
           "boostGain": 0.3,
           "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：七彩神仙鱼身体扁圆、游得慢，摆幅较大、柔和；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，待试玩）"
@@ -1503,7 +1503,7 @@
             "bedTint": "#cbb98e",
             "bedSand": 0.65,
             "shafts": 0.3,
-            "motes": 0.45
+            "motes": 0
           }
         },
         "corridor": {
@@ -1525,6 +1525,258 @@
         "placement": "main",
         "anchorId": "A10",
         "kind": "island"
+      },
+      {
+        "id": "silverfish-8",
+        "carrier": "island-main",
+        "position": [
+          -65,
+          -0.6,
+          50
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-9",
+        "carrier": "island-main",
+        "position": [
+          -64,
+          -0.6,
+          50
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-10",
+        "carrier": "island-main",
+        "position": [
+          -63,
+          -0.6,
+          50
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-11",
+        "carrier": "island-main",
+        "position": [
+          -65,
+          -0.6,
+          51
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-12",
+        "carrier": "island-main",
+        "position": [
+          -64,
+          -0.6,
+          51
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-13",
+        "carrier": "island-main",
+        "position": [
+          -63,
+          -0.6,
+          51
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "silverfish"
+      },
+      {
+        "id": "discus-4",
+        "carrier": "island-main",
+        "position": [
+          -78,
+          -1.05,
+          -85
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "discus"
+      },
+      {
+        "id": "discus-5",
+        "carrier": "island-main",
+        "position": [
+          -62,
+          -1.05,
+          83
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "discus"
+      },
+      {
+        "id": "discus-6",
+        "carrier": "island-main",
+        "position": [
+          -51,
+          -1.05,
+          -60
+        ],
+        "placement": "fixed",
+        "anchorId": "A04",
+        "kind": "discus"
+      },
+      {
+        "id": "silverfish-14",
+        "carrier": "island-main",
+        "position": [
+          -343.5,
+          -0.52,
+          48
+        ],
+        "placement": "fixed",
+        "anchorId": "A14",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-15",
+        "carrier": "island-main",
+        "position": [
+          -342.5,
+          -0.52,
+          48
+        ],
+        "placement": "fixed",
+        "anchorId": "A14",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-16",
+        "carrier": "island-main",
+        "position": [
+          -341.5,
+          -0.52,
+          48
+        ],
+        "placement": "fixed",
+        "anchorId": "A14",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-17",
+        "carrier": "island-main",
+        "position": [
+          -340.5,
+          -0.52,
+          48
+        ],
+        "placement": "fixed",
+        "anchorId": "A14",
+        "kind": "silverfish"
+      },
+      {
+        "id": "discus-7",
+        "carrier": "island-main",
+        "position": [
+          -354,
+          -1.05,
+          62
+        ],
+        "placement": "fixed",
+        "anchorId": "A14",
+        "kind": "discus"
+      },
+      {
+        "id": "discus-8",
+        "carrier": "island-main",
+        "position": [
+          -317,
+          -1.05,
+          66
+        ],
+        "placement": "fixed",
+        "anchorId": "A14",
+        "kind": "discus"
+      },
+      {
+        "id": "silverfish-18",
+        "carrier": "island-main",
+        "position": [
+          -23.5,
+          -0.52,
+          -212
+        ],
+        "placement": "fixed",
+        "anchorId": "A15",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-19",
+        "carrier": "island-main",
+        "position": [
+          -22.5,
+          -0.52,
+          -212
+        ],
+        "placement": "fixed",
+        "anchorId": "A15",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-20",
+        "carrier": "island-main",
+        "position": [
+          -21.5,
+          -0.52,
+          -212
+        ],
+        "placement": "fixed",
+        "anchorId": "A15",
+        "kind": "silverfish"
+      },
+      {
+        "id": "silverfish-21",
+        "carrier": "island-main",
+        "position": [
+          -20.5,
+          -0.52,
+          -212
+        ],
+        "placement": "fixed",
+        "anchorId": "A15",
+        "kind": "silverfish"
+      },
+      {
+        "id": "discus-9",
+        "carrier": "island-main",
+        "position": [
+          -35,
+          -1.05,
+          -197
+        ],
+        "placement": "fixed",
+        "anchorId": "A15",
+        "kind": "discus"
+      },
+      {
+        "id": "discus-10",
+        "carrier": "island-main",
+        "position": [
+          7,
+          -1.05,
+          -199
+        ],
+        "placement": "fixed",
+        "anchorId": "A15",
+        "kind": "discus"
       },
       {
         "id": "grass-start",
@@ -1831,7 +2083,7 @@
         "carrier": "island-main",
         "position": [
           150,
-          -0.62,
+          -1.3,
           305
         ],
         "placement": "fixed",
@@ -1891,7 +2143,7 @@
         "carrier": "island-main",
         "position": [
           152,
-          -0.62,
+          -1.3,
           303
         ],
         "placement": "fixed",
@@ -1951,7 +2203,7 @@
         "carrier": "island-main",
         "position": [
           154,
-          -0.62,
+          -1.3,
           301
         ],
         "placement": "fixed",
@@ -2011,7 +2263,7 @@
         "carrier": "island-main",
         "position": [
           156,
-          -0.62,
+          -1.3,
           299
         ],
         "placement": "fixed",
@@ -2708,6 +2960,302 @@
       }
     ],
     "ambient": [
+      {
+        "id": "AM-HATCHET-LAKE-NORTH",
+        "type": "path",
+        "members": [
+          "silverfish-8",
+          "silverfish-9",
+          "silverfish-10",
+          "silverfish-11",
+          "silverfish-12",
+          "silverfish-13"
+        ],
+        "shape": "figure8",
+        "center": [
+          -64,
+          50
+        ],
+        "radii": [
+          10,
+          10
+        ],
+        "rotationDeg": 120,
+        "periodSec": 46,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "lake",
+          "depthM": 0.5
+        },
+        "formation": {
+          "columns": 3,
+          "spacingM": 1.0,
+          "wobbleM": 0.15
+        },
+        "animation": "move",
+        "maxSpeedMS": 5,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-LAKE-0",
+        "type": "path",
+        "members": [
+          "discus-4"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -86,
+          -85
+        ],
+        "radii": [
+          8,
+          5
+        ],
+        "rotationDeg": 0,
+        "periodSec": 36,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "lake",
+          "depthM": 0.8
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-LAKE-1",
+        "type": "path",
+        "members": [
+          "discus-5"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -70,
+          83
+        ],
+        "radii": [
+          8,
+          5
+        ],
+        "rotationDeg": 0,
+        "periodSec": 42,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "lake",
+          "depthM": 0.8
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-LAKE-2",
+        "type": "path",
+        "members": [
+          "discus-6"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -59,
+          -60
+        ],
+        "radii": [
+          8,
+          5
+        ],
+        "rotationDeg": 0,
+        "periodSec": 39,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "lake",
+          "depthM": 0.8
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-HATCHET-POND-WEST",
+        "type": "path",
+        "members": [
+          "silverfish-14",
+          "silverfish-15",
+          "silverfish-16",
+          "silverfish-17"
+        ],
+        "shape": "figure8",
+        "center": [
+          -342,
+          48
+        ],
+        "radii": [
+          10,
+          10
+        ],
+        "rotationDeg": 0,
+        "periodSec": 42,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "pond_west",
+          "depthM": 0.4
+        },
+        "formation": {
+          "columns": 4,
+          "spacingM": 1.0,
+          "wobbleM": 0.15
+        },
+        "animation": "move",
+        "maxSpeedMS": 5,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-POND-WEST-0",
+        "type": "path",
+        "members": [
+          "discus-7"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -357,
+          62
+        ],
+        "radii": [
+          3,
+          3
+        ],
+        "rotationDeg": 0,
+        "periodSec": 30,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "pond_west",
+          "depthM": 0.8
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-POND-WEST-1",
+        "type": "path",
+        "members": [
+          "discus-8"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -324,
+          66
+        ],
+        "radii": [
+          7,
+          5
+        ],
+        "rotationDeg": 0,
+        "periodSec": 38,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "pond_west",
+          "depthM": 0.8
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-HATCHET-POND-SOUTH",
+        "type": "path",
+        "members": [
+          "silverfish-18",
+          "silverfish-19",
+          "silverfish-20",
+          "silverfish-21"
+        ],
+        "shape": "figure8",
+        "center": [
+          -22,
+          -212
+        ],
+        "radii": [
+          10,
+          10
+        ],
+        "rotationDeg": 0,
+        "periodSec": 48,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "pond_south",
+          "depthM": 0.4
+        },
+        "formation": {
+          "columns": 4,
+          "spacingM": 1.0,
+          "wobbleM": 0.15
+        },
+        "animation": "move",
+        "maxSpeedMS": 5,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-POND-SOUTH-0",
+        "type": "path",
+        "members": [
+          "discus-9"
+        ],
+        "shape": "ellipse",
+        "center": [
+          -42,
+          -197
+        ],
+        "radii": [
+          7,
+          5
+        ],
+        "rotationDeg": 0,
+        "periodSec": 40,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "pond_south",
+          "depthM": 0.8
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
+      {
+        "id": "AM-DISCUS-POND-SOUTH-1",
+        "type": "path",
+        "members": [
+          "discus-10"
+        ],
+        "shape": "ellipse",
+        "center": [
+          0,
+          -199
+        ],
+        "radii": [
+          7,
+          5
+        ],
+        "rotationDeg": 0,
+        "periodSec": 44,
+        "phaseDeg": 0,
+        "vertical": {
+          "mode": "belowSurface",
+          "water": "pond_south",
+          "depthM": 0.8
+        },
+        "animation": "idle",
+        "maxSpeedMS": 3,
+        "resumeAfterSec": 4
+      },
       {
         "id": "AM-GULL-0",
         "members": [
@@ -3774,7 +4322,7 @@
     },
     "firstPersonLensRenderScale": {
       "runtimeBinding": "integrated",
-      "note": "第一人称镜头先渲染到放大的画面再弯曲绘制，放大倍数越高中央越清楚、越耗性能；按画面像素数计的上限另有 400 万像素。",
+      "note": "第一人称镜头先以更宽视野渲染再弯曲绘制，这是广角画面相对屏幕的放大倍数（上限 400 万像素）。广角画面中央会变粗，若因此比屏幕粗 1.2 倍以上（鱼眼），中央另用屏幕大小的窄视野画面单独渲染以保持清楚，此时广角画面只用这里的一半。",
       "value": 1.5,
       "unit": "ratio",
       "min": 1,
@@ -3844,8 +4392,8 @@
     },
     "underwaterStrokeGain": {
       "runtimeBinding": "integrated",
-      "note": "游动时随游动动画头部摆动的推水声。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。",
-      "value": 0.025,
+      "note": "游动时随游动动画头部摆动的推水声。2026-11-14 水下音景（A-01、B-04）：镜头或游泳身体在水下时替代风与草叶的合成层；合成占位的相对音量，听测后定。负责人试玩听不到，0.025 → 0.07，并把频段提高到笔记本扬声器能放出的约 450 Hz。",
+      "value": 0.07,
       "unit": "gain",
       "min": 0,
       "max": 0.2,

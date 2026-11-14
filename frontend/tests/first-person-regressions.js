@@ -11,7 +11,8 @@ export function checkFirstPersonSenses(g,assert){
   const take=(e,mode='third_person')=>{W.restore(snapshot);g.clearInput();g.player=e;g.transition=null;g.cameraMode=mode;g.yaw=0;g.pitch=mode==='first_person'?0:.3;g.collision.refresh();g.snapCamera=true;step(3);};
   const toggle=()=>{g.paused=false;const changed=g.toggleView();g.paused=true;return changed;};
   const swimmer=kind=>W.entities.find(e=>e.kind===kind&&W.water(e.root.position.x,e.root.position.z));
-  const gull=W.entities.find(e=>e.kind==='gull'),silver=swimmer('silverfish'),discus=swimmer('discus'),human=W.entities.find(e=>SPECIES[e.kind].category==='human');
+  // The lake school and the river discus have open water ahead of them (other fish may start near a shore).
+  const gull=W.entities.find(e=>e.kind==='gull'),silver=W.byId.get('silverfish-0')||swimmer('silverfish'),discus=W.byId.get('discus-0')||swimmer('discus'),human=W.entities.find(e=>SPECIES[e.kind].category==='human');
   const near=(c,t,tol=.03)=>Math.hypot(c.r-t.r,c.g-t.g,c.b-t.b)<tol;
   // Eye offsets from the resting eye in the body's own frame, the beats felt, and the beats heard.
   const record=(e,frames,action=null)=>{
