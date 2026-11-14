@@ -79,7 +79,8 @@ export class Ambience {
     // The body's own beats: a push of water per tail sweep, a soft feathered whoosh per downstroke.
     // Around 450 Hz: low enough to read as water, high enough for laptop speakers to play.
     if(L.stroke)this.burst(this.brown,{type:'bandpass',freq:450,q:.7,volume:L.stroke,attack:.05,decay:.34,out:this.water});
-    if(L.wing)this.burst(this.white,{type:'bandpass',freq:700,q:.6,volume:L.wing,attack:.03,decay:.18,out:this.master});
+    // Around 1100 Hz, above the low wind, so the wingbeat is not covered by it.
+    if(L.wing)this.burst(this.white,{type:'bandpass',freq:1100,q:.6,volume:L.wing,attack:.03,decay:.18,out:this.master});
     // Bubbles at irregular intervals around the listener.
     if(!L.underwater)this.nextBubble=state.time+this.tune('underwaterBubbleEverySec',2.5)*Math.random();
     else if(state.time>this.nextBubble){
