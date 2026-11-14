@@ -309,8 +309,10 @@ class Game {
     if(s.mode==='fly'){const air=LAYOUT.regions[s.activityRegion],d=r=>Math.hypot(r[0]-air.center[0],r[1]-air.center[1]);return d([x,z])<=air.radius||d([x,z])<d([p.x,p.z]);}
     if(s.category==='human')return true;
     // wadeDepth is a water depth (M-04): ground bodies stay where the water is at most that deep.
-    const limit=s.wadeDepth;
-    return this.world.waterDepth(x,z)<=limit||this.world.waterDepth(p.x,p.z)>limit;
+    // A body already deeper than that (an old save, a spawn point) may only move to water that is
+    // no deeper than where it stands, so it can wade back to the bank but never further in.
+    const limit=s.wadeDepth,next=this.world.waterDepth(x,z);
+    return next<=limit||next<=this.world.waterDepth(p.x,p.z);
   }
   move(dt){
     const e=this.player,s=SPECIES[e.kind],a=this.actions;
@@ -485,7 +487,8 @@ class Game {
     const local=new THREE.Vector3(...offset);if(extra)local.add(extra);
     const eye=subject.root.localToWorld(local);
     // A swimmer's eye stays in the water, below the margin at which the camera counts as under it.
-    if(s.mode==='swim'&&subject.root.parent===this.world.islandRoot){const l=this.world.islandRoot.worldToLocal(eye.clone()),w=this.world.water(l.x,l.z);if(w&&l.y>w.surface-.12){l.y=w.surface-.12;eye.copy(this.world.islandRoot.localToWorld(l));}}
+    // Uses waterDepth (as wading does), so the shallow river margin below minDepthM counts too.
+    if(s.mode==='swim'&&subject.root.parent===this.world.islandRoot){const l=this.world.islandRoot.worldToLocal(eye.clone()),d=this.world.waterDepth(l.x,l.z),surface=this.world.height(l.x,l.z)+d;if(d>0&&l.y>surface-.12){l.y=surface-.12;eye.copy(this.world.islandRoot.localToWorld(l));}}
     if(subject.root.parent===this.world.islandRoot){const local=this.world.islandRoot.worldToLocal(eye.clone());local.y=Math.max(local.y,this.world.height(local.x,local.z)+tune('cameraCollisionPaddingM',.1));eye.copy(this.world.islandRoot.localToWorld(local));}
     return eye;
   }
@@ -549,7 +552,7 @@ class Game {
       const distance=this.world.position(e,v1).distanceTo(p);
       if(!cue||distance<cue.distance){cue={name,distance};source=e;}
     }
-    if(cue)cue.pan=this.panOf(source,p);
+    if(cue){cue.pan=this.panOf(source,p);cue.fromWater=this.sourceInWater(source);}
     this.audio.update(h,{underwater:this.listenerState.underwater,surface:this.listenerState.surface,beat:this.motion.beat,groundFade,cue,crossfade:tune('audioCrossfadeSec',1.2),time:this.elapsed});
   }
 
@@ -558,10 +561,15 @@ class Game {
     return d.lengthSq()?d.normalize().dot(right):0;
   }
   // A sound made by something in the world, heard through the current body's ears.
+  // Whether a sound source is in the water (a swimmer's middle, like the listener).
+  sourceInWater(e){const s=SPECIES[e.kind];return this.waterAt(e.root.localToWorld(new THREE.Vector3(0,s.height*.5,0))).underwater;}
+  // A sound crossing the water surface reaches the other side only faintly (underwaterAirCueGain);
+  // one heard on its own side of the surface keeps its volume (a fish hearing a fish).
+  cueCarry(fromWater){return this.listenerState.underwater!==fromWater?tune('underwaterAirCueGain',.15):1;}
   playCue(name,volume,entity){
     const h=this.view.hearing,p=this.world.position(this.transition?.to||this.player,new THREE.Vector3());
     const reach=1-this.world.position(entity,v1).distanceTo(p)/h.range;
-    if(reach>0)this.audio.play(name,volume*h.distantCueGain*Math.sqrt(reach)*(this.listenerState.underwater?tune('underwaterAirCueGain',.15):1),this.panOf(entity,p));
+    if(reach>0)this.audio.play(name,volume*h.distantCueGain*Math.sqrt(reach)*this.cueCarry(this.sourceInWater(entity)),this.panOf(entity,p));
   }
 
   // --- Compact controls, current possession target guidance, rare responses (D-024).
@@ -639,7 +647,8 @@ async function boot(){
     // Compile every material while the loading screen shows, so entering does not stall.
     try{game.world.update(0,game.player,null,null,1);if(!NO_RENDER){await renderer.compileAsync(game.scene,game.camera);await renderer.compileAsync(game.lens.screen,game.lens.flat);
       // The first-person lens draws the scene into a target, which needs its own shader variants.
-      renderer.setRenderTarget(game.lens.target);await renderer.compileAsync(game.scene,game.camera);renderer.setRenderTarget(null);}}catch(e){console.warn('Shader warm-up skipped',e);}
+      // Always draw to the screen again afterwards, even if compiling fails.
+      renderer.setRenderTarget(game.lens.target);try{await renderer.compileAsync(game.scene,game.camera);}finally{renderer.setRenderTarget(null);}}}catch(e){console.warn('Shader warm-up skipped',e);}
     if(!game.hasSave)$('enter-label').textContent='进入旷野';$('enter').disabled=false;
     // Debug access is available only with ?debug; the normal product UI stays quiet.
     if(new URLSearchParams(location.search).has('debug'))window.__world=game;

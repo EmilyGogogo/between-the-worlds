@@ -91,7 +91,9 @@ export class Ambience {
       this.lastCue=state.time;
       const reach=1-state.cue.distance/hearing.range;
       // A call from the air reaches a listener under water only faintly.
-      if(reach>0)this.play(state.cue.name,.022*hearing.distantCueGain*Math.sqrt(reach)*state.groundFade*L.cueGain,state.cue.pan);
+      // Only a sound crossing the surface is faint; one from the listener's own side keeps its level.
+      const carry=(state.cue.fromWater??false)!==L.underwater?this.tune('underwaterAirCueGain',.15):1;
+      if(reach>0)this.play(state.cue.name,.022*hearing.distantCueGain*Math.sqrt(reach)*state.groundFade*carry,state.cue.pan);
     }
   }
   // A short swell of filtered noise.

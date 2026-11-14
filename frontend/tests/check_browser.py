@@ -146,7 +146,9 @@ for(const kind of kinds)for(const [action,relative] of [['move_back',Math.PI],['
   const turn=e.heading-start,cameraTurn=Math.atan2(Math.sin(g.yaw-.7),Math.cos(g.yaw-.7));
   assert(`${kind}: ${action} starts a bounded turn and camera follow`,Math.abs(turn)<=SPECIES[kind].turnSpeed*Math.PI/180*.1+1e-8&&Math.abs(cameraTurn-turn)<1e-6&&Math.abs(turn)>.01);
   if(action==='move_back')assert(`${kind}: back does not backpedal at turn start`,W.position(e).distanceTo(position)<1e-7);
-  for(let i=0;i<24;i++){g.move(1/20);g.updateCamera(1/20);}
+  // Long enough for this body's own turn speed to reach the direction (slow turners take longer), plus a margin.
+  const turnFrames=Math.max(24,Math.ceil((Math.abs(relative)*180/Math.PI/SPECIES[kind].turnSpeed-.1)*20)+8);
+  for(let i=0;i<turnFrames;i++){g.move(1/20);g.updateCamera(1/20);}
   const moved=W.position(e).distanceTo(position);
   assert(`${kind}: ${action} body and camera reach the requested direction`,Math.cos(e.heading-start-relative)>.999&&Math.cos(g.yaw-.7-relative)>.999&&moved>.01);
   const settledYaw=g.yaw,settledHeading=e.heading;

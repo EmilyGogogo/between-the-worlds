@@ -95,18 +95,25 @@ export class Lens {
     const coarse=Math.tan(targetHalf)/(centreScale*wideK),sharp=coarse>SHARP_AT;
     const k=sharp?Math.min(renderScale*.5,budget):wideK,w=Math.max(1,Math.round(this.size.x*k)),h=Math.max(1,Math.round(this.size.y*k));
     if(this.target.width!==w||this.target.height!==h)this.target.setSize(w,h);
-    let centreHalf=targetHalf,cw=0,ch=0;
-    if(sharp){
-      // Screen-sized, at the angle whose middle matches the screen pixel for pixel.
-      const kc=Math.min(1,budget);cw=Math.max(1,Math.round(this.size.x*kc));ch=Math.max(1,Math.round(this.size.y*kc));
-      if(this.centre.width!==cw||this.centre.height!==ch)this.centre.setSize(cw,ch);
-      centreHalf=Math.min(targetHalf,Math.atan(centreScale*kc));
-      camera.fov=M.radToDeg(centreHalf*2);camera.updateProjectionMatrix();
-      r.setRenderTarget(this.centre);r.render(scene,camera);
+    let centreHalf=targetHalf,cw=0,ch=0;const shadows=r.shadowMap.autoUpdate;
+    // The camera, render target and shadow updates are restored even if a render throws.
+    try{
+      if(sharp){
+        // Screen-sized, at the angle whose middle matches the screen pixel for pixel.
+        const kc=Math.min(1,budget);cw=Math.max(1,Math.round(this.size.x*kc));ch=Math.max(1,Math.round(this.size.y*kc));
+        if(this.centre.width!==cw||this.centre.height!==ch)this.centre.setSize(cw,ch);
+        centreHalf=Math.min(targetHalf,Math.atan(centreScale*kc));
+        camera.fov=M.radToDeg(centreHalf*2);camera.updateProjectionMatrix();
+        r.setRenderTarget(this.centre);r.render(scene,camera);
+        // The lights have not moved since: the wide render reuses the shadows just drawn.
+        r.shadowMap.autoUpdate=false;
+      }
+      camera.fov=M.radToDeg(targetHalf*2);camera.updateProjectionMatrix();
+      r.setRenderTarget(this.target);r.render(scene,camera);
+    }finally{
+      r.setRenderTarget(null);r.shadowMap.autoUpdate=shadows;
+      camera.fov=fov;camera.updateProjectionMatrix();
     }
-    camera.fov=M.radToDeg(targetHalf*2);camera.updateProjectionMatrix();
-    r.setRenderTarget(this.target);r.render(scene,camera);r.setRenderTarget(null);
-    camera.fov=fov;camera.updateProjectionMatrix();
     const u=this.material.uniforms;
     u.wideHalf.value=wideHalf;u.targetHalf.value=targetHalf;u.centreHalf.value=centreHalf;u.sharp.value=sharp?1:0;
     u.curve.value=lens.curve;u.round.value=lens.round;u.radius.value=lens.radius;

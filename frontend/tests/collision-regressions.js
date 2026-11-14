@@ -131,6 +131,16 @@ export function checkWading(g,assert){
       assert(`${kind} ${shallowDepth<=s.wadeDepth?'may':'may not'} step from the bank into ${shallowDepth.toFixed(2)} m of water (wade ${s.wadeDepth} m)`,g.allowed(e,s,shallow.x,shallow.z)===(shallowDepth<=s.wadeDepth));
       e.root.position.set(shallow.x,W.height(shallow.x,shallow.z),shallow.z);
       if(s.wadeDepth>=shallowDepth)assert(`${kind} ${deepDepth<=s.wadeDepth?'may':'may not'} go on into ${deepDepth.toFixed(2)} m of water (wade ${s.wadeDepth} m)`,g.allowed(e,s,deep.x,deep.z)===(deepDepth<=s.wadeDepth));
+      // Already deeper than allowed (an old save, a spawn point): it may wade back, never further in.
+      if(deepDepth>s.wadeDepth){
+        W.restore(snapshot);e.root.position.set(deep.x,W.height(deep.x,deep.z),deep.z);
+        let deeper=null,shallower=null;
+        for(let a=0;a<32;a++)for(const r of [1,2,3]){const x=deep.x+Math.cos(a*.19635)*r,z=deep.z+Math.sin(a*.19635)*r,d=W.waterDepth(x,z);
+          if(!deeper&&d>deepDepth+.05)deeper={x,z};if(!shallower&&d<deepDepth-.05)shallower={x,z};}
+        if(deeper)assert(`${kind} standing in ${deepDepth.toFixed(2)} m of water may not go deeper`,!g.allowed(e,s,deeper.x,deeper.z));
+        if(shallower)assert(`${kind} standing in ${deepDepth.toFixed(2)} m of water may wade back toward the bank`,g.allowed(e,s,shallower.x,shallower.z));
+        assert(`${kind} deep-water fixture finds deeper and shallower neighbours`,Boolean(deeper&&shallower));
+      }
       // Walking from the bank toward the water: it stops at the shore, or wades on the bed.
       const far={x:dry.x+(shallow.x-dry.x)*4,z:dry.z+(shallow.z-dry.z)*4},p=drive(e,dry,far,150);
       const depth=W.waterDepth(p.x,p.z),bed=W.height(p.x,p.z);
