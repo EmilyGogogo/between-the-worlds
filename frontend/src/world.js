@@ -293,6 +293,10 @@ export class World {
       let object=null,procedural=false;
       if(this.assets.hasDecor(slot.slotId)){
         const r=mulberry32(slot.scatter.seed??1),placements=[],[lo,hi]=slot.scaleRange||[1,1];
+        for(const point of slot.scatter.points||[]){
+          const [x,offset,z]=point.position;
+          placements.push({...point,position:[x,this.surfaceOf(carrier,x,z)+offset,z]});
+        }
         for(const area of slot.scatter.areas)for(let i=0;i<area.count;i++){
           const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],y=this.surfaceOf(carrier,x,z);
           if(scatterAllows(slot.scatter,x,y,z))placements.push({position:[x,y,z],rotationY:r()*Math.PI*2,scale:lo+(hi-lo)*r()});

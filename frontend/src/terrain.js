@@ -34,7 +34,9 @@ export async function loadHeightfield(desc){
   const raw=new Uint16Array(buffer),[nx,nz]=desc.grid,[lo,hi]=desc.heightRange;
   if(raw.length!==nx*nz)throw Error(`${desc.url}: ${raw.length} samples, expected ${nx}×${nz}`);
   const heights=new Float32Array(raw.length);for(let i=0;i<raw.length;i++)heights[i]=lo+raw[i]/65535*(hi-lo);
-  return new Heightfield(desc,heights,ground);
+  const field=new Heightfield(desc,heights,ground);
+  applyRockAprons(field,desc.rockAprons||[]);
+  return field;
 }
 // Ground weights are raw RGBA bytes (no PNG premultiplication), row 0 at -Z.
 async function loadGround(desc){
@@ -43,6 +45,39 @@ async function loadGround(desc){
   const texture=new THREE.DataTexture(data,width,height,THREE.RGBAFormat,THREE.UnsignedByteType);
   texture.minFilter=texture.magFilter=THREE.LinearFilter;texture.needsUpdate=true;
   return {width,height,data,texture};
+}
+
+// Blend soil into the existing heightfield before the water, mesh and vegetation sample it.
+function applyRockAprons(field,aprons){
+  for(const {center:[cx,cz],radii:[rx,rz],rise,soil,blend} of aprons){
+    const mask=(x,z)=>{
+      const u=(x-cx)/rx,v=(z-cz)/rz;
+      const d=Math.hypot(u,v)*(1+.13*Math.sin(4*u+6*v)+.08*Math.cos(8*u-3*v));
+      const t=THREE.MathUtils.clamp(1-d,0,1);
+      return t*t*(3-2*t);
+    };
+    const editGrid=(width,depth,edit)=>{
+      const dx=field.width/(width-1),dz=field.depth/(depth-1);
+      const x0=Math.max(0,Math.floor((cx-1.27*rx+field.width/2)/dx));
+      const x1=Math.min(width-1,Math.ceil((cx+1.27*rx+field.width/2)/dx));
+      const z0=Math.max(0,Math.floor((cz-1.27*rz+field.depth/2)/dz));
+      const z1=Math.min(depth-1,Math.ceil((cz+1.27*rz+field.depth/2)/dz));
+      for(let j=z0;j<=z1;j++)for(let i=x0;i<=x1;i++){
+        edit(j*width+i,mask(i*dx-field.width/2,j*dz-field.depth/2));
+      }
+    };
+    editGrid(field.nx,field.nz,(index,weight)=>{field.heights[index]+=rise*weight;});
+    const ground=field.ground;
+    if(!ground)continue;
+    editGrid(ground.width,ground.height,(index,weight)=>{
+      const mix=weight*blend;
+      for(let channel=0;channel<4;channel++){
+        const i=index*4+channel;
+        const target=channel===1&&soil==='mud'?255:0;
+        ground.data[i]=Math.round(THREE.MathUtils.lerp(ground.data[i],target,mix));
+      }
+    });
+  }
 }
 
 // --- Chunked terrain with distance-based detail.

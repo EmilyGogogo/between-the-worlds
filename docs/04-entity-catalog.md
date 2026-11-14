@@ -98,8 +98,8 @@
 | `slot.broadleaf` | 阔叶树 | 无（程序摇曳） | `broadleaf-v1.glb` | 占位 |
 | `slot.palm` | 阿萨伊棕榈 | 无（程序摇曳） | `palm-v1.glb` | 占位 |
 | `slot.kapok` | 吉贝木棉 | 无（程序摇曳） | `kapok-v1.glb` | 占位 |
-| `slot.rock` | 海岸岩石 | 无 | `rock-v1.glb` | 占位 |
-| `slot.boulder` | 海岸巨岩 | 无 | `boulder-v1.glb` | 占位 |
+| `slot.rock` | 海岸岩石 | 无 | `tidal-reef-v001.glb` | 已接入，待试玩 |
+| `slot.boulder` | 海岸巨岩 | 无 | `rocky-hill-v001.glb` | 已接入，待试玩 |
 | `slot.island` | 岛屿（主岛和邻岛地形） | 无 | `island-v1.glb` | 占位 |
 | `slot.gull` | 海鸥 | idle、move | `bird_gull_01-v003.glb` | 已接入，idle=Glide / move=Flap |
 | `slot.silverfish` | 银斧鱼 | idle、move | `fish_silver_01-v001.glb` | 已接入，idle=Swim / move=SwimFast |
