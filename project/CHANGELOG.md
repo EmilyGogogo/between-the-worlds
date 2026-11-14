@@ -2,6 +2,27 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-14 · 海岸礁石碰撞盒贴合 0.95 m 模型
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：PR #18，分支 `asset/river-island-rocks`。
+- AI：Claude Code（Claude Opus 5.5）按创作者在会话中的明确指示测量模型、改碰撞盒数据、补浏览器回归并执行检查；人工复核待完成。
+- 变更与原因：创作者在 PR #18 发现礁石碰撞盒比模型高很多。`rock_coast_01` 接入 `tidal-reef-v001.glb` 后模型高度由 2.0 m 降为 0.95 m，但 `collisionBoxes` 仍沿用原来 1.9 m 高的单盒（`[-1.7,-0.35,-1.35,1.7,1.9,1.35]`），礁石上方约 1 m 是看不见的墙；水平方向则比模型窄约 0.33 m（Z 向模型为 ±1.68 m）。按游戏同样的适配方式（底部居中、按高度缩放，系数约 2.840）计算 GLB 全部 21891 个顶点，按高度分层改为三层贴合模型的盒：`[-1.71,-0.35,-1.68,1.71,0.6,1.68]`（主体，底部保留原 0.35 m 埋入），`[-0.67,0.6,-1.65,1.59,0.8,0.95]`，`[0.41,0.8,-1.27,1.39,0.95,-0.34]`（只覆盖 +X／-Z 一侧的凸起）；全部顶点都在盒内，可见部分盒体积由单个外包盒的 10.87 m³ 降到 8.21 m³，顶部与模型同为 0.95 m。改的是 `data/entities.json` 的资产槽，经 `project/sync_runtime.py` 重新生成 `frontend/public/models/manifest.json`（`game.json` 无变化）。新增浏览器回归 `checkReefCollisionFitsModel`（`frontend/tests/collision-regressions.js`，由 `check_browser.py` 调用）：所有使用外部模型的礁石，其碰撞盒外包须与游戏内实际模型包围盒相差不超过 0.03 m、任何盒不高于模型，`tidal-reef-v001` 低侧角上方不得被阻挡。同步更新 `docs/11-prototype-audit.md` 碰撞行。物种 `collision.boxes`（模型加载失败时程序化占位岩石使用，高 2.0 m）、`body.height`、岩丘碰撞盒与河岸巨岩布景未改。
+- 验证：macOS 本机。`python3 project/check_all.py --output .work/reef-collider-checks` 通过，含 2101 项隔离 Chrome 浏览器检查（原 2099 项 + 新增 2 项）。对照：把 `data/entities.json` 临时恢复为 PR 原 1.9 m 碰撞盒并重新生成后运行 `python3 project/check_all.py --only browser --output .work/reef-collider-old`，新增检查失败，报 `rock-first`、`rock-boulder-0`、`scattered-rocks-0` “碰撞盒顶 1.90 m，模型 0.95 m”；之后已恢复新数据并重新生成。`python3 project/validate_docs.py` 2028 项通过；`python3 project/check_repository.py --javascript` 215 个文件、0 错误；`python3 -m unittest discover -s project/tests` 通过；`git diff --check` 通过。远端 CI 待运行。
+- 未验证项 / 风险：真人试玩未做（玩家贴礁石走动、站上 / 越过礁石、魂穿礁石后在浅水与近岩移动的手感）；碰撞仍是轴对齐盒，不是网格精确碰撞，坡面上仍有少量盒角空隙；礁石随实体旋转时由游戏重新外包，未单独测量旋转后的贴合度。
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：PR #18，分支 `asset/river-island-rocks`。
+- AI：Claude Code（Claude Opus 5.5）按创作者在会话中的明确指示修改台账与文档、执行检查；人工复核待完成。
+- 变更与原因：创作者决定 Lux3D 资产今后不再记录任务 ID，来源统一写 `Lux3D_CN`。`data/asset-ledger.csv`：三行岩石（`LUX3D-tidal-reef`、`LUX3D-coastal-boulder`、`LUX3D-rocky-hill`）的 `source` 由 `Aholo Lux3D` 改为 `Lux3D_CN`，`source_reference` 去掉“任务 ID 待补”；海鸥 v001～v003、银斧鱼、七彩神仙鱼去掉“生成方式、任务 ID、版本与积分待生成人补充”，改为“Lux3D 国内版网页 lux3d.aholo3d.cn 生成（见 raw/vNNN/task.json）”（按创作者后续指示，生成方式、版本与积分也不再要求补充）；三种树与雨林植被行去掉“任务号未留存”，其余来源说明不变。`CONTRIBUTING.md` 去掉“生成任务记录待补”，`project/LICENSES.md` 去掉按时间核对任务号的要求。台账保持 CRLF 换行与 BOM。不改游戏数据、运行时配置、原始产物（`raw/*/task.json` 中的历史记录保留）与历史变更记录；`data/entities.json` 中计划用的 `finalSource: "Aholo Lux3D"` 不属于台账来源，未改。
+- 验证：`python3 project/validate_docs.py` 2028 项通过（47 条资产记录）；`python3 project/check_repository.py --javascript` 216 个文件、0 错误；`python3 -m unittest discover -s project/tests` 通过；`python3 project/check_all.py --output .work/ledger-source-checks` 隔离 Chrome 2099 项通过；`git diff --check` 通过；确认台账工作区仍为 CRLF。
+- 未验证项 / 风险：无游戏行为变化，未进行试玩。
+
+- 负责人：创作者（人工复核待完成）；分支 `asset/river-island-rocks`，基线 `ded4b33`。
+- AI：Codex 复用创作者此前导出的 Aholo Lux3D GLB，核对河床高度，配置资产槽、岸线点位及来源台账。
+- 变更：浅滩布置 16 处低矮礁石，河岸转折布置 5 块海岸巨岩装饰，原有地貌档岩体替换为阶梯岩丘。保留出生空地和邻岛的岩石魂穿入口、原碰撞盒和主岛岩丘的承载关系。
+- 验证：2028 项文档与数据校验、215 个文件的仓库 JavaScript 检查通过。最终点位微调前，2099 项隔离 Chrome 回归通过；微调后，隔离 Chrome 确认 16 处礁石、5 块河岸巨岩、主岛岩丘的 9 个承载对象均正常生成，三款 GLB 无加载错误。日志在本地 `.work/river-rock-checks`。
+- 未验证项：真人试玩、性能测量、素材公开发布许可；河岸巨岩布景没有独立碰撞或魂穿入口。
+- 地貌补充：按创作者意见压低出生空地及河岸礁石的露出高度，拉开岸段间的疏密变化；沿巨岩脚下叠加湿泥低坡，在出生空地与 A05 岩丘脚下叠加落叶缓坡。试玩画面确认了出生空地的接地效果。隔离 Chrome 确认 16 处礁石、5 块巨岩和 9 个岩丘承载对象正常生成。地貌调整后重跑完整检查，2028 项文档与数据检查、2099 项浏览器回归通过。
+
 ## 2026-11-13 · PR #16 同步 main 并解决冲突
 
 - 负责人：@EmilyGogogo（待人工复核）；关联：PR #16，分支 `claude/fix-rock-trunk-stuck`。
