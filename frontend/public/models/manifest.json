@@ -282,8 +282,11 @@
       "scatter": {
         "carrier": "island-main",
         "seed": 500,
-        "insideRegion": "lake",
-        "surfaceMax": 0.0,
+        "waterDepthM": [
+          0.15,
+          4
+        ],
+        "patchM": 9,
         "areas": [
           {
             "center": [
@@ -294,20 +297,83 @@
               128,
               240
             ],
-            "count": 160,
+            "count": 500,
             "waterType": "enclosed"
           },
           {
             "center": [
-              153,
-              303
+              -330,
+              60
             ],
             "size": [
-              84,
-              44
+              120,
+              76
             ],
-            "count": 180,
+            "count": 260,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              -10,
+              -200
+            ],
+            "size": [
+              128,
+              76
+            ],
+            "count": 260,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              1400,
+              900
+            ],
+            "count": 30000,
             "waterType": "river"
+          }
+        ]
+      },
+      "status": "placeholder"
+    },
+    {
+      "slotId": "env.waterweeds",
+      "url": null,
+      "variants": [],
+      "height": 1.2,
+      "scaleRange": [
+        1,
+        1
+      ],
+      "wind": true,
+      "visibleUpToStage": 1,
+      "placeholder": "procedural:waterweed",
+      "placeholderStyle": null,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 808,
+        "waterDepthM": [
+          0.3,
+          2.6
+        ],
+        "patchM": 14,
+        "cellM": 40,
+        "drawDistanceM": 70,
+        "areas": [
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              1400,
+              900
+            ],
+            "count": 26000
           }
         ]
       },

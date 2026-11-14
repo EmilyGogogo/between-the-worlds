@@ -202,7 +202,7 @@
       "body": {
         "height": 0.7,
         "collisionRadius": 0.45,
-        "wadeDepthM": 0.6
+        "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
@@ -318,7 +318,7 @@
       "body": {
         "height": 20.0,
         "collisionRadius": 5.0,
-        "wadeDepthM": 0.6
+        "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
@@ -466,7 +466,7 @@
       "body": {
         "height": 10.0,
         "collisionRadius": 2.6,
-        "wadeDepthM": 0.6
+        "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
@@ -614,7 +614,7 @@
       "body": {
         "height": 42.0,
         "collisionRadius": 9.0,
-        "wadeDepthM": 0.6
+        "wadeDepthM": 0
       },
       "collision": {
         "boxes": [
@@ -1140,14 +1140,15 @@
       "perception": {
         "basis": "art_direction",
         "reviewState": "creator_confirmed",
-        "summary": "色彩更饱满、远景更清楚；升高后地面声音减弱、风声清晰",
+        "summary": "明亮、饱满、偏暖，远处灰雾更淡；升高后地面声音减弱、风声清晰",
         "vision": {
           "grayscale": 0,
-          "saturation": 1.15,
-          "contrast": 1.1,
-          "brightness": 1.02,
-          "fogMultiplier": 0.6,
-          "tint": null
+          "saturation": 1.45,
+          "contrast": 1.18,
+          "brightness": 1.08,
+          "fogMultiplier": 0.3,
+          "tint": "#ffd9a0",
+          "tintOpacity": 0.32
         },
         "hearing": {
           "airLowpassHz": 1400,
@@ -1167,10 +1168,29 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            0.24,
-            0
+            0.155,
+            -0.2
           ],
-          "hideBody": true
+          "hideBody": true,
+          "lens": {
+            "fieldDeg": 110,
+            "curve": 0.45,
+            "round": 0,
+            "edgeBlur": 0.3,
+            "vignette": 0.1,
+            "note": "海鸥眼睛在头两侧、视野很宽：铺满屏幕约 110° 的宽视野，边缘轻微弯曲、稍虚，中央清楚，不做圆形（艺术表达，负责人 2026-11-14 选定，创作者 2026-11-14 确认；观感待试玩）"
+          },
+          "motion": {
+            "source": "wingbeat",
+            "wingBone": "wing3R",
+            "bodyBone": "body",
+            "flapBobM": 0.012,
+            "flapPitchDeg": 0.45,
+            "glideBobM": 0.004,
+            "climbGain": 0.5,
+            "boostGain": 0.3,
+            "note": "眼位随 Flap 振翅的实际翅尖高度起伏：翅膀扇到最低时身体最高，并轻微点头；Glide 滑翔只缓慢漂浮；只抬高不压低眼位（艺术表达，负责人 2026-11-14 选定，创作者 2026-11-14 确认；观感待试玩）"
+          }
         }
       },
       "body": {
@@ -1248,7 +1268,7 @@
       "verticalControl": "view_direction",
       "moveSpeed": 9.0,
       "acceleration": 10,
-      "turnSpeedDegPerSec": 180,
+      "turnSpeedDegPerSec": 260,
       "boostMultiplier": 2.7,
       "observationRange": 150.0,
       "possessionRange": 100.0,
@@ -1262,22 +1282,28 @@
       "perception": {
         "basis": "art_direction",
         "reviewState": "creator_confirmed",
-        "summary": "水下青绿、视野更宽但看得更近；声音沉闷，低频清楚",
+        "summary": "贴近水面的清澈水层：以水下蓝绿为底、略偏蓝，看得比神仙鱼远；骨鳔类，声音沉闷但清楚、听得更远",
         "vision": {
           "grayscale": 0,
-          "saturation": 0.82,
-          "contrast": 0.96,
-          "brightness": 0.96,
-          "fogMultiplier": 1.6,
-          "tint": "#3e7c73"
+          "saturation": 0.9,
+          "contrast": 1,
+          "brightness": 1.06,
+          "fogMultiplier": 1.2,
+          "tint": "#4f8fa6",
+          "tintOpacity": 0.12,
+          "underwaterFog": {
+            "color": "#2a78a0",
+            "density": 0.028,
+            "sky": "#5aaed0"
+          }
         },
         "hearing": {
-          "airLowpassHz": 900,
-          "underwaterLowpassHz": 360,
-          "range": 35,
+          "airLowpassHz": 1200,
+          "underwaterLowpassHz": 520,
+          "range": 50,
           "waterCueGain": 1.4,
           "windGain": 0.03,
-          "distantCueGain": 0.8,
+          "distantCueGain": 1.1,
           "heightAttenuation": false
         }
       },
@@ -1289,10 +1315,34 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            0.208,
-            0
+            0.2,
+            -0.2
           ],
-          "hideBody": true
+          "hideBody": true,
+          "restPitchDeg": -12,
+          "restPitchNote": "银斧鱼嘴和眼朝上、盯着水面：进入第一人称或在第一人称魂穿到它时视线先上抬 12°（负值为抬头），之后鼠标照常控制、仍按视线升降",
+          "lens": {
+            "fieldDeg": 150,
+            "curve": 1,
+            "round": 1,
+            "radius": 2.0,
+            "fade": 0.14,
+            "fadeMax": 0.85,
+            "ripple": 0.02,
+            "edgeBlur": 0.15,
+            "vignette": 0,
+            "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，创作者 2026-11-14 确认；观感待试玩）"
+          },
+          "motion": {
+            "source": "tailbeat",
+            "headBone": "head",
+            "spineBone": "spine1",
+            "swayM": 0.004,
+            "swayYawDeg": 1.0,
+            "idleGain": 0.3,
+            "boostGain": 0.5,
+            "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：银斧鱼小而快，摆幅小、细碎；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，创作者 2026-11-14 确认；观感待试玩）"
+          }
         }
       },
       "body": {
@@ -1370,7 +1420,7 @@
       "verticalControl": "view_direction",
       "moveSpeed": 7.0,
       "acceleration": 10,
-      "turnSpeedDegPerSec": 180,
+      "turnSpeedDegPerSec": 130,
       "boostMultiplier": 2.7,
       "observationRange": 150.0,
       "possessionRange": 100.0,
@@ -1384,22 +1434,28 @@
       "perception": {
         "basis": "art_direction",
         "reviewState": "creator_confirmed",
-        "summary": "水下青绿、视野更宽但看得更近；声音沉闷，低频清楚",
+        "summary": "以水下蓝绿为底、略偏暖，远处很快沉进水色，看得近但不暗；声音更闷、听距更短",
         "vision": {
           "grayscale": 0,
-          "saturation": 0.82,
-          "contrast": 0.96,
-          "brightness": 0.96,
+          "saturation": 1,
+          "contrast": 1.06,
+          "brightness": 1.04,
           "fogMultiplier": 1.6,
-          "tint": "#3e7c73"
+          "tint": "#9a7a4a",
+          "tintOpacity": 0.12,
+          "underwaterFog": {
+            "color": "#4a8278",
+            "density": 0.05,
+            "sky": "#78b8a8"
+          }
         },
         "hearing": {
-          "airLowpassHz": 900,
-          "underwaterLowpassHz": 360,
-          "range": 35,
+          "airLowpassHz": 700,
+          "underwaterLowpassHz": 300,
+          "range": 28,
           "waterCueGain": 1.4,
           "windGain": 0.03,
-          "distantCueGain": 0.8,
+          "distantCueGain": 0.7,
           "heightAttenuation": false
         }
       },
@@ -1411,10 +1467,32 @@
         "firstPerson": {
           "eyeOffset": [
             0,
-            0.2925,
-            0
+            0.25,
+            -0.2
           ],
-          "hideBody": true
+          "hideBody": true,
+          "lens": {
+            "fieldDeg": 155,
+            "curve": 1,
+            "round": 1,
+            "radius": 2.0,
+            "fade": 0.14,
+            "fadeMax": 0.85,
+            "ripple": 0.02,
+            "edgeBlur": 0.2,
+            "vignette": 0,
+            "note": "鱼眼：广角，圆大到只在画面四角露出一点，以缓慢的水波状边缘淡入当前水色，不用黑边（艺术表达，负责人 2026-11-14 选定，创作者 2026-11-14 确认；观感待试玩）"
+          },
+          "motion": {
+            "source": "tailbeat",
+            "headBone": "head",
+            "spineBone": "spine1",
+            "swayM": 0.009,
+            "swayYawDeg": 1.8,
+            "idleGain": 0.35,
+            "boostGain": 0.3,
+            "note": "眼位随游动动画里头部的实际摆动左右摆头（横移加视线偏转，不上下）：七彩神仙鱼身体扁圆、游得慢，摆幅较大、柔和；静止时为 idleGain 倍（艺术表达，负责人 2026-11-14 选定，创作者 2026-11-14 确认；观感待试玩）"
+          }
         }
       },
       "body": {
@@ -1670,7 +1748,7 @@
       "body": {
         "height": 0.8,
         "collisionRadius": 0.45,
-        "wadeDepthM": 0.6,
+        "wadeDepthM": 0,
         "limbSwingRate": 10
       },
       "collision": {
@@ -2137,7 +2215,7 @@
       "url": null,
       "runtimeRead": true,
       "placeholder": "procedural:pebble",
-      "note": "水底卵石装饰，不可魂穿；只放在实际水体床面，包含牛轭湖与南岸清澈河道",
+      "note": "水底卵石与碎石装饰，不可魂穿；成片铺在所有实际水体的床面：牛轭湖、两片水塘、河边浅水与通向河的小溪（2026-11-13 水下美化）",
       "variants": [],
       "height": 0.5,
       "scaleRange": [
@@ -2149,8 +2227,11 @@
       "scatter": {
         "carrier": "island-main",
         "seed": 500,
-        "insideRegion": "lake",
-        "surfaceMax": 0.0,
+        "waterDepthM": [
+          0.15,
+          4
+        ],
+        "patchM": 9,
         "areas": [
           {
             "center": [
@@ -2161,20 +2242,85 @@
               128,
               240
             ],
-            "count": 160,
+            "count": 500,
             "waterType": "enclosed"
           },
           {
             "center": [
-              153,
-              303
+              -330,
+              60
             ],
             "size": [
-              84,
-              44
+              120,
+              76
             ],
-            "count": 180,
+            "count": 260,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              -10,
+              -200
+            ],
+            "size": [
+              128,
+              76
+            ],
+            "count": 260,
+            "waterType": "enclosed"
+          },
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              1400,
+              900
+            ],
+            "count": 30000,
             "waterType": "river"
+          }
+        ]
+      }
+    },
+    {
+      "slotId": "env.waterweeds",
+      "name": "水草（装饰）",
+      "status": "placeholder",
+      "url": null,
+      "runtimeRead": true,
+      "placeholder": "procedural:waterweed",
+      "note": "带状水草丛，不可魂穿、无碰撞；只长在水深 0.3～2.6 m 的床面上，叶尖始终在水面以下，随水流摆动；成片分布，少数偏红（2026-11-13 水下美化）",
+      "variants": [],
+      "height": 1.2,
+      "scaleRange": [
+        1,
+        1
+      ],
+      "wind": true,
+      "visibleUpToStage": 1,
+      "scatter": {
+        "carrier": "island-main",
+        "seed": 808,
+        "waterDepthM": [
+          0.3,
+          2.6
+        ],
+        "patchM": 14,
+        "cellM": 40,
+        "drawDistanceM": 70,
+        "areas": [
+          {
+            "center": [
+              0,
+              0
+            ],
+            "size": [
+              1400,
+              900
+            ],
+            "count": 26000
           }
         ]
       }

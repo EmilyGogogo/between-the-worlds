@@ -18,7 +18,7 @@ const SKY={
 const skyVertex=`varying vec3 dir;void main(){dir=position;gl_Position=projectionMatrix*viewMatrix*vec4(position+cameraPosition,1.);gl_Position.z=gl_Position.w;}`;
 const skyFragment=`varying vec3 dir;
 uniform vec3 sunDir;uniform vec3 moonDir;uniform vec3 skyZenith;uniform vec3 skyHorizon;uniform vec3 sunColor;
-uniform float night;uniform float rain;uniform float time;uniform float underwater;uniform float cloud;
+uniform float night;uniform float rain;uniform float time;uniform float underwater;uniform float cloud;uniform vec3 underwaterColor;
 float sHash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
 float sHash2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float sNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(sHash2(i),sHash2(i+vec2(1,0)),f.x),mix(sHash2(i+vec2(0,1)),sHash2(i+vec2(1,1)),f.x),f.y);}
@@ -39,7 +39,7 @@ void main(){
   float cl=smoothstep(.52-cloud*.25,.85,sFbm(cp))*smoothstep(.0,.18,d.y);
   vec3 cloudCol=mix(mix(vec3(1.,.97,.93),sunColor,.25),skyHorizon*.8,rain*.7)*(1.-night*.6);
   sky=mix(sky,cloudCol,cl*.85);
-  sky=mix(sky,vec3(.06,.18,.16),underwater);
+  sky=mix(sky,underwaterColor*(1.-night*.7),underwater);
   gl_FragColor=vec4(sky,1.);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -56,7 +56,7 @@ export class Atmosphere {
     this.rain=this.pinned.rain??0;this.showerSeed=Math.random()*100;this.elapsed=0;
     this.shared={sunDir:{value:new THREE.Vector3(0,1,0)},sunColor:{value:new THREE.Color()},skyZenith:{value:new THREE.Color()},skyHorizon:{value:new THREE.Color()},
       night:{value:0},rain:{value:0},time:{value:0},dryness:{value:.5},wetness:{value:0},waterLevel:{value:0},toIsland:{value:new THREE.Matrix4()}};
-    this.skyUniforms={...this.shared,moonDir:{value:new THREE.Vector3()},underwater:{value:0},cloud:{value:.3}};
+    this.skyUniforms={...this.shared,moonDir:{value:new THREE.Vector3()},underwater:{value:0},cloud:{value:.3},underwaterColor:{value:new THREE.Color(.06,.18,.16)}};
     const sky=new THREE.Mesh(new THREE.SphereGeometry(1000,32,20),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:this.skyUniforms,vertexShader:skyVertex,fragmentShader:skyFragment}));
     sky.renderOrder=-100;sky.frustumCulled=false;scene.add(sky);this.sky=sky;
     this.rainMesh=this.createRain();scene.add(this.rainMesh);

@@ -146,7 +146,9 @@ for(const kind of kinds)for(const [action,relative] of [['move_back',Math.PI],['
   const turn=e.heading-start,cameraTurn=Math.atan2(Math.sin(g.yaw-.7),Math.cos(g.yaw-.7));
   assert(`${kind}: ${action} starts a bounded turn and camera follow`,Math.abs(turn)<=SPECIES[kind].turnSpeed*Math.PI/180*.1+1e-8&&Math.abs(cameraTurn-turn)<1e-6&&Math.abs(turn)>.01);
   if(action==='move_back')assert(`${kind}: back does not backpedal at turn start`,W.position(e).distanceTo(position)<1e-7);
-  for(let i=0;i<24;i++){g.move(1/20);g.updateCamera(1/20);}
+  // Long enough for this body's own turn speed to reach the direction (slow turners take longer), plus a margin.
+  const turnFrames=Math.max(24,Math.ceil((Math.abs(relative)*180/Math.PI/SPECIES[kind].turnSpeed-.1)*20)+8);
+  for(let i=0;i<turnFrames;i++){g.move(1/20);g.updateCamera(1/20);}
   const moved=W.position(e).distanceTo(position);
   assert(`${kind}: ${action} body and camera reach the requested direction`,Math.cos(e.heading-start-relative)>.999&&Math.cos(g.yaw-.7-relative)>.999&&moved>.01);
   const settledYaw=g.yaw,settledHeading=e.heading;
@@ -248,7 +250,9 @@ assert('rock -> grass, back to the smallest scale (W-05)',go('grass-island-0-1')
 """)
 load()
 passed += run(r"""
-// Exercise both modes for every configured body, including terrain carriers.
+// Exercise both modes for every configured body, including terrain carriers. Body motion is
+// off here so the eye sits exactly at its configured offset (motion is checked separately).
+const motionScale=TUNING.firstPersonMotionScale.value;TUNING.firstPersonMotionScale.value=0;
 const kinds=Object.keys(SPECIES),toggle=()=>{g.paused=false;const changed=g.toggleView();g.paused=true;return changed;};
 for(const kind of kinds){
   const e=W.entities.find(e=>e.kind===kind);take(e.id);step(45);
@@ -261,7 +265,7 @@ for(const kind of kinds){
   const look=g.camera.getWorldDirection(g.camera.position.clone()),forward=g.camera.position.clone().set(-Math.sin(g.yaw)*Math.cos(g.pitch),-Math.sin(g.pitch),-Math.cos(g.yaw)*Math.cos(g.pitch));
   assert(`${kind}: first-person look follows mouse angles`,look.dot(forward)>.999);
   if(kind==='dog')assert('first-person dog is monochrome (B-04)',g.view.grayscale===1&&g.renderer.domElement.style.filter.startsWith('grayscale(1)'));
-  if(SPECIES[kind].category==='fish')assert(`${kind}: first-person tint visible`,Number(document.getElementById('perception-tint').style.opacity)>.3);
+  if(vision.tint)assert(`${kind}: first-person tint at its configured strength`,Math.abs(Number(document.getElementById('perception-tint').style.opacity)-(vision.tintOpacity??.32))<.002);
   assert(`${kind}: V returns to third-person`,toggle());step(45);
   assert(`${kind}: third-person restores own mesh and removes tint`,e.visual.visible&&g.view.grayscale===0&&Number(document.getElementById('perception-tint').style.opacity)===0);
 }
@@ -294,6 +298,7 @@ toggle();step(45);
 take('gull-0');toggle();step(45);const y=g.player.root.position.y;g.pitch=-.4;g.actions.add('move_forward');step(30);g.actions.clear();
 assert('first-person bird climbs along its look direction',g.player.root.position.y>y+2);
 toggle();step(45);
+TUNING.firstPersonMotionScale.value=motionScale;
 """)
 load()
 passed += run(r"""
@@ -482,11 +487,11 @@ take('human-first');const left=bird.root.position.clone();step(Math.floor(resume
 assert('a released body rests, then rejoins its route',rest<.01&&bird.root.position.distanceTo(left)>2,rest.toFixed(3));
 """)
 # Bodies turned against a scenery trunk or a solid box can leave it, and recovery clears
-# trunks (M-02, M-06).
+# trunks (M-02, M-06). Only rocks wade, standing on the bed (M-04, D-036).
 load()
 passed += run(r"""
-const {checkTrunkTurnEscape,checkTurnEscapeAllKinds,checkReefCollisionFitsModel}=await import('./tests/collision-regressions.js');
-checkReefCollisionFitsModel(g,assert);checkTrunkTurnEscape(g,assert);checkTurnEscapeAllKinds(g,assert);
+const {checkTrunkTurnEscape,checkTurnEscapeAllKinds,checkWading,checkReefCollisionFitsModel}=await import('./tests/collision-regressions.js');
+checkReefCollisionFitsModel(g,assert);checkTrunkTurnEscape(g,assert);checkTurnEscapeAllKinds(g,assert);checkWading(g,assert);
 """)
 # D-035: an old sea-archipelago save and an unreadable current save must not block a new
 # river-island journey or leak old coordinates into it. Load without clearing these saves.
@@ -507,6 +512,25 @@ load()
 passed += run(r"""
 const {checkSaveMigration,checkAmbientCollision}=await import('./tests/ambient-regressions.js');
 checkSaveMigration(g,assert);checkAmbientCollision(g,assert);
+""")
+# First-person senses of the gull and the two fish: colours, own water, lens, body motion,
+# raised gaze, turn speeds, hearing from the body and the underwater sound bed.
+load()
+passed += run(r"""
+const {checkFirstPersonSenses}=await import('./tests/first-person-regressions.js');
+checkFirstPersonSenses(g,assert);
+""")
+# Under water: bed dressing in the water, surfaces drawn from below, fog and effects from data.
+load()
+passed += run(r"""
+const {checkUnderwater}=await import('./tests/underwater-regressions.js');
+checkUnderwater(g,assert);
+""")
+# D-037: fish in the oxbow lake and both ponds keep swimming inside their own water.
+load()
+passed += run(r"""
+const {checkFishHabitats}=await import('./tests/fish-habitat-regressions.js');
+checkFishHabitats(g,assert);
 """)
 # Sound: starts with the first click and stays reachable while paused (A-02).
 load()

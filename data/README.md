@@ -27,7 +27,7 @@
 - `body.limbSwingRate`：有四肢的占位模型（人、狗）走动时的摆动速率（弧度／秒）；没有时不摆动。
 - `activityRegion`：飞行身体所在的空域，指向 `anchors.json` 中带 `center`、`radius`、`maxY`、`minClearanceM` 的区域；高度上限与 `tuning.json` 的 `flightCeilingM` 一致。新增会飞的种类只需指向一个空域。
 - `scaleTier` 是魂穿尺度档（`scaleTiers` 中的 S1～S5），魂穿关系由它推导：只能进入本档与相邻档（P-12，D-021），不再手写 `allowedTargets`。`scaleTiers[].referenceSizeM` 是归档参考（身高与体长／翼展取大），超出时写 `scaleTierReason`；`viewLiftEyeHeightM` 是视点抬升阈值（P-15、P-16）。个别例外写 `relationOverrides: {"allow": [...], "deny": [...], "decision": "D-xxx"}`。运行时仍要检查可见、距离、遮挡和准备状态。
-- `cameraModes`：D-029 双视角的默认模式与第三人称共用全彩视觉、FOV；`third_person.followBodyTurn` 为 true，使实际镜头环绕位置与注视方向在同帧跟随身体转角，短按左右也立即响应，位移继续缓动且实际镜头经过避障；同次方向输入固定移动参考，鼠标环视仍能更新它。身体 `camera.firstPerson.eyeOffset` 是根节点局部眼位（米），`hideBody` 控制第一人称隐藏自身视觉模型，岛必须为 false 以保留地形。身体 `perception.vision` 与 `camera.fovDeg` 仅用于第一人称，听觉在两种视角都使用身体档案。
+- `cameraModes`：D-029 双视角的默认模式与第三人称共用全彩视觉、FOV；`third_person.followBodyTurn` 为 true，使实际镜头环绕位置与注视方向在同帧跟随身体转角，短按左右也立即响应，位移继续缓动且实际镜头经过避障；同次方向输入固定移动参考，鼠标环视仍能更新它。身体 `camera.firstPerson.eyeOffset` 是根节点局部眼位（米），`hideBody` 控制第一人称隐藏自身视觉模型，岛必须为 false 以保留地形。身体 `perception.vision` 与 `camera.fovDeg` 仅用于第一人称，听觉在两种视角都使用身体档案。可选字段（2026-11-14）：`vision.tintOpacity` 色层强度（默认 0.32）；`vision.underwaterFog: {color, density, sky}` 第一人称的水下雾色、浓度与天空色；`camera.firstPerson.lens`（`fieldDeg`、`curve`、`round`、`radius`、`fade`、`fadeMax`、`ripple`、`edgeBlur`、`vignette`）第一人称镜头；`camera.firstPerson.motion`（`source: wingbeat` 用 `wingBone`／`bodyBone` 与 `flapBobM`、`flapPitchDeg`、`glideBobM`、`climbGain`、`boostGain`；`source: tailbeat` 用 `headBone`／`spineBone` 与 `swayM`、`swayYawDeg`、`idleGain`、`boostGain`）按模型骨骼动画驱动眼位；`camera.firstPerson.restPitchDeg` 第一人称静止视线（负值抬头，±30° 内）。
 - `turnSpeedDegPerSec`：最大朝向转速（度／秒），初值不变，已接入方向移动与转身。
 - `verticalControl`：`none` 或 `view_direction`（随镜头俯仰升降）。没有跳跃和升降键字段。
 - `collision.solid` 与 `collision.passPolicy`：`go_around`（必须绕行）或 `yield_with_bend`（可以经过但弯折）。
@@ -50,6 +50,7 @@ CSV 为 UTF-8 BOM。计划行中的生成日期、原文件、输入、授权与
 | 同一种类挂多个模型，让个体各不相同 | `asset.variants` | 不用 |
 | 远处用简化模型 | `asset.lod`（变体也可以各有各的 `lod`） | 不用 |
 | 换成片草地、湖底卵石的模型 | `environmentSlots` → `env.meadow`／`env.pebbles` 的 `url`／`variants` | 不用 |
+| 调水草、水底卵石的分布 | `env.waterweeds`／`env.pebbles` 的 `scatter`：`waterDepthM` 是允许的水深范围 `[最浅, 最深]`，`patchM` 是成片的尺度 | 不用 |
 | 新增一种成片装饰（如灌木丛、落叶） | `environmentSlots` 加一个带 `scatter` 的槽 | 不用 |
 | 在世界里多放几个个体、多一片树林 | `anchors.json` → `instances` 或 `scatter` | 不用 |
 | 调雨林的疏密、层次与树种（D-033、D-034） | `env.forest.scatter`：`clumping`（林窗多少与大小）、`layers[]` 每层的 `models`（模型名，见 `vegetation.json`）与 `fallback`（模型缺失时的程序占位）、`heightM`、`spacingM`、`attempts`、`slender`、`leanDeg`、`trunk`（树干半径，模型米）；`lodRangesM` 是三档网格各自画到多远，更远画替身；`blocksBodiesUpToM` 以下高度的身体会被布景树干挡住 | 不用 |
@@ -120,6 +121,7 @@ CSV 为 UTF-8 BOM。计划行中的生成日期、原文件、输入、授权与
 - `"type": "enclosed"`（湖、池塘）：椭圆区域（`shape`、`center`、`radii`）内的平静水面，`surfaceY` 是水面高度（岛的局部坐标），`opacity` 是水面不透明度；可选 `basin: {"depthM", "falloffM": [x, z]}` 让程序占位地形在此挖出湖盆（换成 GLB 地形后湖盆由模型提供）。
 - `"type": "river"`：全局只能有一个（D-030），`levelM` 是河面高度，`minDepthM` 是算作水体的最浅深度；`corridor` 给出河道半宽、长度与岛离岸的距离，两岸雨林据此生成，岛只在河道内漂移。
 - 封闭水体只在湖床低于 `surfaceY` 的地方有水，所以椭圆可以框住整段弯曲的牛轭湖而不淹没内侧沙脊；`look` 设定深水、浅水颜色、清澈度与流向。
+- 可选 `underwater`（2026-11-13，`frontend/src/underwater.js`）：镜头在水下时的样子。`fog`／`fogDensity` 是水下雾色与浓度，`sky` 是透过水看到的天空色，`bedTint`／`bedSand` 是水底沙与淤泥的色调和比例，`caustics`／`causticScaleM` 是水底焦散光斑的强度与网格大小，`shafts`、`motes` 是光柱和悬浮颗粒的强度（颗粒在第一人称近处像白点，2026-11-14 起河流默认 0，即不画）。写在河流上作为所有水体的默认值，封闭水体可以单独覆盖。
 - 主岛地形：`entities.json` 的 `env.world.heightfield` 指向 `project/terrain/river_island.py` 在 Blender 中生成的高度场与地表分层权重图（沙、湿泥、草、龟裂泥，其余为落叶层）；装饰槽可用 `groundLayer`（序号或 `litter`）只长在某一层上。改地形时改脚本参数后重新生成，再把 `island-terrain.json` 中的网格、尺寸与高度范围抄回 `heightfield`。
 
 游泳身体的活动区、水面渲染、镜头是否在水下、岛面拾取都读这些数据。新增一个湖只需在 `regions` 加一个带 `water` 的区域；之后仍要验证鱼的活动边界、出生点、布景和湖盆深度是否让鱼游得开（鱼需要水深超过身高 1.2 倍）。

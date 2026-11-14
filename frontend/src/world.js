@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { SPECIES, TUNING, LAYOUT, WATERS, inRegion, mulberry32, layerOf } from './species.js';
-import { makeRock, understoryModels, forestTemplates } from './assets.js';
+import { understoryModels, forestTemplates } from './assets.js';
 import { TerrainChunks, groundMaterial, loadHeightfield } from './terrain.js';
 import { waterMaterial, heightTexture } from './water.js';
 import { createBanks } from './banks.js';
 import { LodField } from './vegetation.js';
 import { fireflies } from './sky.js';
+import { underwaterLook, waterShading, createWaterweeds, createPebbles, UnderwaterFx } from './underwater.js';
 import { AmbientMotion } from './ambient.js';
 
 // The river follows a very large sphere: a drifting island tilts a little, while the
@@ -35,7 +36,7 @@ export function terrainHeight(x,z){
 function createTerrain(shared){
   if(FIELD){
     const layers=FIELD.desc.layers||[];
-    return new TerrainChunks(FIELD,terrainHeight,groundMaterial(FIELD,layers,shared));
+    return new TerrainChunks(FIELD,terrainHeight,groundMaterial(FIELD,layers,shared,waterShading(PLANET_RADIUS)));
   }
   const geo=new THREE.PlaneGeometry(960,820,190,164);geo.rotateX(-Math.PI/2);
   const p=geo.attributes.position,colors=[];
@@ -213,18 +214,22 @@ export class World {
     this.islandRoot.updateWorldMatrix(true,true);
     const river=WATERS.find(r=>r.water.type==='river');this.river=river;this.seaLevel=river.water.levelM;this.shared.waterLevel.value=this.seaLevel;
     const heights=FIELD?heightTexture(FIELD):null,enclosed=WATERS.filter(r=>r.water.type==='enclosed');
-    this.waterMat=waterMaterial({...river.water.look,level:this.seaLevel,holes:enclosed.map(r=>[...r.center,...r.radii])},this.shared,FIELD,heights);
+    this.waterMat=waterMaterial({...river.water.look,level:this.seaLevel,holes:enclosed.map(r=>[...r.center,...r.radii]),uwColor:'#'+underwaterLook(river.id).fogColor.getHexString()},this.shared,FIELD,heights);
     const corridor=river.corridor||{lengthM:12000,halfWidthM:1200};
     const waterGeo=new THREE.PlaneGeometry(corridor.lengthM+3000,2*corridor.halfWidthM+1400,Math.round((corridor.lengthM+3000)/60),Math.round((2*corridor.halfWidthM+1400)/60));waterGeo.rotateX(-Math.PI/2);
     const p=waterGeo.attributes.position;for(let i=0;i<p.count;i++){const r2=p.getX(i)**2+p.getZ(i)**2;p.setY(i,Math.sqrt(Math.max(0,PLANET_RADIUS**2-r2))-PLANET_RADIUS+this.seaLevel);}waterGeo.computeVertexNormals();
     this.sea=new THREE.Mesh(waterGeo,this.waterMat);this.sea.position.y=PLANET_RADIUS;this.sea.renderOrder=2;this.planetRoot.add(this.sea);
+    this.waterBodyIds=enclosed.map(r=>r.id);
     this.waterBodies=enclosed.map(r=>{
-      const mesh=new THREE.Mesh(new THREE.CircleGeometry(1,96),waterMaterial({...r.water.look,level:r.water.surfaceY},this.shared,FIELD,heights));mesh.rotation.x=-Math.PI/2;
+      const mesh=new THREE.Mesh(new THREE.CircleGeometry(1,96),waterMaterial({...r.water.look,level:r.water.surfaceY,uwColor:'#'+underwaterLook(r.id).fogColor.getHexString()},this.shared,FIELD,heights));mesh.rotation.x=-Math.PI/2;
       mesh.scale.set(r.radii[0],r.radii[1],1);mesh.position.set(r.center[0],r.water.surfaceY,r.center[1]);mesh.renderOrder=2;this.islandRoot.add(mesh);return mesh;
     });
     // Rainforest walls along both banks, in the river's curved frame.
     this.banks=createBanks({halfWidth:corridor.halfWidthM,length:corridor.lengthM},(x,z,h)=>new THREE.Vector3(x,Math.sqrt(Math.max(0,PLANET_RADIUS**2-x*x-z*z))+this.seaLevel+h,z),assets.vegetation);
     this.planetRoot.add(this.banks);
+    // Under water: light shafts and drifting motes around the eye; the sky takes the water's colour.
+    this.underwaterFx=new UnderwaterFx(this.shared,underwaterLook(river.id));scene.add(this.underwaterFx);
+    atmosphere.skyUniforms?.underwaterColor?.value.copy(underwaterLook(river.id).skyColor);
     this.populate();this.createDecor();this.createRipples();
     this.ready=this.loadEnvironment();scene.updateMatrixWorld(true);
   }
@@ -307,16 +312,8 @@ export class World {
       }else if(slot.placeholder==='procedural:forest'){object=createForest(slot,(x,z)=>this.surfaceOf(carrier,x,z),this.obstacles,this.bodyGrid(carrier,16),this.assets.vegetation);this.obstacleBodyHeight=slot.scatter.blocksBodiesUpToM??0;procedural=true;
       }else if(slot.placeholder==='procedural:understory'){object=createUnderstory(slot,(x,z)=>this.surfaceOf(carrier,x,z),this.assets.vegetation);procedural=true;
       }else if(slot.placeholder==='procedural:blades'){object=createBlades(slot.scatter,slot.placeholderStyle,(x,z)=>this.surfaceOf(carrier,x,z));procedural=true;}
-      else if(slot.placeholder==='procedural:pebble'){
-        object=new THREE.Group();procedural=true;const r=mulberry32(slot.scatter.seed??500);
-        for(const area of slot.scatter.areas)for(let i=0;i<area.count;i++){
-          const x=area.center[0]+(r()-.5)*area.size[0],z=area.center[1]+(r()-.5)*area.size[1],y=this.height(x,z);
-          const pool=this.water(x,z);
-          if(!scatterAllows(slot.scatter,x,y,z)||
-             ((area.waterType||slot.scatter.waterType)&&pool?.type!==(area.waterType||slot.scatter.waterType)))continue;
-          const rock=makeRock(i+500,.15+r()*.45);rock.position.set(x,y,z);object.add(rock);
-        }
-      }
+      else if(slot.placeholder==='procedural:pebble'){object=createPebbles(slot,this);procedural=true;}
+      else if(slot.placeholder==='procedural:waterweed'){object=createWaterweeds(slot,this);procedural=true;}
       if(object){carrier.root.add(object);this.decor.push({slot,object,procedural});}
     }
   }
@@ -356,6 +353,20 @@ export class World {
     if(!river)return null;
     const surface=-(x*x+z*z)/(2*PLANET_RADIUS)+river.water.levelM;
     return floor<surface-river.water.minDepthM?{id:river.id,type:'river',surface,floor}:null;
+  }
+  // Colour the underside of the water mirrors when seen from below (the water the eye is in).
+  setUnderwaterColor(color){this.waterMat.uniforms.uwColor.value.copy(color);for(const m of this.waterBodies)m.material.uniforms.uwColor.value.copy(color);}
+  // How the water looks from inside, for the body of water the eye is in (river by default).
+  underwaterLook(id=null){return underwaterLook(id);}
+  // Depth of the water drawn over a point (0 on dry ground). Unlike water(), the shallow river
+  // margin counts too, so wading limits match the water the player sees.
+  waterDepth(x,z){
+    const floor=this.height(x,z);let river=null;
+    for(const r of WATERS){
+      if(r.water.type==='river')river=r;
+      else if(inRegion(r.id,x,z)&&floor<r.water.surfaceY)return r.water.surfaceY-floor;
+    }
+    return river?Math.max(0,-(x*x+z*z)/(2*PLANET_RADIUS)+river.water.levelM-floor):0;
   }
   height(x,z){
     let result=terrainHeight(x,z);
@@ -443,14 +454,23 @@ export class World {
         const far=d.object.userData.drawDistance**2;for(const m of d.object.userData.cells)m.visible=m.userData.center.distanceToSquared(localEye)<far;
       }
     }
-    this.sea.visible=!this.scene.userData.underwater;
-    for(const w of this.waterBodies)w.visible=!this.scene.userData.underwater;
+    // Water surfaces stay drawn from below too (their shader shows the underside).
+    if(localEye&&this.underwaterFx){
+      const under=!!this.scene.userData.underwater,pool=under?this.water(localEye.x,localEye.z):null;
+      const enclosed=pool?.type==='enclosed',level=enclosed?pool.surface:-(localEye.x**2+localEye.z**2)/(2*PLANET_RADIUS)+this.seaLevel;
+      const surfaceY=under?this.islandRoot.localToWorld(new THREE.Vector3(localEye.x,level,localEye.z)).y:0;
+      this.underwaterFx.update(eye,under,surfaceY,this.underwaterLook(enclosed?pool.id:null));
+      this.waterMat.uniforms.below.value=under&&!enclosed?1:0;
+      this.waterBodies.forEach((m,i)=>{m.material.uniforms.below.value=enclosed&&pool.id===this.waterBodyIds[i]?1:0;});
+    }
     // Small bodies are not drawn at large scales; their state is kept (W-06).
     const hideBelow=stage-(TUNING.scaleHideBelowStageOffset?.value??1);
     for(const e of this.entities){
       const s=SPECIES[e.kind];
       if(e.visual)e.visual.visible=e===player||s.stage>=hideBelow;
       if(this.firstPersonBodies?.includes(e)&&s.firstPerson?.hideBody)e.visual.visible=false;
+      // A body hidden for first person still drives its animation (the eye follows its wingbeat or tail).
+      if(e.visual&&!e.visual.visible&&e===player){e.visual.userData.moving=e.animationMoving??e.moving;e.visual.userData.boosting=e.moving&&e.boosting;e.visual.userData.movementRatio=e.movementRatio;e.visual.userData.swimming=e.swimming;}
       if(!e.visual||!e.visual.visible)continue;
       const v=e.visual;
       if(v.userData.sway)v.rotation.z=Math.sin(t*.9+e.seed)*v.userData.sway;

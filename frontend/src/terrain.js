@@ -142,9 +142,11 @@ export class TerrainChunks extends THREE.Group {
 
 // --- Ground material: five tiling layers blended by the weight map and by each layer's own
 // height (from its colour), with seasonal dryness and rain wetness. Built on the standard
-// material, so lights, shadows and fog behave as everywhere else.
+// material, so lights, shadows and fog behave as everywhere else. Below the water line
+// (`water`, see underwater.js) the ground becomes a matte bed of sand and silt under moving
+// caustics, instead of glossy wet mud that catches the sun.
 const LAYER_NAMES=['sand','mud','grass','cracked','litter'];
-export function groundMaterial(field,layers,uniforms){
+export function groundMaterial(field,layers,uniforms,water=null){
   const loader=new THREE.TextureLoader();
   const load=(url,color)=>{const t=loader.load(url);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;t.colorSpace=color?THREE.SRGBColorSpace:THREE.NoColorSpace;return t;};
   const byName=Object.fromEntries(layers.map(l=>[l.name,l]));
@@ -155,6 +157,12 @@ export function groundMaterial(field,layers,uniforms){
     tiles:{value:maps.map(m=>m.tile)},roughs:{value:maps.map(m=>m.rough)},
     ...Object.fromEntries(maps.flatMap((m,i)=>[[`diff${i}`,{value:m.diff}],[`nor${i}`,{value:m.nor}]])),
     dryness:uniforms.dryness,wetness:uniforms.wetness,waterLevel:uniforms.waterLevel,
+    uwTime:uniforms.time,uwSun:uniforms.sunDir,uwRain:uniforms.rain,
+    uwRiver:{value:water?.riverLevel??-1e4},uwPlanet:{value:water?.planetRadius??1e5},
+    uwPools:{value:[0,1,2,3].map(i=>new THREE.Vector4(...(water?.pools[i]||[0,0,1,1]).slice(0,4)))},
+    uwPoolY:{value:[0,1,2,3].map(i=>water?.pools[i]?.[4]??-1e4)},uwPoolCount:{value:water?.pools.length??0},
+    uwBed:{value:water?.look.bedColor.clone()??new THREE.Color(1,1,1)},uwSand:{value:water?.look.bedSand??0},
+    uwCaustics:{value:water?.look.caustics??0},uwCausticScale:{value:water?.look.causticScaleM??1.8},
   };
   mat.onBeforeCompile=shader=>{
     Object.assign(shader.uniforms,u);
@@ -164,11 +172,30 @@ vLocal=position;vWorldN=normalize(mat3(modelMatrix)*normal);vWorldT=normalize(ma
 uniform sampler2D groundMap;uniform vec2 fieldSize;uniform float tiles[5];uniform float roughs[5];uniform float dryness;uniform float wetness;uniform float waterLevel;
 uniform sampler2D diff0;uniform sampler2D diff1;uniform sampler2D diff2;uniform sampler2D diff3;uniform sampler2D diff4;
 uniform sampler2D nor0;uniform sampler2D nor1;uniform sampler2D nor2;uniform sampler2D nor3;uniform sampler2D nor4;
+uniform float uwTime;uniform vec3 uwSun;uniform float uwRain;uniform float uwRiver;uniform float uwPlanet;
+uniform vec4 uwPools[4];uniform float uwPoolY[4];uniform int uwPoolCount;uniform vec3 uwBed;uniform float uwSand;uniform float uwCaustics;uniform float uwCausticScale;
 float gHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float gNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(gHash(i),gHash(i+vec2(1,0)),f.x),mix(gHash(i+vec2(0,1)),gHash(i+vec2(1,1)),f.x),f.y);}
 vec2 gRot(vec2 p){return mat2(.8,-.6,.6,.8)*p*.43+vec2(.37,.71);}
 // Two differently rotated and scaled lookups, mixed by slow noise, hide the tile grid.
 vec3 gSample(sampler2D t,vec2 uv,float mixer){return mix(texture2D(t,uv).rgb,texture2D(t,gRot(uv)).rgb,mixer);}
+// Water standing over a point: the river (its surface follows the curved river frame) or an
+// enclosed body whose ellipse contains it.
+float uwDepth(vec3 p){
+  float d=uwRiver-dot(p.xz,p.xz)/(2.*uwPlanet)-p.y;
+  for(int i=0;i<4;i++){if(i>=uwPoolCount)break;vec2 q=(p.xz-uwPools[i].xy)/uwPools[i].zw;if(dot(q,q)<1.)d=max(d,uwPoolY[i]-p.y);}
+  return d;
+}
+// Caustics: the bright net that a rippled surface focuses on the bed (two drifting cell layers).
+float uwCells(vec2 p,float t){
+  vec2 i=floor(p),f=fract(p);float d1=8.,d2=8.;
+  for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 g=vec2(x,y),h=vec2(gHash(i+g),gHash(i+g+5.3));float d=length(g+.5+.42*sin(t+6.283*h)-f);if(d<d1){d2=d1;d1=d;}else if(d<d2)d2=d;}
+  return d2-d1;
+}
+float uwCaustic(vec2 p,float t){
+  float a=uwCells(p,t),b=uwCells(p*1.37+vec2(4.1,2.3),t*1.21);
+  return pow(1.-smoothstep(0.,.2,a),2.)*.6+pow(1.-smoothstep(0.,.2,b),2.)*.4;
+}
 `+shader.fragmentShader
       .replace('#include <map_fragment>',`
 vec2 gp=vec2(vLocal.x,-vLocal.z);
@@ -194,7 +221,18 @@ gCol*=.86+.28*gMacro;
 float shoreWet=1.-smoothstep(.05,.9,vLocal.y-waterLevel);
 float wet=clamp(max(shoreWet,wetness*(.55+.45*gNoise(gp*.08))),0.,1.);
 gCol*=mix(1.,.62,wet);gRough=mix(gRough,.32,wet*(1.-ww[0]*.5));
+// Under water: sand and silt in soft ripples, matte, lit by caustics where the sun reaches.
+float uwD=uwDepth(vLocal),uwSub=smoothstep(0.,.3,uwD),uwCau=0.;
+if(uwD>0.){
+  float rip=.9+.1*sin(dot(gp,vec2(.83,.55))*4.+gNoise(gp*.35)*5.);
+  vec3 bedCol=mix(cc[0],cc[1],.35+.3*gNoise(gp*.07))*uwBed*rip;
+  gCol=mix(gCol,bedCol,uwSub*uwSand);gRough=mix(gRough,.92,uwSub);
+  float sunUp=smoothstep(-.02,.25,uwSun.y)*(1.-uwRain*.6);
+  uwCau=uwSub*uwCaustics*sunUp*exp(-uwD*.25)*smoothstep(90.,25.,length(vViewPosition))*uwCaustic(gp/uwCausticScale,uwTime*.8);
+}
 diffuseColor.rgb*=gCol;`)
+      .replace('#include <lights_fragment_end>',`#include <lights_fragment_end>
+reflectedLight.directDiffuse*=1.+uwCau*1.6;`)
       .replace('#include <roughnessmap_fragment>','float roughnessFactor=gRough;')
       .replace('#include <normal_fragment_maps>',`
 vec3 nn=vec3(0.);
@@ -207,6 +245,6 @@ nn.xy*=mix(1.15,.25,gFar)*mix(1.,.5,wet);
 vec3 nW=normalize(vWorldT*nn.x+vWorldB*nn.y+normalize(vWorldN)*max(nn.z,.2));
 normal=normalize((viewMatrix*vec4(nW,0.)).xyz);`);
   };
-  mat.customProgramCacheKey=()=>'ground-v1';
+  mat.customProgramCacheKey=()=>'ground-v2';
   return mat;
 }

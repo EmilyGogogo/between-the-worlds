@@ -220,6 +220,28 @@ def main():
         check(len(offset) == 3 and all(isinstance(v, (int, float)) and math.isfinite(v) for v in offset), f'{e["id"]}: invalid first-person eye')
         check(0 < offset[1] <= e['body']['height'], f'{e["id"]}: eye must lie within body height')
         check(first['hideBody'] == (e['category'] != 'island'), f'{e["id"]}: first-person visibility must preserve island terrain')
+        # First-person senses (2026-11-14): lens, body motion, resting gaze, own water colour.
+        isnum = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
+        hexcol = lambda c: isinstance(c, str) and len(c) == 7 and c.startswith('#')
+        lens = first.get('lens')
+        if lens is not None:
+            check(isnum(lens.get('fieldDeg')) and 30 <= lens['fieldDeg'] <= 170, f'{e["id"]}: lens.fieldDeg must be 30-170')
+            for k, lo, hi in [('curve', 0, 1), ('round', 0, 1), ('radius', .5, 4), ('fade', 0, 1), ('fadeMax', 0, 1), ('ripple', 0, .2), ('edgeBlur', 0, 1), ('vignette', 0, 1)]:
+                check(lens.get(k) is None or (isnum(lens[k]) and lo <= lens[k] <= hi), f'{e["id"]}: lens.{k} must be {lo}-{hi}')
+        rest = first.get('restPitchDeg')
+        check(rest is None or (isnum(rest) and -30 <= rest <= 30), f'{e["id"]}: restPitchDeg must be within +-30')
+        motion = first.get('motion')
+        if motion is not None:
+            check(motion.get('source') in {'wingbeat', 'tailbeat'}, f'{e["id"]}: motion.source must be wingbeat or tailbeat')
+            bones = ['wingBone', 'bodyBone'] if motion.get('source') == 'wingbeat' else ['headBone', 'spineBone']
+            check(all(isinstance(motion.get(b), str) and motion[b] for b in bones), f'{e["id"]}: motion needs {bones}')
+            check(all(isnum(v) and v >= 0 for k, v in motion.items() if k not in bones + ['source', 'note']), f'{e["id"]}: motion amounts must be non-negative numbers')
+        vision = e['perception']['vision']
+        check(vision.get('tintOpacity') is None or (isnum(vision['tintOpacity']) and 0 <= vision['tintOpacity'] <= 1), f'{e["id"]}: vision.tintOpacity must be 0-1')
+        fog = vision.get('underwaterFog')
+        if fog is not None:
+            check(hexcol(fog.get('color')) and (fog.get('sky') is None or hexcol(fog['sky'])) and isnum(fog.get('density')) and 0 < fog['density'] <= .3,
+                  f'{e["id"]}: vision.underwaterFog needs #rrggbb color (and sky) and density in (0, 0.3]')
 
     # Input (D-007, D-035)
     inputs = read_json('input-map.json')
@@ -251,6 +273,15 @@ def main():
         for k in ['deep', 'shallow']:
             c = w.get('look', {}).get(k)
             check(c is None or (isinstance(c, str) and len(c) == 7 and c.startswith('#')), f'{r["id"]}: water colour {k} must be #rrggbb')
+        # How the water looks from inside (underwater.js): colours and non-negative amounts.
+        under = w.get('underwater')
+        if under is not None:
+            for k in ['fog', 'sky', 'bedTint']:
+                c = under.get(k)
+                check(c is None or (isinstance(c, str) and len(c) == 7 and c.startswith('#')), f'{r["id"]}: underwater {k} must be #rrggbb')
+            for k, hi in [('fogDensity', 0.3), ('caustics', 3), ('causticScaleM', 20), ('bedSand', 1), ('shafts', 2), ('motes', 2)]:
+                v = under.get(k)
+                check(v is None or (num(v) and 0 <= v <= hi), f'{r["id"]}: underwater {k} must be in [0, {hi}]')
         if w.get('type') == 'enclosed':
             check(r.get('shape') == 'ellipse' and len(r.get('center', [])) == 2 and len(r.get('radii', [])) == 2 and all(num(v) and v > 0 for v in r.get('radii', [])),
                   f'{r["id"]}: enclosed water needs an ellipse with center and positive radii')
@@ -287,6 +318,10 @@ def main():
         if slot.get('placeholder') == 'procedural:pebble':
             for area in slot['scatter'].get('areas', []):
                 check(area.get('waterType') in {'river', 'enclosed'}, f'{slot["slotId"]}: pebble areas must name a water type')
+        band = slot['scatter'].get('waterDepthM')
+        if slot.get('placeholder') == 'procedural:waterweed':
+            check(band is not None, f'{slot["slotId"]}: waterweeds need waterDepthM')
+        check(band is None or (len(band) == 2 and all(num(v) for v in band) and 0 <= band[0] < band[1]), f'{slot["slotId"]}: waterDepthM must be [min, max] with 0 <= min < max')
     placed = {i['type'] for i in layout['instances']} | {g['type'] for g in layout['scatter']}
     check(placed == entity_ids, f'Every body type needs individuals in the world: missing {sorted(entity_ids - placed)}')
     for e in entity_list:
