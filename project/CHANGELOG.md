@@ -2,7 +2,13 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
-## 2026-11-13 · 河心岛岩石替换
+## 2026-11-14 · 资产台账不再要求任务 ID，Lux3D 来源统一为 Lux3D_CN
+
+- 负责人：@EmilyGogogo（待人工复核）；关联：PR #18，分支 `asset/river-island-rocks`。
+- AI：Claude Code（Claude Opus 5.5）按创作者在会话中的明确指示修改台账与文档、执行检查；人工复核待完成。
+- 变更与原因：创作者决定 Lux3D 资产今后不再记录任务 ID，来源统一写 `Lux3D_CN`。`data/asset-ledger.csv`：三行岩石（`LUX3D-tidal-reef`、`LUX3D-coastal-boulder`、`LUX3D-rocky-hill`）的 `source` 由 `Aholo Lux3D` 改为 `Lux3D_CN`，`source_reference` 去掉“任务 ID 待补”；海鸥 v001～v003、银斧鱼、七彩神仙鱼去掉“任务 ID”待补项（生成方式、版本与积分仍待补）；三种树与雨林植被行去掉“任务号未留存”，其余来源说明不变。`CONTRIBUTING.md` 去掉“生成任务记录待补”，`project/LICENSES.md` 去掉按时间核对任务号的要求。台账保持 CRLF 换行与 BOM。不改游戏数据、运行时配置、原始产物（`raw/*/task.json` 中的历史记录保留）与历史变更记录；`data/entities.json` 中计划用的 `finalSource: "Aholo Lux3D"` 不属于台账来源，未改。
+- 验证：`python3 project/validate_docs.py` 2028 项通过（47 条资产记录）；`python3 project/check_repository.py --javascript` 216 个文件、0 错误；`python3 -m unittest discover -s project/tests` 通过；`python3 project/check_all.py --output .work/ledger-source-checks` 隔离 Chrome 2099 项通过；`git diff --check` 通过；确认台账工作区仍为 CRLF。
+- 未验证项 / 风险：无游戏行为变化，未进行试玩。
 
 - 负责人：创作者（人工复核待完成）；分支 `asset/river-island-rocks`，基线 `ded4b33`。
 - AI：Codex 复用创作者此前导出的 Aholo Lux3D GLB，核对河床高度，配置资产槽、岸线点位及来源台账。
