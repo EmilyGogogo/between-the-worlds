@@ -12,7 +12,7 @@
 
 - 负责人：@EmilyGogogo（待人工复核）；关联：PR #18，分支 `asset/river-island-rocks`。
 - AI：Claude Code（Claude Opus 5.5）按创作者在会话中的明确指示修改台账与文档、执行检查；人工复核待完成。
-- 变更与原因：创作者决定 Lux3D 资产今后不再记录任务 ID，来源统一写 `Lux3D_CN`。`data/asset-ledger.csv`：三行岩石（`LUX3D-tidal-reef`、`LUX3D-coastal-boulder`、`LUX3D-rocky-hill`）的 `source` 由 `Aholo Lux3D` 改为 `Lux3D_CN`，`source_reference` 去掉“任务 ID 待补”；海鸥 v001～v003、银斧鱼、七彩神仙鱼去掉“任务 ID”待补项（生成方式、版本与积分仍待补）；三种树与雨林植被行去掉“任务号未留存”，其余来源说明不变。`CONTRIBUTING.md` 去掉“生成任务记录待补”，`project/LICENSES.md` 去掉按时间核对任务号的要求。台账保持 CRLF 换行与 BOM。不改游戏数据、运行时配置、原始产物（`raw/*/task.json` 中的历史记录保留）与历史变更记录；`data/entities.json` 中计划用的 `finalSource: "Aholo Lux3D"` 不属于台账来源，未改。
+- 变更与原因：创作者决定 Lux3D 资产今后不再记录任务 ID，来源统一写 `Lux3D_CN`。`data/asset-ledger.csv`：三行岩石（`LUX3D-tidal-reef`、`LUX3D-coastal-boulder`、`LUX3D-rocky-hill`）的 `source` 由 `Aholo Lux3D` 改为 `Lux3D_CN`，`source_reference` 去掉“任务 ID 待补”；海鸥 v001～v003、银斧鱼、七彩神仙鱼去掉“生成方式、任务 ID、版本与积分待生成人补充”，改为“Lux3D 国内版网页 lux3d.aholo3d.cn 生成（见 raw/vNNN/task.json）”（按创作者后续指示，生成方式、版本与积分也不再要求补充）；三种树与雨林植被行去掉“任务号未留存”，其余来源说明不变。`CONTRIBUTING.md` 去掉“生成任务记录待补”，`project/LICENSES.md` 去掉按时间核对任务号的要求。台账保持 CRLF 换行与 BOM。不改游戏数据、运行时配置、原始产物（`raw/*/task.json` 中的历史记录保留）与历史变更记录；`data/entities.json` 中计划用的 `finalSource: "Aholo Lux3D"` 不属于台账来源，未改。
 - 验证：`python3 project/validate_docs.py` 2028 项通过（47 条资产记录）；`python3 project/check_repository.py --javascript` 216 个文件、0 错误；`python3 -m unittest discover -s project/tests` 通过；`python3 project/check_all.py --output .work/ledger-source-checks` 隔离 Chrome 2099 项通过；`git diff --check` 通过；确认台账工作区仍为 CRLF。
 - 未验证项 / 风险：无游戏行为变化，未进行试玩。
 
