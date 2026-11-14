@@ -91,3 +91,23 @@ export function checkTurnEscapeAllKinds(g,assert){
     C.refresh();g.snapCamera=true;g.updateCamera(0);
   }
 }
+
+// Shore reefs use hand-fitted boxes: their union must match the fitted model (no invisible wall
+// above a 0.95 m reef), and the stacked boxes leave the low side of the reef open above it.
+export function checkReefCollisionFitsModel(g,assert){
+  const reefs=g.world.entities.filter(e=>e.kind==='rock'&&e.visual?.userData.external&&e.visual.userData.collisionBoxes?.length);
+  assert('reef collision fixture finds externally modelled reefs',reefs.length>0,reefs.length);
+  const misfit=[];
+  for(const reef of reefs){
+    const model=reef.visual.userData.localBounds,boxes=g.collision.localBoxes(reef);
+    const all=boxes.reduce((u,b)=>u.union(b),new THREE.Box3());
+    const off=Math.max(Math.abs(all.max.y-model.max.y),Math.abs(all.min.x-model.min.x),Math.abs(all.max.x-model.max.x),Math.abs(all.min.z-model.min.z),Math.abs(all.max.z-model.max.z));
+    if(off>.03||boxes.some(b=>b.max.y>model.max.y+.03))misfit.push(`${reef.id} off ${off.toFixed(2)} m, top ${all.max.y.toFixed(2)} vs model ${model.max.y.toFixed(2)}`);
+    // tidal-reef v001 only rises above 0.6 m on its +X/-Z side; the opposite corner stays open.
+    if(/tidal-reef-v001/.test(reef.visual.userData.variant)){
+      const open=new THREE.Vector3(model.min.x+.3,model.max.y*.8,model.max.z-.3);
+      if(boxes.some(b=>b.containsPoint(open)))misfit.push(`${reef.id} blocks the open low corner`);
+    }
+  }
+  assert('reef collision boxes fit the visible reef model (M-01)',misfit.length===0,misfit.slice(0,3).join('; '));
+}

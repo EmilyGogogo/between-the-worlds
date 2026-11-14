@@ -485,8 +485,8 @@ assert('a released body rests, then rejoins its route',rest<.01&&bird.root.posit
 # trunks (M-02, M-06).
 load()
 passed += run(r"""
-const {checkTrunkTurnEscape,checkTurnEscapeAllKinds}=await import('./tests/collision-regressions.js');
-checkTrunkTurnEscape(g,assert);checkTurnEscapeAllKinds(g,assert);
+const {checkTrunkTurnEscape,checkTurnEscapeAllKinds,checkReefCollisionFitsModel}=await import('./tests/collision-regressions.js');
+checkReefCollisionFitsModel(g,assert);checkTrunkTurnEscape(g,assert);checkTurnEscapeAllKinds(g,assert);
 """)
 # D-035: an old sea-archipelago save and an unreadable current save must not block a new
 # river-island journey or leak old coordinates into it. Load without clearing these saves.
