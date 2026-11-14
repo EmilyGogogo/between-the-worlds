@@ -101,7 +101,7 @@ export function checkWading(g,assert){
     walkers.map(k=>k+' '+SPECIES[k].wadeDepth).join(', '));
   const startWet=W.entities.filter(e=>walkers.includes(e.kind)&&e.root.parent===W.islandRoot&&e.surfaceOffset!=null&&W.waterDepth(e.root.position.x,e.root.position.z)>SPECIES[e.kind].wadeDepth);
   assert('no ground body starts in water deeper than it may wade',startWet.length===0,startWet.map(e=>e.id).join(', '));
-  // Fixtures: shallow water with dry ground 3 m away, and water deeper than 0.6 m whose bed is above -0.6 m.
+  // Fixtures: shallow water with dry ground 3 m away, and water 0.7–1.2 m deep whose bed is above -0.6 m.
   let shallow=null,dry=null,deep=null;
   for(let x=-560;x<=590&&!(shallow&&deep);x+=2)for(let z=-330;z<=330&&!(shallow&&deep);z+=2){
     const d=W.waterDepth(x,z);
@@ -140,6 +140,22 @@ export function checkWading(g,assert){
         if(deeper)assert(`${kind} standing in ${deepDepth.toFixed(2)} m of water may not go deeper`,!g.allowed(e,s,deeper.x,deeper.z));
         if(shallower)assert(`${kind} standing in ${deepDepth.toFixed(2)} m of water may wade back toward the bank`,g.allowed(e,s,shallower.x,shallower.z));
         assert(`${kind} deep-water fixture finds deeper and shallower neighbours`,Boolean(deeper&&shallower));
+      }
+      // A wader's own limit (coast rock 3 m, D-036): from water just inside it, deeper water beside is refused,
+      // and walking on toward it stops on the bed within the limit.
+      if(s.wadeDepth>0){
+        let edge=null,beyond=null;
+        for(let x=-560;x<=590&&!edge;x+=2)for(let z=-330;z<=330&&!edge;z+=2){
+          const d=W.waterDepth(x,z);if(d<s.wadeDepth-.6||d>s.wadeDepth-.05)continue;
+          for(let a=0;a<16&&!edge;a++){const q={x:x+Math.cos(a*.3927)*2,z:z+Math.sin(a*.3927)*2};if(W.waterDepth(q.x,q.z)>s.wadeDepth+.1){edge={x,z};beyond=q;}}
+        }
+        assert(`${kind} limit fixture finds water just inside ${s.wadeDepth} m beside deeper water`,Boolean(edge));
+        if(edge){
+          W.restore(snapshot);e.root.position.set(edge.x,W.height(edge.x,edge.z),edge.z);
+          assert(`${kind} in ${W.waterDepth(edge.x,edge.z).toFixed(2)} m of water may not step into ${W.waterDepth(beyond.x,beyond.z).toFixed(2)} m (wade ${s.wadeDepth} m)`,!g.allowed(e,s,beyond.x,beyond.z));
+          const on={x:edge.x+(beyond.x-edge.x)*5,z:edge.z+(beyond.z-edge.z)*5},q=drive(e,edge,on,150),qd=W.waterDepth(q.x,q.z);
+          assert(`${kind} walked toward deeper water stops within ${s.wadeDepth} m on the bed`,qd<=s.wadeDepth+1e-6&&Math.abs(q.y-W.height(q.x,q.z))<.02,`depth ${qd.toFixed(2)} y ${q.y.toFixed(3)}`);
+        }
       }
       // Walking from the bank toward the water: it stops at the shore, or wades on the bed.
       const far={x:dry.x+(shallow.x-dry.x)*4,z:dry.z+(shallow.z-dry.z)*4},p=drive(e,dry,far,150);

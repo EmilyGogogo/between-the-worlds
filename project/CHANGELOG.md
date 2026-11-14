@@ -2,6 +2,14 @@
 
 记录要求与模板见 [CONTRIBUTING](../CONTRIBUTING.md#每次实际修改的变更记录)。每次交付实际修改时更新对应任务条目；新条目置于记录区顶部，同一任务可持续补充，保留他人与历史记录。
 
+## 2026-11-14 · PR #19 创作者审核决定落实：D-036／D-037 确认、海岸岩石涉水保持 3 m、感知档案确认
+
+- 负责人：@EmilyGogogo（创作者，待人工复核）；关联：PR #19，分支 `asset/fish-birds-view-v2`（在 @zora-alt111 的分支上追加提交）。
+- AI：Claude Code（Claude Opus 5.5）按创作者在会话中的明确指示修改数据、文档与测试，并执行检查；人工复核待完成。
+- 变更与原因：创作者在 PR #19 审核中答复四项待定决定：①D-036 确认，按当前代码状态更新——`docs/01-global-rules.md` M-04（MUST）正文改为“岩石可涉入浅水并贴着水底（海岸岩石不超过 3 m 水深），植物与不会游泳的动物只在陆地”，09 记录创作者确认（团队共同确认待填写）；②D-037 同意新增，09 记录创作者确认；③海鸥、银斧鱼、七彩神仙鱼的 `perception.reviewState` 由 `owner_directed_pending_review` 改回 `creator_confirmed`，采用本 PR 的新参数，04 感知表状态改为“艺术表达／创作者已确认（2026-11-14）”，`camera.firstPerson.lens`／`motion` 说明注明创作者确认、观感待试玩；④海岸岩石 `rock_coast_01` 的 `wadeDepthM` 保持 R-08 确认的 3 m（不采用 0.6 m），按 D-036 语义即实际水深 3 m、在水中贴着水底；同步 02、04、05、08 QA-23、09 D-036、11 中的数值。另按审核小问题删除 `audio.js` `mix()` 中已不控制音量的 `cueGain` 字段与过时注释，`first-person-regressions.js` 相应去掉对它的断言（穿过水面的减弱仍由 `cueCarry` 断言覆盖）。`collision-regressions.js` `checkWading` 新增涉水上限检查：原深水取点只有 0.7～1.2 m，对 3 m 的岩石不再触及上限，现另找“上限内 0.05～0.6 m 的水、2 m 外深于上限 0.1 m 以上”的一对点，断言不能踏入更深处、向深处走 150 帧后仍在上限内且贴着水底。重新运行 `project/sync_runtime.py` 生成 `game.json`。
+- 验证（2026-11-14，macOS、本机隔离 Chrome）：`python3 project/check_all.py --output .work/pr19-check` 通过：2253 项文档／数据检查、2238 项浏览器检查，含“rock in 2.90 m of water may not step into 3.10 m (wade 3 m)”“rock walked toward deeper water stops within 3 m on the bed”及草、树、狗不下水各项；`python3 project/check_repository.py --javascript`（Node.js v24.22.2）221 个文件 0 错误；`git diff --check` 通过。
+- 未验证项 / 风险：真人试玩未做——岩石在 3 m 水中整体没入水下的观感与操作、岸边停住的手感；团队共同确认仍待填写。岩石的“已在超限深水中只能变浅”检查因取点只有 0.77 m 而不再对岩石运行（草、树、狗仍覆盖）。
+
 ## 2026-11-14 · 海岸礁石碰撞盒贴合 0.95 m 模型
 
 - 负责人：@EmilyGogogo（待人工复核）；关联：PR #18，分支 `asset/river-island-rocks`。

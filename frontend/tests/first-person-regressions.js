@@ -94,12 +94,12 @@ export function checkFirstPersonSenses(g,assert){
     assert('a fish hears from its own body in the water, even with the camera above it',g.listenerState.underwater&&Ls.underwater&&Ls.water===1,`camera under water: ${g.scene.userData.underwater}`);
     assert('under water the wind and leaves give way to the water bed',Ls.wind<=hs.windGain*TUNING.underwaterAirGain.value*1.2&&Ls.drone>0);
     assert('just below the surface the lapping is heard',g.listenerState.surface>.5&&Ls.lap>0,g.listenerState.surface);
-    assert('under water calls are filtered like the bed and arrive faint',Ls.cueCutoff===Ls.cutoff&&Ls.cutoff===hs.underwaterLowpassHz&&Ls.cueGain===TUNING.underwaterAirCueGain.value);
+    assert('under water calls are filtered like the bed',Ls.cueCutoff===Ls.cutoff&&Ls.cutoff===hs.underwaterLowpassHz);
     // Only sounds crossing the surface are faint: a fish hears another fish at full level, a gull faintly.
     const otherFish=W.entities.find(b=>b!==silver&&SPECIES[b.kind].mode==='swim'&&g.sourceInWater(b));
     assert('under water a fish hears another fish at full level, a bird above faintly',Boolean(otherFish)&&g.cueCarry(g.sourceInWater(otherFish))===1&&g.cueCarry(g.sourceInWater(gull))===TUNING.underwaterAirCueGain.value);
     take(human);g.updateAudio();const La=g.audio.levels;
-    assert('on land calls pass the body hearing at a wider cutoff',!g.listenerState.underwater&&La.water===0&&Math.abs(La.cueCutoff-SPECIES.human.hearing.airLowpassHz*TUNING.cueAirLowpassFactor.value)<1e-6&&La.cueGain===1);
+    assert('on land calls pass the body hearing at a wider cutoff',!g.listenerState.underwater&&La.water===0&&Math.abs(La.cueCutoff-SPECIES.human.hearing.airLowpassHz*TUNING.cueAirLowpassFactor.value)<1e-6);
     assert('on land a sound from under the water arrives faint',g.cueCarry(true)===TUNING.underwaterAirCueGain.value&&g.cueCarry(false)===1);
   }finally{
     TUNING.firstPersonMotionScale.value=saved.motion;TUNING.firstPersonLensScale.value=saved.lens;

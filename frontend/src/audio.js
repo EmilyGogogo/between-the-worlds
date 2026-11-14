@@ -59,7 +59,6 @@ export class Ambience {
       wind:hearing.windGain*air*(1+Math.sin(state.time*.15)*.18),near:.022*hearing.waterCueGain*state.groundFade*air,
       water:u?1:0,drone:t('underwaterDroneGain',.05)*(1+Math.sin(state.time*.09)*.15),
       lap:u?t('underwaterSurfaceLapGain',.03)*(state.surface??0)*(.75+Math.sin(state.time*.7)*.25):0,
-      cueGain:u?t('underwaterAirCueGain',.15):1,
       stroke:u&&state.beat==='stroke'?t('underwaterStrokeGain',.025):0,wing:!u&&state.beat==='wing'?t('wingbeatGain',.008):0};
   }
   // hearing: blended profile; state: {underwater, surface, beat, groundFade, cue:{name,distance,pan}|null, crossfade, time}
@@ -90,7 +89,6 @@ export class Ambience {
     if(state.time-this.lastCue>16&&state.cue){
       this.lastCue=state.time;
       const reach=1-state.cue.distance/hearing.range;
-      // A call from the air reaches a listener under water only faintly.
       // Only a sound crossing the surface is faint; one from the listener's own side keeps its level.
       const carry=(state.cue.fromWater??false)!==L.underwater?this.tune('underwaterAirCueGain',.15):1;
       if(reach>0)this.play(state.cue.name,.022*hearing.distantCueGain*Math.sqrt(reach)*state.groundFade*carry,state.cue.pan);
